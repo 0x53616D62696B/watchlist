@@ -4,3 +4,6 @@
 [submodule "libs/tracy"]
 	path = libs/tracy
 	url = https://github.com/wolfpld/tracy.git
+[submodule "libs/Imgui_Android"]
+	path = libs/Imgui_Android
+	url = https://github.com/sfalexrog/Imgui_Android.git
