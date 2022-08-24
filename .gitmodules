@@ -7,3 +7,6 @@
 [submodule "libs/Imgui_Android"]
 	path = libs/Imgui_Android
 	url = https://github.com/sfalexrog/Imgui_Android.git
+[submodule "libs/thread-pool"]
+	path = libs/thread-pool
+	url = https://github.com/bshoshany/thread-pool.git
