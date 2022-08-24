@@ -57,14 +57,14 @@ message(STATUS "CMAKE_CXX_COMPILER_LAUNCHER: " ${CMAKE_CXX_COMPILER_LAUNCHER})
 
 # multithread_demo
 file(GLOB_RECURSE SRC_MULTITHREAD_DEMO CONFIGURE_DEPENDS src/examples/multithread_demo/*.cpp)
-add_executable(multithread_demo ${SRC_MULTITHREAD_DEMO})
+add_executable(MultithreadDemo ${SRC_MULTITHREAD_DEMO})
 
 # add_executable(multithread_demo src/examples/multithread_demo/multithread_demo.cpp)
 # target_link_libraries(multithread_demo fmt::fmt-header-only)
 
 # watchlist
-file(GLOB_RECURSE SRC_WATCHLIST CONFIGURE_DEPENDS src/watchlist/*.cpp)
-add_executable(watchlist ${SRC_WATCHLIST})
+file(GLOB_RECURSE SRC_WATCHLIST CONFIGURE_DEPENDS src/Watchlist/*.cpp)
+add_executable(Watchlist ${SRC_WATCHLIST})
 
 # target_link_libraries(watchlist fmt::fmt-header-only)
 
