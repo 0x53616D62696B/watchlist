@@ -10,3 +10,15 @@ sudo apt install ninja-build
 sudo apt install ccache
 sudo apt install clang-format
 sudo apt install cppcheck
+
+# Another packages Zdenek is using
+# Clang install
+sudo apt-get install clang
+# CppCheck is available via apt-get:
+sudo apt-get install cppcheck
+
+# FlawFinder is available via pip:
+sudo pip install flawfinder
+
+# lizard is available via pip:
+sudo pip install lizard
