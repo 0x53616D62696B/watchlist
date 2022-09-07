@@ -12,7 +12,7 @@ enter following cmds:
 
     pacman -Syuu
 
-    pacman -S mingw-w64-x86_64-toolchain
+    pacman -S --noconfirm --needed mingw-w64-x86_64-toolchain mingw-w64-x86_64-glfw
 
 ## CMAKE
 
