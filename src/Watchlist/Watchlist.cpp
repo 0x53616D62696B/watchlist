@@ -28,11 +28,7 @@ int main()
 {
     std::cout << "Test" << std::endl;
 
-    struct tasks ten_th;
-    ten_th.start(4);
-    ten_th.queue([]
-                 { foo(1); }
-                 );
+
 
     return EXIT_SUCCESS;
 }

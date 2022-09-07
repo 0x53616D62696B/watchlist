@@ -3,6 +3,35 @@
 #include <mutex>
 #include <string>
 #include <sstream>
+
+
+
+
+
+
+
+class Thread
+{
+  public:
+  Thread(const std::string& name) : mName(name) {}
+  ~Thread() { Stop(); }
+
+  void Stop()
+  {
+    if (not mRunning)
+      return;
+
+    mRunning = false;
+  }
+  private:
+  std::atomic<bool> mRunning = false;
+  //std::mutex mMutex;
+  //std::jthread mThread;
+  std::string mName;
+
+};
+
+/*
 #include "libs/fmt/include/fmt/format.h"
 #include "libs/fmt/include/fmt/chrono.h"
 //#include <fmt/format.h>
@@ -70,3 +99,4 @@ private:
   std::jthread mThread;
   std::string mName;
 };
+*/
