@@ -63,8 +63,8 @@ add_executable(MultithreadDemo ${SRC_MULTITHREAD_DEMO})
 # target_link_libraries(multithread_demo fmt::fmt-header-only)
 
 # watchlist
-file(GLOB_RECURSE SRC_WATCHLIST CONFIGURE_DEPENDS src/Watchlist/*.cpp)
-add_executable(Watchlist ${SRC_WATCHLIST})
+file(GLOB_RECURSE SRC_APPLICATION CONFIGURE_DEPENDS src/Watchlist/*.cpp)
+add_executable(Application ${SRC_APPLICATION})
 
 # target_link_libraries(watchlist fmt::fmt-header-only)
 
