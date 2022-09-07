@@ -8,12 +8,26 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # compiler flags
-set(CXX_FLAGS "-Wall -Werror -Wfatal-errors -Wextra -Wpedantic -Wshadow -Wno-unused-parameter -fopenmp -fvisibility=hidden")
-set(CXX_FLAGS_DEBUG "-g -O0")
-set(CXX_FLAGS_RELEASE "-O3")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_FLAGS}")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} ${CXX_FLAGS_DEBUG}")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${CXX_FLAGS_RELEASE}")
+if(MSVC)
+  add_compile_options(/favor:INTEL64 /arch:SSE /arch:SSE2 /arch:AVX /arch:AVX2 /openmp)
+  add_compile_options(/Wall /WX)
+else()
+  add_compile_options(-march=native -fopenmp -pthread)
+  add_compile_options(-Wall -Werror -Wfatal-errors -Wextra -Wpedantic -Wshadow)
+  add_compile_options(-Wno-unused-parameter -Wno-missing-field-initializers -Wno-unused-function)
+  add_compile_options("$<$<CONFIG:DEBUG>:-g;-O0>")
+  add_compile_options("$<$<CONFIG:RELEASE>:-O3>")
+  add_compile_options("$<$<COMPILE_LANGUAGE:C>:-w>")
+  add_link_options(-fopenmp -pthread)
+endif()
+
+# # Previous compiler flags
+# set(CXX_FLAGS "-Wall -Werror -Wfatal-errors -Wextra -Wpedantic -Wshadow -Wno-unused-parameter -fopenmp -fvisibility=hidden")
+# set(CXX_FLAGS_DEBUG "-g -O0")
+# set(CXX_FLAGS_RELEASE "-O3")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_FLAGS}")
+# set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} ${CXX_FLAGS_DEBUG}")
+# set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${CXX_FLAGS_RELEASE}")
 
 # ignore warnings from libs sources
 file(GLOB_RECURSE SRC_LIBS CONFIGURE_DEPENDS libs/*.h libs/*.hpp libs/*.c libs/*.cpp)
@@ -66,7 +80,34 @@ add_executable(MultithreadDemo ${SRC_MULTITHREAD_DEMO})
 file(GLOB_RECURSE SRC_APPLICATION CONFIGURE_DEPENDS src/Watchlist/*.cpp)
 add_executable(Application ${SRC_APPLICATION})
 
-# target_link_libraries(watchlist fmt::fmt-header-only)
+# implot
+# include_directories(libs/implot)
+# file(GLOB SRC_IMPLOT CONFIGURE_DEPENDS libs/implot/*.cpp)
+# target_sources(shenanigans PRIVATE ${SRC_IMPLOT})
+# target_sources(shenanigans_test PRIVATE ${SRC_IMPLOT})
+# target_sources(shenanigans_terminal PRIVATE ${SRC_IMPLOT})
+# target_sources(shenanigans_benchmark PRIVATE ${SRC_IMPLOT})
+
+# imgui
+# include_directories(libs/imgui)
+# include_directories(libs/imgui/misc/cpp)
+# include_directories(libs/imgui/backends)
+# file(GLOB SRC_IMGUI CONFIGURE_DEPENDS libs/imgui/*.cpp libs/imgui/misc/cpp/imgui_stdlib.cpp)
+# set(SRC_IMGUI_BACKEND libs/imgui/backends/imgui_impl_glfw.cpp libs/imgui/backends/imgui_impl_opengl3.cpp)
+# target_sources(shenanigans PRIVATE ${SRC_IMGUI} ${SRC_IMGUI_BACKEND})
+# target_sources(shenanigans_test PRIVATE ${SRC_IMGUI} ${SRC_IMGUI_BACKEND})
+# target_sources(shenanigans_terminal PRIVATE ${SRC_IMGUI} ${SRC_IMGUI_BACKEND})
+# target_sources(shenanigans_benchmark PRIVATE ${SRC_IMGUI} ${SRC_IMGUI_BACKEND})
+
+# glfw
+# set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+# set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+# set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+# add_subdirectory(libs/glfw)
+# target_link_libraries(shenanigans PRIVATE glfw)
+# target_link_libraries(shenanigans_test PRIVATE glfw)
+# target_link_libraries(shenanigans_terminal PRIVATE glfw)
+# target_link_libraries(shenanigans_benchmark PRIVATE glfw)
 
 # # Zdenek's programs - examples
 # pybind_demo
