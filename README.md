@@ -9,5 +9,3 @@ Patrik Maraczek
 ## Thanks
 
 Many thanks to Zdeněk Hrazíra, who guided me through first hell of cpp full-stack programming.
-
-tatsajtlakjstlkajlktaj - remove this shit
