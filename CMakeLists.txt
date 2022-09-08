@@ -131,3 +131,22 @@ add_executable(Application ${SRC_APPLICATION})
 # file(GLOB_RECURSE SRC_ICSW_THREADING_DEMO CONFIGURE_DEPENDS src/icsw_threading_demo/*.cpp)
 # add_executable(icsw_threading_demo ${SRC_ICSW_THREADING_DEMO})
 # target_link_libraries(icsw_threading_demo fmt::fmt-header-only)
+
+# imgui
+include_directories(libs/imgui)
+include_directories(libs/imgui/misc/cpp)
+include_directories(libs/imgui/backends)
+file(GLOB SRC_IMGUI CONFIGURE_DEPENDS libs/imgui/*.cpp libs/imgui/misc/cpp/imgui_stdlib.cpp)
+set(SRC_IMGUI_BACKEND libs/imgui/backends/imgui_impl_glfw.cpp libs/imgui/backends/imgui_impl_opengl3.cpp)
+target_sources(Application PRIVATE ${SRC_IMGUI} ${SRC_IMGUI_BACKEND})
+
+# glfw
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+add_subdirectory(libs/glfw)
+target_link_libraries(Application PRIVATE glfw)
+
+# glad
+add_subdirectory(libs/glad)
+target_link_libraries(Application PRIVATE glad)

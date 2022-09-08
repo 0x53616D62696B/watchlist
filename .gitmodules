@@ -16,3 +16,6 @@
 [submodule "libs/shenanigans"]
 	path = libs/shenanigans
 	url = https://github.com/zdenyhraz/shenanigans.git
+[submodule "libs/glfw"]
+	path = libs/glfw
+	url = https://github.com/glfw/glfw.git
