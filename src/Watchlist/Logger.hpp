@@ -18,7 +18,8 @@ enum class LogLevel : char // TODO: place std::string here
 //? --------------------------------------------------- what exactly const do?
 auto LocalTime(std::chrono::system_clock::time_point const tp) 
 {
-    return std::chrono::zoned_time{ std::chrono::current_zone(), tp };
+    //return std::chrono::zoned_time{ std::chrono::current_zone(), tp };
+    return std::chrono::current_zone();
 }
 
 std::string ToString(auto tp)

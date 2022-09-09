@@ -45,6 +45,7 @@ message(STATUS "CMAKE_CXX_COMPILER_LAUNCHER: " ${CMAKE_CXX_COMPILER_LAUNCHER})
 # targets
 add_executable(Application ${SRC_APPLICATION})
 add_executable(MultithreadDemo ${SRC_MULTITHREAD_DEMO})
+add_executable(Logger ${SRC_LOGGER})
 
 # precompiled headers
 if(ENABLE_PCH)
@@ -85,3 +86,7 @@ file(GLOB_RECURSE SRC_APPLICATION_APP CONFIGURE_DEPENDS src/Watchlist/*.cpp)
 target_sources(Application PRIVATE ${SRC_APPLICATION_APP})
 
 # TODO: be carefull about the GLOB_RECURSE.. dont know if it does what i think it does
+
+# multithread_demo app sources
+file(GLOB SRC_LOGGER CONFIGURE_DEPENDS src/Watchlist/*.cpp)
+target_sources(Logger PRIVATE ${SRC_LOGGER})

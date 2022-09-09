@@ -3,8 +3,7 @@
 #include <iostream>
 #include <thread>
 
-#include "../../Watchlist/Logger.hpp"
-  
+#include <ctime>
 // A dummy function
 void foo(int Z)
 {
@@ -25,11 +24,6 @@ public:
     }
 };
   
-
-void Execute(int, double)
-{
-    Log(LogLevel::Error, "Error in execure!");
-}
 
 int main()
 {
@@ -65,9 +59,15 @@ int main()
     // Wait for thread t3 to finish
     th3.join();
 
-    // Logger test
-    Log(LogLevel::Info, "Logging from main thread");
-    Execute(0, 0);
+    //const std::chrono::time_point tp = std::chrono::system_clock::now();
+
+    //std::cout << "Heloo" << tp << std::endl;
+
+    std::timespec ts;
+    std::timespec_get(&ts, TIME_UTC);
+    char buf[100];
+    std::strftime(buf, sizeof buf, "%D %T", std::gmtime(&ts.tv_sec));
+    std::cout << "Current time: " << buf << '.' << ts.tv_nsec << " UTC\n";
 
     return 0;
 }
