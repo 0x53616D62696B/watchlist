@@ -1,9 +1,11 @@
+//All the declarations
+
 #include <string>
 #include <chrono>
 #include <source_location>
 #include <iostream>
 
-//void Log(LogLevel const, std::string_view const, std::source_location const);
+void Log(LogLevel, std::string_view, std::source_location);
 
 
 enum class LogLevel : char // TODO: place std::string here
@@ -32,19 +34,7 @@ std::string ToString(auto tp)
         
 }
 
-void Log(LogLevel const level,
-        std::string_view const message,
-        std::source_location const source = std::source_location::current())
-{
-    std::cout
-        << std::format("[{}] {} | {} | {}",
-                     static_cast<char>(level), 
-                     to_string(as_local(std::chrono::system_clock::now())), 
-                     to_string(source), 
-                     message)
-        << '\n';
-        // << std::endl;
-}        
+      
     
 
 /*
