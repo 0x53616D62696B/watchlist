@@ -50,7 +50,7 @@ int main()
 // (GLFW is a cross-platform general purpose library for handling windows, inputs, OpenGL/Vulkan/Metal graphics context creation, etc.)
 // If you are new to Dear ImGui, read documentation from the docs/ folder + read the top of imgui.cpp.
 // Read online: https://github.com/ocornut/imgui/tree/master/docs
-
+/*
 #include <imgui.h>
 #include <imgui_stdlib.h>
 #include <imgui_impl_glfw.h>
@@ -59,10 +59,28 @@ int main()
 #include <GLFW/glfw3.h>
 
 #include <stdexcept>
+*/
+
+#ifdef ENABLE_PROFILING
+  #include <Tracy.hpp>
+  // use FrameMark for frames (at the end of each frame)
+  // use ZoneScoped once per scope (automatic name)
+  // use ZoneScopedN once per scope (user-supplied name)
+  // use ZoneNamedN for scopes inside ZoneScoped scope (user-supplied name)
+  // bool parameter of ZoneNamed can turn it on/off
+  #define PROFILE_FRAME FrameMark
+  #define PROFILE_FUNCTION ZoneScoped
+  #define PROFILE_SCOPE(name) ZoneNamedN(name, #name, true)
+#else
+  #define PROFILE_FRAME
+  #define PROFILE_FUNCTION
+  #define PROFILE_SCOPE(name)
+#endif
 
 
 void GLFWInitialize()
 {
+  PROFILE_FUNCTION;
   auto GLFWErrorCallback = [](int error, const char* description) {  };
   glfwSetErrorCallback(GLFWErrorCallback);
   if (not glfwInit())
@@ -71,6 +89,7 @@ void GLFWInitialize()
 
 GLFWwindow* GLFWCreateWindow(int width, int height, bool hidden)
 {
+  PROFILE_FUNCTION;
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -84,6 +103,7 @@ GLFWwindow* GLFWCreateWindow(int width, int height, bool hidden)
 
 void GLFWInitializeGL(GLFWwindow* window)
 {
+  PROFILE_FUNCTION;
   glfwMakeContextCurrent(window);
   gladLoadGL();
   glfwSwapInterval(1);
@@ -173,6 +193,7 @@ void ImGuiSetStyle(ImGuiStyle& style)
 
 ImGuiIO& ImGuiInitialize(GLFWwindow* window, float scale)
 {
+  PROFILE_FUNCTION;
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
 
@@ -243,6 +264,7 @@ void ImGuiRender(GLFWwindow* window, ImGuiIO& io)
 
 void ImGuiShutdown()
 {
+  PROFILE_FUNCTION;
   ImGui_ImplOpenGL3_Shutdown();
   ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
@@ -250,6 +272,7 @@ void ImGuiShutdown()
 
 void GLFWShutdown(GLFWwindow* window)
 {
+  PROFILE_FUNCTION;
   glfwDestroyWindow(window);
   glfwTerminate();
 }
