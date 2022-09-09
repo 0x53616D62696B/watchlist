@@ -2,6 +2,8 @@
 // using three different callables.
 #include <iostream>
 #include <thread>
+
+#include "../../Watchlist/Logger.hpp"
   
 // A dummy function
 void foo(int Z)
@@ -23,6 +25,12 @@ public:
     }
 };
   
+
+void Execute(int, double)
+{
+    Log(LogLevel::Error, "Error in execure!");
+}
+
 int main()
 {
     std::cout << "Threads 1 and 2 and 3 "
@@ -56,6 +64,10 @@ int main()
   
     // Wait for thread t3 to finish
     th3.join();
-  
+
+    // Logger test
+    Log(LogLevel::Info, "Logging from main thread");
+    Execute(0, 0);
+
     return 0;
 }

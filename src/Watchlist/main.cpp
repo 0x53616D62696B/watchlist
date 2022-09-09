@@ -9,75 +9,6 @@
  * 
  */
 
-//TODO: allow and implement hreads after imgui is rdy
-//#include "Utils.hpp"
-/*
-#include <iostream>
-
-  
-// A dummy function
-void foo(int Z)
-{
-    for (int i = 0; i < Z; i++) {
-        std::cout << "Thread using function"
-               " pointer as callable\n";
-    }
-}
-  
-
-int main()
-{
-    std::cout << "Test" << std::endl;
-
-
-
-    return EXIT_SUCCESS;
-}
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-// Dear ImGui: standalone example application for GLFW + OpenGL 3, using programmable pipeline
-// (GLFW is a cross-platform general purpose library for handling windows, inputs, OpenGL/Vulkan/Metal graphics context creation, etc.)
-// If you are new to Dear ImGui, read documentation from the docs/ folder + read the top of imgui.cpp.
-// Read online: https://github.com/ocornut/imgui/tree/master/docs
-/*
-#include <imgui.h>
-#include <imgui_stdlib.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
-#include <stdexcept>
-*/
-
-#ifdef ENABLE_PROFILING
-  #include <Tracy.hpp>
-  // use FrameMark for frames (at the end of each frame)
-  // use ZoneScoped once per scope (automatic name)
-  // use ZoneScopedN once per scope (user-supplied name)
-  // use ZoneNamedN for scopes inside ZoneScoped scope (user-supplied name)
-  // bool parameter of ZoneNamed can turn it on/off
-  #define PROFILE_FRAME FrameMark
-  #define PROFILE_FUNCTION ZoneScoped
-  #define PROFILE_SCOPE(name) ZoneNamedN(name, #name, true)
-#else
-  #define PROFILE_FRAME
-  #define PROFILE_FUNCTION
-  #define PROFILE_SCOPE(name)
-#endif
-
-
 void GLFWInitialize()
 {
   PROFILE_FUNCTION;
@@ -289,7 +220,7 @@ int main(int argc, char** argv)
 try
 {
   GLFWInitialize();
-  auto window = GLFWCreateWindow(1920, 1080, false); //  set to false if you do not want background window
+  auto window = GLFWCreateWindow(1920, 1080, false); // set this to false if you do not want background window
   GLFWInitializeGL(window);
   GLFWSetWindowCallback(window, KeyCallback);
   ImGuiIO& io = ImGuiInitialize(window, 2.0);
