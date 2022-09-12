@@ -3,7 +3,7 @@ project(watchlist)
 
 # variables
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD_REQUIRED OFF)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(ENABLE_PROFILING OFF)
@@ -47,6 +47,7 @@ message(STATUS "CMAKE_CXX_COMPILER_LAUNCHER: " ${CMAKE_CXX_COMPILER_LAUNCHER})
 add_executable(Application ${SRC_APPLICATION})
 add_executable(MultithreadDemo ${SRC_MULTITHREAD_DEMO})
 add_executable(Logger ${SRC_LOGGER})
+add_executable(Test ${SRC_TEST})
 
 # precompiled headers
 if(ENABLE_PCH)
@@ -86,8 +87,10 @@ target_sources(MultithreadDemo PRIVATE ${SRC_MULTITHREAD_DEMO})
 file(GLOB_RECURSE SRC_APPLICATION_APP CONFIGURE_DEPENDS src/Watchlist/*.cpp)
 target_sources(Application PRIVATE ${SRC_APPLICATION_APP})
 
-# TODO: be carefull about the GLOB_RECURSE.. dont know if it does what i think it does
-
 # multithread_demo app sources
-file(GLOB SRC_LOGGER CONFIGURE_DEPENDS src/Watchlist/*.cpp)
+file(GLOB SRC_LOGGER CONFIGURE_DEPENDS src/examples/Logger/*.cpp)
 target_sources(Logger PRIVATE ${SRC_LOGGER})
+
+# test app sources
+file(GLOB SRC_TEST CONFIGURE_DEPENDS test/*.cpp)
+target_sources(Test PRIVATE ${SRC_TEST})

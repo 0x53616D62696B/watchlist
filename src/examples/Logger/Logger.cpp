@@ -5,8 +5,11 @@
 #include <source_location>
 #include <iostream>
 #include <ctime>
+#include <filesystem>
+#include <format>
+#include <string_view>
 
-void Log(LogLevel, std::string_view, std::source_location);
+//void Log(LogLevel, std::string_view, std::source_location);
 
 
 enum class LogLevel : char // TODO: place std::string here
@@ -16,6 +19,7 @@ enum class LogLevel : char // TODO: place std::string here
     Error = 'E',
 };
 
+/*
 auto LocalTime()
 {
     std::timespec ts;
@@ -25,20 +29,23 @@ auto LocalTime()
     std::cout << "Current time: " << buf << '.' << ts.tv_nsec << " UTC\n";
 
 }
-/*
+*/
+
 //? --------------------------------------------------- what exactly const do?
+//TODO: swap auto to std::chrono::zoned_time... or smthing this metod returns.
 auto LocalTime(std::chrono::system_clock::time_point const tp) 
 {
-    //return std::chrono::zoned_time{ std::chrono::current_zone(), tp };
-    return std::chrono::current_zone();
+    return std::chrono::zoned_time{ std::chrono::current_zone(), tp };
+    //return std::chrono::current_zone();
 }
-*/
-std::string ToString(auto tp)
+
+std::string ToString(std::source_location const source)
 {
     //return std::format("{:%F %T %Z}", tp.first, tp.second, tp.third);
     //? -------------------------------------------------- test tp.first etc
-    return std::format("{:%F %T %Z}", tp,
-        source.file_name(),
+    return std::format("{}:{}:{}",
+        //source.file_name(),
+        std::filesystem::path(source.file_name()).filename().string(),
         source.function_name(),
         source.line()); //source.line_number();
 

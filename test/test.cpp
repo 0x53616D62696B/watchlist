@@ -1,7 +1,18 @@
+
 // CPP program to demonstrate multithreading
 // using three different callables.
 #include <iostream>
 #include <thread>
+
+#include <chrono>
+#include <ctime>
+
+#include <filesystem>
+#include <format>
+#include <string_view>
+#include <source_location>
+#include <string>
+#include <string_view>
 
 // A dummy function
 void foo(int Z)
@@ -57,6 +68,31 @@ int main()
   
     // Wait for thread t3 to finish
     th3.join();
+
+
+    const std::chrono::time_point tp = std::chrono::system_clock::now();
+
+    std::cout << "Hello! Current time is: " << tp << std::endl;
+
+    std::chrono::system_clock::time_point const tp2 = 
+                        std::chrono::system_clock::now();
+
+    const std::chrono::time_zone* tz = std::chrono::current_zone();
+    std::string_view name = tz->name();
     
+
+    auto lt = std::chrono::zoned_time{ std::chrono::current_zone(), std::chrono::system_clock::now() };
+
+    //Progress: LocalTIme funguje spravne.. takze je spatne ToString..
+        //Co dela std::format? testnout jestli je to vhodnej argument..
+
+    std::timespec ts;
+    std::timespec_get(&ts, TIME_UTC);
+    char buf[100];
+    std::strftime(buf, sizeof buf, "%D %T", std::gmtime(&ts.tv_sec));
+    std::cout << "Current time: " << buf << '.' << ts.tv_nsec << " UTC\n";
+
+
+
     return 0;
 }
