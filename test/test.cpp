@@ -76,6 +76,7 @@ int main()
     th3.join();
     */
 
+   /*
     constexpr std::string_view locations[] = {
         "Africa/Casablanca",   "America/Argentina/Buenos_Aires",
         "America/Barbados",    "America/Indiana/Petersburg",
@@ -103,7 +104,7 @@ int main()
             std::cout << "Generic error occurred" << std::endl;
         }
     }
-
+    */
     const std::chrono::time_point tp = std::chrono::system_clock::now();
 
     std::cout << "Hello! Current time is: " << tp << std::endl;
@@ -119,14 +120,14 @@ int main()
     //std::chrono::system_clock::time_point const tp3 = std::chrono::system_clock::now();
     //std::chrono::sys_time
     //std::chrono::zoned_time
-    /*
+    
     const std::chrono::zoned_time source{ std::chrono::current_zone(), std::chrono::system_clock::now() };
     //std::chrono::zoned_time source = std::chrono::zoned_time{               std::chrono::current_zone(), std::chrono::system_clock::now() };
 
     //std::string new_string1 = std::format("{:%F %T %Z}", source);
     std::string new_string1 = std::format("{0:%F %T %Z}", source);
     //!: argument "source" is somehow wrong!
-    */
+    
     /*std::string new_string2 = std::format("{}:{}:{}",
         std::filesystem::path(source.file_name()).filename().string(),
         source.function_name(),

@@ -9,6 +9,10 @@
 #include <format>
 #include <string_view>
 
+#include <stdexcept>
+#include <iomanip>
+#include <algorithm>
+
 //void Log(LogLevel, std::string_view, std::source_location);
 
 
@@ -35,8 +39,26 @@ auto LocalTime()
 //TODO: swap auto to std::chrono::zoned_time... or smthing this metod returns.
 auto LocalTime(std::chrono::system_clock::time_point const tp) 
 {
+    /*
+    try {
+        std::chrono::zoned_time zt{ std::chrono::current_zone(), tp };
+        return zt;
+    } catch (std::chrono::nonexistent_local_time& ex) {
+        std::cout << "Error: " << ex.what() << '\n';
+    } catch (const std::exception& ex){
+        std::cout << "Error: " << ex.what() << '\n';
+    } catch (...) {
+        std::cout << "Generic error occurred" << std::endl;
+    }
+
+    return std::chrono::zoned_time zt_error{};
+    */
     return std::chrono::zoned_time{ std::chrono::current_zone(), tp };
-    //return std::chrono::current_zone();
+}
+
+std::string LocalTimeToString(auto tp)
+{
+   return std::format("{:%F %T %Z}", tp);
 }
 
 std::string ToString(std::source_location const source)
@@ -56,14 +78,24 @@ void Log(LogLevel const level,
         std::string_view const message,
         std::source_location const source = std::source_location::current())
 {
-    std::cout
-        << std::format("[{}] {} | {} | {}",
-                       static_cast<char>(level),
-                       ToString(LocalTime(std::chrono::system_clock::now())),
-                       ToString(source),
-                       message)
-        << '\n';
-    // << std::endl;
+    //auto lc = LocalTime(std::chrono::system_clock::now());
+    try {
+        std::cout
+            << std::format("[{}] {} | {} | {}",
+                        static_cast<char>(level),
+                        ToString(LocalTimeToString(std::chrono::system_clock::now())),
+                        ToString(source),
+                        message)
+            << '\n';
+        // << std::endl;
+    } catch (std::chrono::nonexistent_local_time& ex) {
+        std::cout << "Error: " << ex.what() << '\n';
+    } catch (const std::exception& ex){
+        std::cout << "Error: " << ex.what() << '\n';
+    } catch (...) {
+        std::cout << "Generic error occurred" << std::endl;
+    }
+
 } 
 
 void Execute(int, double)
