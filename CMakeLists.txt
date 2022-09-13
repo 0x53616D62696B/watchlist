@@ -14,6 +14,8 @@ if(MSVC)
 # add_compile_options(/favor:INTEL64 /arch:SSE /arch:SSE2 /arch:AVX /arch:AVX2 /openmp)
 # add_compile_options(/favor:INTEL64 /arch:AVX /arch:AVX2 /openmp)
 # add_compile_options(/Wall /WX)
+
+# ! every warning treat as error?????? chechk this
 else()
   add_compile_options(-march=native -fopenmp -pthread)
   add_compile_options(-Wall -Werror -Wfatal-errors -Wextra -Wpedantic -Wshadow)

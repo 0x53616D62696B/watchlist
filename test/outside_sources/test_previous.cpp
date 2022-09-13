@@ -97,10 +97,6 @@ int main()
             std::cout << std::setw(width) << location << " - Zoned Time: " << zt << '\n';
         } catch (std::chrono::nonexistent_local_time& ex) {
             std::cout << "Error: " << ex.what() << '\n';
-        } catch (const std::exception& ex){
-            std::cout << "Error: " << ex.what() << '\n';
-        } catch (...) {
-            std::cout << "Generic error occurred" << std::endl;
         }
     }
 

@@ -68,7 +68,7 @@ void Log(LogLevel const level,
 
 void Execute(int, double)
 {
-    Log(LogLevel::Error, "Error in execure!");
+    Log(LogLevel::Error, "Error in execute!");
 }
 
 int main()
