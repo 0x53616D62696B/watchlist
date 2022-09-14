@@ -9,6 +9,8 @@
  * 
  */
 
+//#include "Logger.h"
+
 void GLFWInitialize()
 {
   PROFILE_FUNCTION;
