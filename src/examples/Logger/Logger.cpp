@@ -4,17 +4,10 @@
 #include <chrono>
 #include <source_location>
 #include <iostream>
-#include <ctime>
 #include <filesystem>
 #include <format>
-#include <string_view>
-
-#include <stdexcept>
-#include <iomanip>
-#include <algorithm>
 
 //void Log(LogLevel, std::string_view, std::source_location);
-
 
 enum class LogLevel : char // TODO: place std::string here
 {
@@ -23,43 +16,19 @@ enum class LogLevel : char // TODO: place std::string here
     Error = 'E',
 };
 
-/*
-auto LocalTime()
-{
-    std::timespec ts;
-    std::timespec_get(&ts, TIME_UTC);
-    char buf[100];
-    std::strftime(buf, sizeof buf, "%D %T", std::gmtime(&ts.tv_sec));
-    std::cout << "Current time: " << buf << '.' << ts.tv_nsec << " UTC\n";
-
-}
-*/
-
-//? --------------------------------------------------- what exactly const do?
 //TODO: swap auto to std::chrono::zoned_time... or smthing this metod returns.
+//! std::chrono::zoned_time doesnt work as return type.. check documentation
 auto LocalTime(std::chrono::system_clock::time_point const tp) 
 {
-    /*
-    try {
-        std::chrono::zoned_time zt{ std::chrono::current_zone(), tp };
-        return zt;
-    } catch (std::chrono::nonexistent_local_time& ex) {
-        std::cout << "Error: " << ex.what() << '\n';
-    } catch (const std::exception& ex){
-        std::cout << "Error: " << ex.what() << '\n';
-    } catch (...) {
-        std::cout << "Generic error occurred" << std::endl;
-    }
-
-    return std::chrono::zoned_time zt_error{};
-    */
     return std::chrono::zoned_time{ std::chrono::current_zone(), tp };
 }
 
+/*
 std::string LocalTimeToString(auto tp)
 {
    return std::format("{:%F %T %Z}", tp);
 }
+*/
 
 std::string ToString(std::source_location const source)
 {
@@ -71,20 +40,26 @@ std::string ToString(std::source_location const source)
         source.function_name(),
         source.line()); //source.line_number();
 
-    //NOTE: format types here: https://en.cppreference.com/w/cpp/chrono/system_clock/formatter#Format_specification   
+    // * format types here: https://en.cppreference.com/w/cpp/chrono/system_clock/formatter#Format_specification   
         
 }
 void Log(LogLevel const level,
         std::string_view const message,
         std::source_location const source = std::source_location::current())
 {
-    //auto lc = LocalTime(std::chrono::system_clock::now());
     try {
         std::cout
             << std::format("[{}] {} | {} | {}",
+                        // Log severity level
                         static_cast<char>(level),
-                        ToString(LocalTimeToString(std::chrono::system_clock::now())),
-                        ToString(source),
+                        //ToString(LocalTimeToString(std::chrono::system_clock::now())), //TODO: This is not working.
+                        //Viz this: std::string new_string1 = std::format("{:%F %T %Z}", std::chrono::zoned_time{
+                        //std::chrono::current_zone(), std::chrono::system_clock::now() });
+                        // Time
+                        std::format("{}", std::chrono::system_clock::now()), 
+                        // Source
+                        ToString(source), 
+                        // Log Message
                         message)
             << '\n';
         // << std::endl;
