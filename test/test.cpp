@@ -125,9 +125,35 @@ int main()
     //std::chrono::zoned_time source = std::chrono::zoned_time{               std::chrono::current_zone(), std::chrono::system_clock::now() };
 
     //std::string new_string1 = std::format("{:%F %T %Z}", source);
-    std::string new_string1 = std::format("{0:%F %T %Z}", source);
-    //!: argument "source" is somehow wrong!
+    std::string new_string1;
+    try {
+        //new_string1 = std::format("{0:%T}", source);
+        std::cout
+            << std::format("{}", tp)
+            << '\n';
+    } catch (std::chrono::nonexistent_local_time& ex) {
+        std::cout << "Error: " << ex.what() << '\n';
+    } catch (const std::exception& ex){
+        std::cout << "Error: " << ex.what() << '\n';
+    } catch (...) {
+        std::cout << "Generic error occurred" << std::endl;
+    }
     
+    //!: argument "source" is somehow wrong!
+/*
+    try {
+        std::cout
+            << std::format("{}", new_string1)
+            << '\n';
+        // << std::endl;
+    } catch (std::chrono::nonexistent_local_time& ex) {
+        std::cout << "Error: " << ex.what() << '\n';
+    } catch (const std::exception& ex){
+        std::cout << "Error: " << ex.what() << '\n';
+    } catch (...) {
+        std::cout << "Generic error occurred" << std::endl;
+    }
+*/    
     /*std::string new_string2 = std::format("{}:{}:{}",
         std::filesystem::path(source.file_name()).filename().string(),
         source.function_name(),
