@@ -230,7 +230,9 @@ try
   while (!glfwWindowShouldClose(window))
   {
     ImGuiNewFrame();
+    // Place code here
     ImGui::ShowDemoWindow();
+    LOG_DEBUG("Window created");
     ImGuiRender(window, io);
   }
 

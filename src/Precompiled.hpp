@@ -10,6 +10,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include "Utils/Logger/Logger.hpp"
+
 #ifdef ENABLE_PROFILING
   #include <Tracy.hpp>
   // use FrameMark for frames (at the end of each frame)

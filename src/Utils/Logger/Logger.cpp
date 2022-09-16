@@ -1,20 +1,8 @@
 // All the definitions
 
-#include <string>
-#include <chrono>
-#include <source_location>
-#include <iostream>
-#include <filesystem>
-#include <format>
+#include "Logger.hpp"
 
 //void Log(LogLevel, std::string_view, std::source_location);
-
-enum class LogLevel : char // TODO: place std::string here
-{
-    Info = 'I',
-    Warning = 'W',
-    Error = 'E',
-};
 
 //TODO: swap auto to std::chrono::zoned_time... or smthing this metod returns.
 //! std::chrono::zoned_time doesnt work as return type.. check documentation
@@ -22,13 +10,6 @@ auto LocalTime(std::chrono::system_clock::time_point const tp)
 {
     return std::chrono::zoned_time{ std::chrono::current_zone(), tp };
 }
-
-/*
-std::string LocalTimeToString(auto tp)
-{
-   return std::format("{:%F %T %Z}", tp);
-}
-*/
 
 std::string ToString(std::source_location const source)
 {
@@ -38,15 +19,15 @@ std::string ToString(std::source_location const source)
         //source.file_name(),
         std::filesystem::path(source.file_name()).filename().string(),
         source.function_name(),
-        source.line()); //source.line_number();
+        source.line());
 
     // * format types here: https://en.cppreference.com/w/cpp/chrono/system_clock/formatter#Format_specification   
         
 }
 void Log(LogLevel const level,
-        std::string_view const message,
-        std::source_location const source = std::source_location::current())
+        std::string_view const message)
 {
+    std::source_location const source = std::source_location::current();
     try {
         std::cout
             << std::format("[{}] {} | {} | {}",
@@ -73,16 +54,16 @@ void Log(LogLevel const level,
 
 } 
 
-void Execute(int, double)
-{
-    Log(LogLevel::Error, "Error in execute!");
-}
-
+//TODO set this definition inside cmake list. True if logger is building.
+//#define DEBUG_LOGGER
+#ifdef DEBUG_LOGGER
 int main()
 {
     // Logger test
     Log(LogLevel::Info, "Logging from main thread");
-    Execute(0, 0);
-
+    LOG_DEBUG("Added one debug meessage");
+    LOG_FATAL("\033[1;31mbold red text\033[0m\n");
+    
     return 0;
 }
+#endif

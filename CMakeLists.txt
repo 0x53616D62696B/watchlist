@@ -90,7 +90,7 @@ file(GLOB_RECURSE SRC_APPLICATION_APP CONFIGURE_DEPENDS src/Watchlist/*.cpp)
 target_sources(Application PRIVATE ${SRC_APPLICATION_APP})
 
 # multithread_demo app sources
-file(GLOB SRC_LOGGER CONFIGURE_DEPENDS src/examples/Logger/*.cpp)
+file(GLOB SRC_LOGGER CONFIGURE_DEPENDS src/Utils/Logger/*.cpp)
 target_sources(Logger PRIVATE ${SRC_LOGGER})
 
 # test app sources
