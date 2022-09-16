@@ -55,7 +55,7 @@ void Log(LogLevel const level,
 } 
 
 //TODO set this definition inside cmake list. True if logger is building.
-//#define DEBUG_LOGGER
+#define DEBUG_LOGGER
 #ifdef DEBUG_LOGGER
 int main()
 {

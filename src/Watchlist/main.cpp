@@ -9,7 +9,7 @@
  * 
  */
 
-//#include "Logger.h"
+// #include "../Utils/Logger/Logger.hpp"
 
 void GLFWInitialize()
 {
@@ -232,7 +232,8 @@ try
     ImGuiNewFrame();
     // Place code here
     ImGui::ShowDemoWindow();
-    LOG_DEBUG("Window created");
+    Log(LogLevel::Info, "Logging from main thread"); //! Problem is here with declaration in logger.hpp.. Third argument has to be optional, or smtg like that.
+    //LOG_DEBUG("Added one debug meessage");
     ImGuiRender(window, io);
   }
 
