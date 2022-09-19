@@ -19,6 +19,19 @@ Go to *c:\<your msys installation path>\mingw64\bin* and enter following cmd:
 
     mklink make.exe mingw32-make.exe
 
+## MSVC (Actual compiler)
+
+To use MSVC compiler you need to have appropriate Visual Studio license!
+
+To run the MSVC compiler from VS Code you have to run the VSCode from "Developer Command Prompt for Visual Studio".
+
+### SETUP FOR VS CODE
+
+<https://code.visualstudio.com/docs/cpp/config-msvc>
+
+SETUP for standalone VS CODE MSVC compiler without the need of running it form VS console:
+<https://code.visualstudio.com/docs/cpp/config-msvc#_run-vs-code-outside-the-developer-command-prompt>
+
 ## CMAKE
 
     pacman -S mingw-w64-x86_64-cmake

@@ -1,3 +1,5 @@
+//! not functional yet!
+
 #pragma once
 #include <thread>
 #include <mutex>
