@@ -5,7 +5,6 @@
 #include <iostream>
 #include <filesystem>
 #include <format>
-//All the declarations
 
 //TODO implement colored logger, which will be on only if terminal supports it
 #define COLORED_LOG false

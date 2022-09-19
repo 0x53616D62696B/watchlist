@@ -1,8 +1,4 @@
-// All the definitions
-
 #include "Logger.hpp"
-
-//void Log(LogLevel, std::string_view, std::source_location);
 
 //TODO: swap auto to std::chrono::zoned_time... or smthing this metod returns.
 //! std::chrono::zoned_time doesnt work as return type.. check documentation
