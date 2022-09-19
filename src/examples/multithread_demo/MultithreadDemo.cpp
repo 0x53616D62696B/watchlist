@@ -2,7 +2,7 @@
 // using three different callables.
 #include <iostream>
 #include <thread>
-  
+
 // A dummy function
 void foo(int Z)
 {
@@ -23,6 +23,7 @@ public:
     }
 };
   
+
 int main()
 {
     std::cout << "Threads 1 and 2 and 3 "
@@ -56,6 +57,6 @@ int main()
   
     // Wait for thread t3 to finish
     th3.join();
-  
+    
     return 0;
 }

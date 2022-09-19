@@ -12,7 +12,12 @@ enter following cmds:
 
     pacman -Syuu
 
-    pacman -S mingw-w64-x86_64-toolchain
+    pacman -S --noconfirm --needed mingw-w64-x86_64-toolchain mingw-w64-x86_64-glfw mingw-w64-x86_64-make
+
+With mingw64-x86_64-make you have to link the executable, because mingw name make as mingw32-make.exe not only make.exe:
+Go to *c:\<your msys installation path>\mingw64\bin* and enter following cmd:
+
+    mklink make.exe mingw32-make.exe
 
 ## CMAKE
 
