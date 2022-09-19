@@ -25,9 +25,10 @@ std::string ToString(std::source_location const source)
         
 }
 void Log(LogLevel const level,
-        std::string_view const message)
+        std::string_view const message,
+        std::source_location const source)
 {
-    std::source_location const source = std::source_location::current();
+    //std::source_location const source = std::source_location::current();
     try {
         std::cout
             << std::format("[{}] {} | {} | {}",
@@ -55,7 +56,7 @@ void Log(LogLevel const level,
 } 
 
 //TODO set this definition inside cmake list. True if logger is building.
-#define DEBUG_LOGGER
+//#define DEBUG_LOGGER
 #ifdef DEBUG_LOGGER
 int main()
 {

@@ -232,7 +232,7 @@ try
     ImGuiNewFrame();
     // Place code here
     ImGui::ShowDemoWindow();
-    Log(LogLevel::Info, "Logging from main thread"); //! Problem is here with declaration in logger.hpp.. Third argument has to be optional, or smtg like that.
+    //Log(LogLevel::Info, "Logging from main thread"); //! Problem is here with declaration in logger.hpp.. Third argument has to be optional, or smtg like that.
     //LOG_DEBUG("Added one debug meessage");
     ImGuiRender(window, io);
   }

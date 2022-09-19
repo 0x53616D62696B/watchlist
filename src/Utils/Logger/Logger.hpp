@@ -24,7 +24,8 @@ enum class LogLevel : char // TODO: place std::string here
 auto LocalTime(std::chrono::system_clock::time_point const);
 std::string ToString(std::source_location const);
 //void Log(LogLevel const, std::string_view const, std::source_location const);
-void Log(LogLevel const, std::string_view const); //TODO enter the third parameter as optional parameter
+void Log(LogLevel const level, std::string_view const message,
+         std::source_location const source = std::source_location::current()); //TODO enter the third parameter as optional parameter
 
 
 #define LOG_INFO(...) Log(LogLevel::Info, __VA_ARGS__)

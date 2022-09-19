@@ -56,7 +56,19 @@ if(ENABLE_PCH)
   set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
   set(SRC_PRECOMPILED src/Precompiled.hpp)
   target_precompile_headers(Application PRIVATE ${SRC_PRECOMPILED})
+
+  # target_precompile_headers(Test PRIVATE ${SRC_PRECOMPILED})
 endif()
+
+# sources
+# file(GLOB SRC CONFIGURE_DEPENDS src/*.hpp src/*.cpp)
+# target_sources(Application PRIVATE ${SRC})
+# target_sources(Test PRIVATE ${SRC})
+
+# utils
+file(GLOB_RECURSE SRC_UTILS CONFIGURE_DEPENDS src/Utils/Logger/*.hpp src/Utils/Logger*.cpp) # todo remove utils ane make it recurse
+target_sources(Application PRIVATE ${SRC_UTILS})
+target_sources(Test PRIVATE ${SRC_UTILS})
 
 # imgui
 include_directories(libs/imgui)
@@ -76,10 +88,6 @@ target_link_libraries(Application PRIVATE glfw)
 # glad
 add_subdirectory(libs/glad)
 target_link_libraries(Application PRIVATE glad)
-
-# sources
-file(GLOB SRC CONFIGURE_DEPENDS src/*.hpp src/*.cpp)
-target_sources(Application PRIVATE ${SRC})
 
 # multithread_demo app sources
 file(GLOB_RECURSE SRC_MULTITHREAD_DEMO CONFIGURE_DEPENDS src/examples/multithread_demo/*.cpp)

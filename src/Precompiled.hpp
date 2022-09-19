@@ -10,7 +10,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include "Utils/Logger/Logger.hpp"
+//#include "Utils/Logger/Logger.hpp"
 
 #ifdef ENABLE_PROFILING
   #include <Tracy.hpp>
