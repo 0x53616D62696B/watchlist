@@ -225,7 +225,7 @@ try
   auto window = GLFWCreateWindow(1920, 1080, false); // set this to false if you do not want background window
   GLFWInitializeGL(window);
   GLFWSetWindowCallback(window, KeyCallback);
-  ImGuiIO& io = ImGuiInitialize(window, 2.0);
+  ImGuiIO& io = ImGuiInitialize(window, 3.0);
   LOG_INFO("GUI Window Initialized");
 
   while (!glfwWindowShouldClose(window))
