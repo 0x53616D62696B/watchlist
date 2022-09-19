@@ -66,7 +66,7 @@ endif()
 # target_sources(Test PRIVATE ${SRC})
 
 # utils
-file(GLOB_RECURSE SRC_UTILS CONFIGURE_DEPENDS src/Utils/Logger/*.hpp src/Utils/Logger*.cpp) # todo remove utils ane make it recurse
+file(GLOB_RECURSE SRC_UTILS CONFIGURE_DEPENDS src/Utils/*.hpp src/Utils/*.cpp)
 target_sources(Application PRIVATE ${SRC_UTILS})
 target_sources(Test PRIVATE ${SRC_UTILS})
 

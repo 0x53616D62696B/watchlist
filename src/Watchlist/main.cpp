@@ -226,14 +226,13 @@ try
   GLFWInitializeGL(window);
   GLFWSetWindowCallback(window, KeyCallback);
   ImGuiIO& io = ImGuiInitialize(window, 2.0);
+  LOG_INFO("GUI Window Initialized");
 
   while (!glfwWindowShouldClose(window))
   {
     ImGuiNewFrame();
     // Place code here
     ImGui::ShowDemoWindow();
-    //Log(LogLevel::Info, "Logging from main thread"); //! Problem is here with declaration in logger.hpp.. Third argument has to be optional, or smtg like that.
-    //LOG_DEBUG("Added one debug meessage");
     ImGuiRender(window, io);
   }
 
