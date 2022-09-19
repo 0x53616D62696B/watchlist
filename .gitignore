@@ -1,2 +1,5 @@
 build
 __pycache__
+
+# Temporary files
+docs/*/*.drawio.bkp
