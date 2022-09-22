@@ -9,7 +9,7 @@
  *
  */
 
-#include "main.hpp"
+#include "../Utils/Gui/Gui.hpp"
 
 int main(int argc, char** argv)
 try

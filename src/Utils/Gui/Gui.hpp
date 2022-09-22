@@ -11,7 +11,6 @@
  */
 
 #pragma once
-#include "src/Watchlist/main.hpp"
 
 #ifdef MYAPP
     #define WINDOWTITLE MyApp::windowTitle.c_str()

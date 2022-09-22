@@ -97,6 +97,10 @@ target_sources(MultithreadDemo PRIVATE ${SRC_MULTITHREAD_DEMO})
 file(GLOB_RECURSE SRC_APPLICATION_APP CONFIGURE_DEPENDS src/Watchlist/*.cpp)
 target_sources(Application PRIVATE ${SRC_APPLICATION_APP})
 
+# watchlist definitions
+# # definition of GUI interface to use
+set_target_properties(Application PROPERTIES COMPILE_DEFINITIONS "MYAPP=1")
+
 # multithread_demo app sources
 file(GLOB SRC_LOGGER CONFIGURE_DEPENDS src/Utils/Logger/*.cpp)
 target_sources(Logger PRIVATE ${SRC_LOGGER})
