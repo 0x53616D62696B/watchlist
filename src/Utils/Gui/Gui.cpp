@@ -3,7 +3,7 @@
 void GLFWInitialize()
 {
   PROFILE_FUNCTION;
-  auto GLFWErrorCallback = [](int error, const char* description) {  };
+  auto GLFWErrorCallback = [](int error, const char* description) {};
   glfwSetErrorCallback(GLFWErrorCallback);
   if (not glfwInit())
     throw std::runtime_error("GLFW initialization failed");
@@ -36,10 +36,10 @@ void GLFWSetWindowCallback(GLFWwindow* window, GLFWkeyfun callback)
   glfwSetKeyCallback(window, callback);
 }
 
-
 void ImGuiSetStyle(ImGuiStyle& style)
 {
-  constexpr auto ColorFromBytes = [](float r, float g, float b) { return ImVec4(r / 255.0f, g / 255.0f, b / 255.0f, 1.0f); };
+  constexpr auto ColorFromBytes = [](float r, float g, float b)
+  { return ImVec4(r / 255.0f, g / 255.0f, b / 255.0f, 1.0f); };
 
   ImVec4* colors = style.Colors;
 
@@ -112,7 +112,6 @@ void ImGuiSetStyle(ImGuiStyle& style)
   style.TabRounding = 0.0f;
 }
 
-
 ImGuiIO& ImGuiInitialize(GLFWwindow* window, float scale)
 {
   PROFILE_FUNCTION;
@@ -123,8 +122,8 @@ ImGuiIO& ImGuiInitialize(GLFWwindow* window, float scale)
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Docking
   io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;   // Enable Multi-Viewport / Platform Windows
-  //io.Fonts->AddFontFromFileTTF("../data/apps/CascadiaCode.ttf", scale * 19);
-  //io.IniFilename = "../data/apps/imgui.ini";
+  // io.Fonts->AddFontFromFileTTF("../data/apps/CascadiaCode.ttf", scale * 19);
+  // io.IniFilename = "../data/apps/imgui.ini";
 
   ImGui::StyleColorsDark();
   ImGuiStyle& style = ImGui::GetStyle();
@@ -137,7 +136,6 @@ ImGuiIO& ImGuiInitialize(GLFWwindow* window, float scale)
     style.WindowRounding = 0.0f;
     style.Colors[ImGuiCol_WindowBg].w = 1.0f;
   }
-
 
   if (not ImGui_ImplGlfw_InitForOpenGL(window, true))
     throw std::runtime_error("Failed to initialize ImGui GLFW");
@@ -199,45 +197,45 @@ void GLFWShutdown(GLFWwindow* window)
   glfwTerminate();
 }
 
-
-
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
+int ImGuiStart()
+{
+  try
+  {
+    GLFWInitialize();
+    auto window = GLFWCreateWindow(1920, 1080, false); // set this to false if you do not want background window
+    GLFWInitializeGL(window);
+    GLFWSetWindowCallback(window, KeyCallback);
+    ImGuiIO& io = ImGuiInitialize(window, 3.0);
+    LOG_INFO("GUI Window Initialized");
 
-int ImGuiStart(){
-    try
+    while (!glfwWindowShouldClose(window))
     {
-        GLFWInitialize();
-        auto window = GLFWCreateWindow(1920, 1080, false); // set this to false if you do not want background window
-        GLFWInitializeGL(window);
-        GLFWSetWindowCallback(window, KeyCallback);
-        ImGuiIO& io = ImGuiInitialize(window, 3.0);
-        LOG_INFO("GUI Window Initialized");
+      ImGuiNewFrame();
+      // Place user code here
+      ImGui::ShowDemoWindow();
 
-        while (!glfwWindowShouldClose(window))
-        {
-        ImGuiNewFrame();
-        // Place code here
-        ImGui::ShowDemoWindow();
-        ImGuiRender(window, io);
-        }
+      MyApp::ShowWindow();
+      ImGuiRender(window, io);
+    }
 
-        ImGuiShutdown();
-        GLFWShutdown(window);
-        return EXIT_SUCCESS;
-    }
-    catch (const std::exception& e)
-    {
-        LOG_FATAL("Unable to initialize ImGui!");
-        return EXIT_FAILURE;
-    }
-    catch (...)
-    {
-        LOG_FATAL("Unable to initialize ImGui. Unknown error!");
-        return EXIT_FAILURE;
-    }
+    ImGuiShutdown();
+    GLFWShutdown(window);
+    return EXIT_SUCCESS;
+  }
+  catch (const std::exception& e)
+  {
+    LOG_FATAL("Unable to initialize ImGui!");
+    return EXIT_FAILURE;
+  }
+  catch (...)
+  {
+    LOG_FATAL("Unable to initialize ImGui. Unknown error!");
+    return EXIT_FAILURE;
+  }
 }
