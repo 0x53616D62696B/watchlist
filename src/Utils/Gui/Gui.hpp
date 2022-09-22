@@ -11,6 +11,13 @@
  */
 
 #pragma once
+#include "src/Watchlist/main.hpp"
+
+#ifdef MYAPP
+    #define WINDOWTITLE MyApp::windowTitle.c_str()
+#else
+    #define WINDOWTITLE "Default Title"
+#endif
 
 // ----------- Declarations -------------
 GLFWwindow* GLFWCreateWindow(int width, int height, bool hidden);
@@ -29,5 +36,6 @@ int ImGuiStart();
 // TODO: Place this namespace in its own file.
 namespace MyApp
 {
+const std::string windowTitle = "MyApp MOM!";
 void ShowWindow(bool* p_open = nullptr);
 }

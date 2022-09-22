@@ -1,5 +1,10 @@
 #include "Gui.hpp"
 
+// const std::string windowTitleStr = "MyApp MOM!";
+//  const char* windowTitle = windowTitleStr.c_str();
+
+// glfwSetWindowTitle("MyApp MOM!");
+
 void GLFWInitialize()
 {
     PROFILE_FUNCTION;
@@ -16,7 +21,7 @@ GLFWwindow* GLFWCreateWindow(int width, int height, bool hidden)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_VISIBLE, hidden ? GLFW_FALSE : GLFW_TRUE);
-    GLFWwindow* window = glfwCreateWindow(hidden ? 1 : width, hidden ? 1 : height, "hi mom", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(hidden ? 1 : width, hidden ? 1 : height, WINDOWTITLE, nullptr, nullptr);
     if (not window)
         throw std::runtime_error("GLFW create window failed");
 
@@ -209,6 +214,8 @@ int ImGuiStart()
     {
         GLFWInitialize();
         auto window = GLFWCreateWindow(1920, 1080, false); // set this to false if you do not want background window
+        // glfwSetWindowTitle(window, "MyApp MOM!");
+        // glfwSetWindowTitle(window, windowTitle);
         GLFWInitializeGL(window);
         GLFWSetWindowCallback(window, KeyCallback);
         ImGuiIO& io = ImGuiInitialize(window, 3.0);
