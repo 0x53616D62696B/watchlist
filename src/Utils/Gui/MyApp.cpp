@@ -65,10 +65,8 @@ static void MyApp::ShowAppMenuBar(struct MyApp::WindowAppsFlags& sWindowAppsFlag
         if (ImGui::BeginMenu("Features"))
         {
             //TODO: this add the possibility to open/reopen features window (basicly other windows) 
-            //TODO: (not needed. They are repoened everytime )
             if (ImGui::MenuItem("TODO", nullptr, false, false)) {}
             //std::cout << &(sWindowAppsFlags.show_app_documents) << std::endl; 
-            // TODO: remove this item, it is not needed
             if (ImGui::MenuItem("Vizual workplace", nullptr, &(sWindowAppsFlags.show_app_documents))) {}
 
 
@@ -180,7 +178,7 @@ void MyApp::ShowWindow(bool* p_open)
 
     IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing dear imgui context. Refer to examples app!");
 
-    struct MyApp::WindowAppsFlags sWindowAppsFlags;
+    static struct MyApp::WindowAppsFlags sWindowAppsFlags;
     //static bool show_app_main_menu_bar = true;
     
 
