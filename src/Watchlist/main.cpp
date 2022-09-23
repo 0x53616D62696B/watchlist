@@ -19,7 +19,7 @@ try
 }
 catch (const std::exception& e)
 {
-    LOG_ERROR("Error in main."); // TODO not specific error. change it to exception error (as sheningans)
+    LOG_EXCEPTION(e);
     return EXIT_FAILURE;
 }
 catch (...)

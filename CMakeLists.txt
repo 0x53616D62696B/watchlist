@@ -101,9 +101,13 @@ target_sources(Application PRIVATE ${SRC_APPLICATION_APP})
 # # definition of GUI interface to use
 set_target_properties(Application PROPERTIES COMPILE_DEFINITIONS "MYAPP=1")
 
-# multithread_demo app sources
+# logger app sources
 file(GLOB SRC_LOGGER CONFIGURE_DEPENDS src/Utils/Logger/*.cpp)
 target_sources(Logger PRIVATE ${SRC_LOGGER})
+
+# watchlist definitions
+# # defining Logger.cpp as main cpp file
+set_target_properties(Logger PROPERTIES COMPILE_DEFINITIONS "DEBUG_LOGGER=1")
 
 # test app sources
 file(GLOB SRC_TEST CONFIGURE_DEPENDS test/*.cpp)
