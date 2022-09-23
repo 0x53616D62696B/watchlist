@@ -35,6 +35,6 @@ int ImGuiStart();
 // TODO: Place this namespace in its own file.
 namespace MyApp
 {
-const std::string windowTitle = "MyApp MOM!";
+const std::string windowTitle = "CookBook";
 void ShowWindow(bool* p_open = nullptr);
 }

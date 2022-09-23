@@ -237,12 +237,12 @@ int ImGuiStart()
     }
     catch (const std::exception& e)
     {
-        LOG_FATAL("Unable to initialize ImGui!");
+        LOG_EXCEPTION(e);
         return EXIT_FAILURE;
     }
     catch (...)
     {
-        LOG_FATAL("Unable to initialize ImGui. Unknown error!");
+        LOG_ERROR("Unable to initialize ImGui. Unknown error!");
         return EXIT_FAILURE;
     }
 }
@@ -268,17 +268,30 @@ static void ShowExampleAppMainMenuBar()
     {
         if (ImGui::BeginMenu("File"))
         {
+            if (ImGui::MenuItem("TODO", nullptr, false, false)) {}
             ShowExampleMenuFile();
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Edit"))
         {
+            if (ImGui::MenuItem("TODO", nullptr, false, false)) {}
             if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
             if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
             ImGui::Separator();
             if (ImGui::MenuItem("Cut", "CTRL+X")) {}
             if (ImGui::MenuItem("Copy", "CTRL+C")) {}
             if (ImGui::MenuItem("Paste", "CTRL+V")) {}
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Options"))
+        {
+            if (ImGui::MenuItem("TODO", nullptr, false, false)) {}
+            if (ImGui::MenuItem("Undo", nullptr)) {}
+            if (ImGui::MenuItem("Redo", nullptr, false, false)) {}  // Disabled item
+            ImGui::Separator();
+            if (ImGui::MenuItem("Cut", nullptr)) {}
+            if (ImGui::MenuItem("Copy", nullptr)) {}
+            if (ImGui::MenuItem("Paste", nullptr)) {}
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();
@@ -365,7 +378,7 @@ static void ShowExampleMenuFile()
     if (ImGui::MenuItem("Quit", "Alt+F4")) {}
 }
 
-
+// TODO: create generic class from this function to reuse it with only few changes
 void MyApp::ShowWindow(bool* p_open)
 {
     // LOG_DEBUG("Running my app layout");
@@ -373,11 +386,10 @@ void MyApp::ShowWindow(bool* p_open)
     IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing dear imgui context. Refer to examples app!");
 
     // Windows (apps) - accessible from the "Examples" menu
-    static bool show_app_main_menu_bar = false;
+    static bool show_app_main_menu_bar = true;
 
     if (show_app_main_menu_bar) ShowExampleAppMainMenuBar();
 
-    // TODO: some flags are useless, remove them
     // Demonstrate the various window flags. Typically you would just use the default!
     static bool no_titlebar = false;
     static bool no_scrollbar = false;
@@ -444,7 +456,8 @@ void MyApp::ShowWindow(bool* p_open)
         //if (ImGui::MenuItem("MenuItem")) {} // You can also use MenuItem() inside a menu bar!
         if (ImGui::BeginMenu("Tools"))
         {
-            //IMGUI_DEMO_MARKER("Menu/Tools");
+        
+        // TODO: Disable debug tools!
   #ifndef IMGUI_DISABLE_DEBUG_TOOLS
             const bool has_debug_tools = true;
   #else
