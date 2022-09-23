@@ -3,6 +3,8 @@
 // TODO: set clang-format option to not to format one line function calls
 // clang-format off
 
+// TODO: Remove this function
+/*
 static void MyApp::ShowAppMainMenuBar()
 {
     if (ImGui::BeginMainMenuBar())
@@ -36,6 +38,57 @@ static void MyApp::ShowAppMainMenuBar()
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();
+    }
+}
+*/
+static void MyApp::ShowAppMenuBar(struct MyApp::WindowAppsFlags& sWindowAppsFlags)
+{
+    if (ImGui::BeginMenuBar())
+    {
+        if (ImGui::BeginMenu("File"))
+        {
+            if (ImGui::MenuItem("TODO", nullptr, false, false)) {}
+            MyApp::ShowMenuFile();
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Edit"))
+        {
+            if (ImGui::MenuItem("TODO", nullptr, false, false)) {}
+            if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
+            if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
+            ImGui::Separator();
+            if (ImGui::MenuItem("Cut", "CTRL+X")) {}
+            if (ImGui::MenuItem("Copy", "CTRL+C")) {}
+            if (ImGui::MenuItem("Paste", "CTRL+V")) {}
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Features"))
+        {
+            //TODO: this add the possibility to open/reopen features window (basicly other windows) 
+            //TODO: (not needed. They are repoened everytime )
+            if (ImGui::MenuItem("TODO", nullptr, false, false)) {}
+            //std::cout << &(sWindowAppsFlags.show_app_documents) << std::endl; 
+            // TODO: remove this item, it is not needed
+            if (ImGui::MenuItem("Vizual workplace", nullptr, &(sWindowAppsFlags.show_app_documents))) {}
+
+
+            //ImGui::MenuItem("Main menu bar", NULL, &show_app_main_menu_bar);
+            //ImGui::MenuItem("Console", NULL, &show_app_console);
+            //ImGui::MenuItem("Log", NULL, &show_app_log);
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Options"))
+        {
+            if (ImGui::MenuItem("TODO", nullptr, false, false)) {}
+            if (ImGui::MenuItem("Undo", nullptr)) {}
+            if (ImGui::MenuItem("Redo", nullptr, false, false)) {}  // Disabled item
+            ImGui::Separator();
+            if (ImGui::MenuItem("Cut", nullptr)) {}
+            if (ImGui::MenuItem("Copy", nullptr)) {}
+            if (ImGui::MenuItem("Paste", nullptr)) {}
+            ImGui::EndMenu();
+        }
+        ImGui::EndMenuBar();
     }
 }
 
@@ -119,6 +172,7 @@ static void MyApp::ShowMenuFile()
     if (ImGui::MenuItem("Quit", "Alt+F4")) {}
 }
 
+
 // TODO: create generic class from this function to reuse it with only few changes
 void MyApp::ShowWindow(bool* p_open)
 {
@@ -126,12 +180,12 @@ void MyApp::ShowWindow(bool* p_open)
 
     IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing dear imgui context. Refer to examples app!");
 
-    // Windows (apps) - accessible from the "Examples" menu
-    static bool show_app_main_menu_bar = true;
-    static bool show_app_documents = true;
+    struct MyApp::WindowAppsFlags sWindowAppsFlags;
+    //static bool show_app_main_menu_bar = true;
+    
 
-    if (show_app_main_menu_bar)     MyApp::ShowAppMainMenuBar();
-    if (show_app_documents)         MyApp::ShowAppDocuments(&show_app_documents);
+    //if (show_app_main_menu_bar)     MyApp::ShowAppMenuBar();
+    if (sWindowAppsFlags.show_app_documents)         MyApp::ShowAppDocuments(&sWindowAppsFlags.show_app_documents);
 
     // Demonstrate the various window flags. Typically you would just use the default!
     static bool no_titlebar = false;
@@ -170,7 +224,7 @@ void MyApp::ShowWindow(bool* p_open)
 */
 
     // Main body of the Demo window starts here.
-    if (!ImGui::Begin("Dear ImGui Demo", p_open, window_flags))
+    if (!ImGui::Begin("CookBook", p_open, window_flags))
     {
         // Early out if the window is collapsed, as an optimization.
         ImGui::End();
@@ -180,6 +234,8 @@ void MyApp::ShowWindow(bool* p_open)
     ImGui::PushItemWidth(ImGui::GetFontSize() * -12);
 
     // Menu Bar
+    MyApp::ShowAppMenuBar(sWindowAppsFlags);
+    /*
     if (ImGui::BeginMenuBar())
     {
         if (ImGui::BeginMenu("Menu"))
@@ -213,6 +269,7 @@ void MyApp::ShowWindow(bool* p_open)
         }
         ImGui::EndMenuBar();
     }
+    */
 
     ImGui::Text("dear imgui says hello! (%s) (%d)", IMGUI_VERSION, IMGUI_VERSION_NUM);
     ImGui::Spacing();

@@ -213,7 +213,7 @@ int ImGuiStart()
     try
     {
         GLFWInitialize();
-        auto window = GLFWCreateWindow(1920, 1080, true); // set this to false if you want background window
+        auto window = GLFWCreateWindow(1920, 1080, false); // set this to false if you want background window
         GLFWInitializeGL(window);
         GLFWSetWindowCallback(window, KeyCallback);
         ImGuiIO& io = ImGuiInitialize(window, 3.0);
