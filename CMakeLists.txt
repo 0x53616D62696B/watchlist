@@ -11,10 +11,17 @@ set(ENABLE_PCH ON)
 
 # compiler flags
 if(MSVC)
+  # Don't want the compiler to suggest the secure versions of the library functions, e.g. scanf_s when you use scanf.
+  # set(_CRT_SECURE_NO_WARNINGS ON)
+
+  # Eliminates deprication warnings by changing e. g. the strcpy call to strcpy_s, which prevents buffer overruns.
+  set(_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES ON)
+
 # add_compile_options(/favor:INTEL64 /arch:SSE /arch:SSE2 /arch:AVX /arch:AVX2 /openmp)
 # add_compile_options(/favor:INTEL64 /arch:AVX /arch:AVX2 /openmp)
 # add_compile_options(/Wall /WX)
 
+# TODO:
 # ! every warning treat as error?????? chechk this
 else()
   add_compile_options(-march=native -fopenmp -pthread)
