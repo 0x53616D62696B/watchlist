@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include "MyApp.hpp"
+
 #ifdef MYAPP
     #define WINDOWTITLE MyApp::windowTitle.c_str()
 #else
@@ -31,10 +33,3 @@ void ImGuiShutdown();
 void GLFWShutdown(GLFWwindow* window);
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 int ImGuiStart();
-
-// TODO: Place this namespace in its own file.
-namespace MyApp
-{
-const std::string windowTitle = "CookBook";
-void ShowWindow(bool* p_open = nullptr);
-}
