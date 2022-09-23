@@ -223,7 +223,7 @@ int ImGuiStart()
         {
             ImGuiNewFrame();
             // Place user code here
-            // ImGui::ShowDemoWindow();
+            ImGui::ShowDemoWindow();
 
             MyApp::ShowWindow();
 

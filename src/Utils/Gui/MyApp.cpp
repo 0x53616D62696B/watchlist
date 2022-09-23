@@ -62,7 +62,7 @@ static void MyApp::ShowAppMenuBar(struct MyApp::WindowAppsFlags& sWindowAppsFlag
             if (ImGui::MenuItem("Paste", "CTRL+V")) {}
             ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu("Features"))
+        if (ImGui::BeginMenu("Features/Tools"))
         {
             //TODO: this add the possibility to open/reopen features window (basicly other windows) 
             if (ImGui::MenuItem("TODO", nullptr, false, false)) {}
@@ -178,16 +178,14 @@ void MyApp::ShowWindow(bool* p_open)
 
     IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing dear imgui context. Refer to examples app!");
 
-    static struct MyApp::WindowAppsFlags sWindowAppsFlags;
-    //static bool show_app_main_menu_bar = true;
-    
+    static struct MyApp::WindowAppsFlags sWindowAppsFlags;    
 
     //if (show_app_main_menu_bar)     MyApp::ShowAppMenuBar();
     if (sWindowAppsFlags.show_app_documents)         MyApp::ShowAppDocuments(&sWindowAppsFlags.show_app_documents);
 
     // Demonstrate the various window flags. Typically you would just use the default!
     static bool no_titlebar = false;
-    static bool no_scrollbar = false;
+    static bool no_scrollbar = true;
     static bool no_menu = false;
     static bool no_move = false;
     static bool no_resize = false;
