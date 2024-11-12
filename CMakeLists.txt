@@ -49,7 +49,7 @@ message(STATUS "CMAKE_CXX_COMPILER_LAUNCHER: " ${CMAKE_CXX_COMPILER_LAUNCHER})
 add_executable(Application ${SRC_APPLICATION})
 add_executable(MultithreadDemo ${SRC_MULTITHREAD_DEMO})
 # add_executable(Logger ${SRC_LOGGER})
-add_executable(Test ${SRC_TEST})
+add_executable(Development ${SRC_DEVELOPMENT})
 
 # precompiled headers
 if(ENABLE_PCH)
@@ -68,7 +68,7 @@ endif()
 # utils
 file(GLOB_RECURSE SRC_UTILS CONFIGURE_DEPENDS src/Utils/*.hpp src/Utils/*.cpp)
 target_sources(Application PRIVATE ${SRC_UTILS})
-target_sources(Test PRIVATE ${SRC_UTILS})
+target_sources(Development PRIVATE ${SRC_UTILS})
 
 # imgui
 include_directories(libs/imgui)
@@ -101,6 +101,10 @@ target_sources(Application PRIVATE ${SRC_APPLICATION_APP})
 # file(GLOB SRC_LOGGER CONFIGURE_DEPENDS src/Utils/Logger/*.cpp)
 # target_sources(Logger PRIVATE ${SRC_LOGGER})
 
-# test app sources
-file(GLOB SRC_TEST CONFIGURE_DEPENDS test/*.cpp)
-target_sources(Test PRIVATE ${SRC_TEST})
+# app sources used for development and reaserch
+file(GLOB SRC_DEVELOPMENT CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/development/*.cpp)
+list(REMOVE_ITEM SRC_DEVELOPMENT
+  ${CMAKE_CURRENT_SOURCE_DIR}/development/excluded/*.cpp
+  #${CMAKE_CURRENT_SOURCE_DIR}/development/another_excluded_file.cpp
+)
+target_sources(Development PRIVATE ${SRC_DEVELOPMENT})
