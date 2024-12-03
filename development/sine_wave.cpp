@@ -1,9 +1,11 @@
 #include <iostream>
 #include <vector>
 #include <cmath> // For sin() and M_PI
-#ifdef MSVC
+#ifdef _MSC_VER
     #include <corecrt_math_defines.h> // Correcting of M_PI - platform specific for MSVC compiler
 #endif
+
+#include "sine_wave.hpp"
 
 namespace SineWave{
 
