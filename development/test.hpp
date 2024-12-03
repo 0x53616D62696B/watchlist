@@ -1,1 +1,0 @@
-void print_compiler_version();

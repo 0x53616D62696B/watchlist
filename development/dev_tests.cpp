@@ -5,9 +5,25 @@
 #include <iostream>
 #include <ctime>
 
-#include "test.hpp"
 
 
+#include <cstring>
+#include <string>
+#include <atomic>
+
+//#include <cstdint> // Include the header file to define "u8"
+// #include <cstddef> // Include the header file to define "u8"
+// #include <sstream>
+// #include <map>
+// #include <set>
+// #include <vector>
+
+#include "import_this.hpp"
+#include "dev_tests.hpp"
+
+
+
+namespace DevTests{
 
 void time_development_tests(){
     Log(LogLevel::Info, "Logging from main thread");
@@ -50,9 +66,7 @@ void print_compiler_version(){
     }   
 }
 
-int main(int argc, char* argv[]){
-    if (argc!= 2){
-    }
+void dev_tests_main(){
 
     print_compiler_version();
 
@@ -64,5 +78,41 @@ int main(int argc, char* argv[]){
     strncpy_s(ip_address_char, ip_address.length() + 1, ip_address.c_str(), ip_address.length());
     //delete[] ip_address_char; // Deallocate the memory
 
-    return 0;
+
+    // std::string msg = "Hello, server!";
+    // char* buffer_char = new char[msg.length() + 1]; // Initialize the buffer_char variable
+    // std::strncpy(reinterpret_cast<char*>(buffer_char), msg.c_str(), msg.length());
+
+    // const u8* test=reinterpret_cast<const u8*>(buffer_char);
+    //DAQSock->Send(&buffer_char, msg.length(), true);
+
+
+    
+    //char retrieved_msg_char[1024]; // Initialize the retrieved_msg_char array
+    
+
+
+    //mBuffer.reserve(100);
+    //size_t retrieved_msg_len = DAQSock->Receive(retrieved_msg_char, 1024, 1);
+    const char* retrieved_msg_char = new char[1024]{};
+    
+
+
+    size_t retrieved_msg_len = 59;
+    std::cout << "Reply from server: ";
+    //retrieved_msg_char = new char[1024]{};
+    std::cout.write(retrieved_msg_char, retrieved_msg_len);
+    // std::cout.write(retrieved_msg_char[0], retrieved_msg_len);
+    std::cout << std::endl;
+
+    std::vector<std::uint8_t> mBuffer;
+    mBuffer.reserve(100); // TODO not a member of a class! YET
+    //size_t retrieved_msg_len = DAQSock->Receive(&mBuffer, 100, 1);
+    std::cout << "Reply from server: " << &mBuffer << ". With msg length: " << retrieved_msg_len << std::endl;
+
+    TestingSpace::import_this();
+
+
 }
+
+} // namespace DevTests
