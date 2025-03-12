@@ -28,3 +28,16 @@ std::unique_ptr<IDAQTransfer> DAQTransferFactory::createChannel(const std::strin
     else
         return nullptr;
 }
+
+
+/*TODO NOTES
+This is how current channels are created. My solution with unique_ptrs should fit as well..
+
+MemChannel=new DatastreamDAQImplementation::DatastreamDAQ(
+				DatastreamDAQImplementation::DRV_RESP_FILE_PATH,
+				DatastreamDAQImplementation::DRV_REQ_FILE_PATH,
+				DatastreamDAQImplementation::MMAP_FILE_PATH,
+				OverallSize*sizeof(RawSample)
+			);
+
+*/ 
