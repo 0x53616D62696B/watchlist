@@ -19,7 +19,8 @@ DAQTransferFactory& DAQTransferFactory::getInstance() {
     return instance;
 }
 
-// Implementation of DAQTransferFactory's createChannel method //TODO remove unique_ptr?
+// Implementation of DAQTransferFactory's createChannel method 
+//TODO - creation should be done based on polymorphism and arguments passed. They are different amount of args passed. Just like in my first example in ftapp code
 std::unique_ptr<IDAQTransfer> DAQTransferFactory::createChannel(const std::string& name, const std::string& channelType) {
     if (channelType == "A")
         return std::unique_ptr<IDAQTransfer>(new DAQTransferA(name)); //TODO redo new
