@@ -2,6 +2,7 @@
 #include "sine_wave.hpp"
 #include "memory_mng.hpp"
 #include "factory_design.hpp"
+#include "diamond_problem.cpp"
 
 int main(int argc, char* argv[]){
     if (argc!= 2){
@@ -26,6 +27,7 @@ int main(int argc, char* argv[]){
     auto channelB2 = factory.createChannel("Third Channel", "B");
     channelB2->show();
 
+    //? These could be part of Unit Tests
     // DAQTransferFactory factory3 = DAQTransferFactory(); //TODO create better singleton error handling
     // DAQTransferFactory factory4; //TODO create better singleton error handling
     // auto factory2 = DAQTransferFactory::getInstance(); //TODO create better singleton error handling
@@ -33,6 +35,19 @@ int main(int argc, char* argv[]){
     //TODO unit tests
 
     //TODO error handling
+
+
+    //* Diamond Problem solution
+    /*
+    Final obj;
+    obj.show(); // Calls Final's show method - could throw Error: 'show' is ambiguous
+    // Accessing Base class method through Final object
+    obj.Base::show(); // Calls Base's show method, avoiding ambiguity
+    obj.Derived1::show();
+    obj.Derived2::show();
+    */
+
+
 
     return 0; 
 }
