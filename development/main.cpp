@@ -3,7 +3,7 @@
 #include "dev_tests.hpp"
 #include "sine_wave.hpp"
 #include "memory_mng.hpp"
-#include "factory_design.cpp"
+#include "factory_design.hpp"
 
 int main(int argc, char* argv[]){
     if (argc!= 2){
