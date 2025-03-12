@@ -1,5 +1,3 @@
-
-
 #include "dev_tests.hpp"
 #include "sine_wave.hpp"
 #include "memory_mng.hpp"
@@ -18,19 +16,23 @@ int main(int argc, char* argv[]){
     //MemoryManagement::memory_mng_main('a', &e);
 
     //* Factory Design
-    auto channelA = DAQTransferFactory::createChannel("A");
+    auto channelA = DAQTransferFactory::createChannel("First Channel", "A");
     channelA->show();
     
-    auto channelB = DAQTransferFactory::createChannel("B");
+    auto channelB = DAQTransferFactory::createChannel("Second Channel", "B");
     channelB->show();
 
     auto& factory = DAQTransferFactory::getInstance();
-    auto channelB2 = factory.createChannel("B");
+    auto channelB2 = factory.createChannel("Third Channel", "B");
     channelB2->show();
 
     // DAQTransferFactory factory3 = DAQTransferFactory(); //TODO create better singleton error handling
     // DAQTransferFactory factory4; //TODO create better singleton error handling
     // auto factory2 = DAQTransferFactory::getInstance(); //TODO create better singleton error handling
+
+    //TODO unit tests
+
+    //TODO error handling
 
     return 0; 
 }

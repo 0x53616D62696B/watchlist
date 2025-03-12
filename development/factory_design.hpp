@@ -8,19 +8,23 @@
 // Base IDAQTransfer class
 class IDAQTransfer {
 public:
-    virtual void show() = 0;
+    IDAQTransfer(const std::string& name);
     virtual ~IDAQTransfer() = default;
+    virtual void show() = 0;
+    std::string mName;
 };
 
 // Concrete DAQTransferA class
 class DAQTransferA : public IDAQTransfer {
 public:
+    using IDAQTransfer::IDAQTransfer;
     void show() override;
 };
 
 // Concrete DAQTransferB class
 class DAQTransferB : public IDAQTransfer {
 public:
+    using IDAQTransfer::IDAQTransfer;
     void show() override;
 };
 
@@ -28,7 +32,7 @@ public:
 class DAQTransferFactory {
 public:
     static DAQTransferFactory& getInstance();
-    static std::unique_ptr<IDAQTransfer> createChannel(const std::string& channelType);
+    static std::unique_ptr<IDAQTransfer> createChannel(const std::string& name, const std::string& channelType);
 
 private:
     DAQTransferFactory() {}
