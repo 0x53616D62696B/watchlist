@@ -18,19 +18,19 @@ int main(int argc, char* argv[]){
 
     //* Factory Design
     auto channelA = DAQDataTransferFactory::CreateChannel("First Channel", "A", "test_path");
-    channelA->show();
+    channelA->Show();
     
     auto channelB = DAQDataTransferFactory::CreateChannel("Second Channel", "B", "test_path", "test_path_2");
-    channelB->show();
+    channelB->Show();
 
-    auto& factory = DAQDataTransferFactory::getInstance();
+    auto& factory = DAQDataTransferFactory::GetInstance();
     auto channelB2 = factory.CreateChannel("Third Channel", "B", "test_path", "test_path_2");
-    channelB2->show();
+    channelB2->Show();
 
     //? These could be part of Unit Tests
     // DAQDataTransferFactory factory3 = DAQDataTransferFactory(); //TODO create better singleton error handling
     // DAQDataTransferFactory factory4; //TODO create better singleton error handling
-    // auto factory2 = DAQDataTransferFactory::getInstance(); //TODO create better singleton error handling
+    // auto factory2 = DAQDataTransferFactory::GetInstance(); //TODO create better singleton error handling
 
     //TODO unit tests
 
@@ -40,10 +40,10 @@ int main(int argc, char* argv[]){
     //* Diamond Problem solution
     /*
     Final obj;
-    obj.show(); // Calls Final's show method - could throw Error: 'show' is ambiguous
+    obj.Show(); // Calls Final's Show method - could throw Error: 'Show' is ambiguous
     // Accessing Base class method through Final object
-    obj.Base::show(); // Calls Base's show method, avoiding ambiguity
-    obj.Derived1::show();
+    obj.Base::Show(); // Calls Base's Show method, avoiding ambiguity
+    obj.Derived1::Show();
     obj.Derived2::show();
     */
     return 0; 

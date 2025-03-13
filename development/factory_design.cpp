@@ -3,18 +3,18 @@
 // Implementation of IDAQDataTransfer constructor
 IDAQDataTransfer::IDAQDataTransfer(const std::string& name) : mName(name) {}
 
-// Implementation of DAQDataTransferA's show method
-void DAQDataTransferA::show() {
+// Implementation of DAQDataTransferA's Show method
+void DAQDataTransferA::Show() {
     std::cout << "This is DAQDataTransfer A with name: " << mName << "\n" << std::endl;
 }
 
-// Implementation of DAQDataTransferB's show method
-void DAQDataTransferB::show() {
+// Implementation of DAQDataTransferB's Show method
+void DAQDataTransferB::Show() {
     std::cout << "This is DAQDataTransfer B with name: " << mName << "\n" << std::endl;
 }
 
-// Implementation of DAQDataTransferFactory's getInstance method
-DAQDataTransferFactory& DAQDataTransferFactory::getInstance() {
+// Implementation of DAQDataTransferFactory's GetInstance method
+DAQDataTransferFactory& DAQDataTransferFactory::GetInstance() {
     static DAQDataTransferFactory instance;
     return instance;
 }

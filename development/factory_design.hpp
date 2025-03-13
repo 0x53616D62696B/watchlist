@@ -10,7 +10,7 @@ class IDAQDataTransfer {
 public:
     IDAQDataTransfer(const std::string& name);
     virtual ~IDAQDataTransfer() = default;
-    virtual void show() = 0;
+    virtual void Show() = 0;
     std::string mName;
 };
 
@@ -18,20 +18,20 @@ public:
 class DAQDataTransferA : public IDAQDataTransfer {
 public:
     using IDAQDataTransfer::IDAQDataTransfer;
-    void show() override;
+    void Show() override;
 };
 
 // Concrete DAQDataTransferB class
 class DAQDataTransferB : public IDAQDataTransfer {
 public:
     using IDAQDataTransfer::IDAQDataTransfer;
-    void show() override;
+    void Show() override;
 };
 
 // Singleton DAQDataTransferFactory class
 class DAQDataTransferFactory {
 public:
-    static DAQDataTransferFactory& getInstance();
+    static DAQDataTransferFactory& GetInstance();
     static std::unique_ptr<IDAQDataTransfer> CreateChannel(const std::string& name, 
                                                            const std::string& channelType, 
                                                            const std::string& mmap_path);
@@ -39,7 +39,6 @@ public:
                                                            const std::string& channelType, 
                                                            const std::string& mmap_path,
                                                            const std::string& fifo_path);
-
 
 private:
     DAQDataTransferFactory() {}
