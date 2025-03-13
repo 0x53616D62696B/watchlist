@@ -5,39 +5,39 @@
 #include <memory>
 #include <string>
 
-// Base IDAQTransfer class
-class IDAQTransfer {
+// Base IDAQDataTransfer class
+class IDAQDataTransfer {
 public:
-    IDAQTransfer(const std::string& name);
-    virtual ~IDAQTransfer() = default;
+    IDAQDataTransfer(const std::string& name);
+    virtual ~IDAQDataTransfer() = default;
     virtual void show() = 0;
     std::string mName;
 };
 
-// Concrete DAQTransferA class
-class DAQTransferA : public IDAQTransfer {
+// Concrete DAQDataTransferA class
+class DAQDataTransferA : public IDAQDataTransfer {
 public:
-    using IDAQTransfer::IDAQTransfer;
+    using IDAQDataTransfer::IDAQDataTransfer;
     void show() override;
 };
 
-// Concrete DAQTransferB class
-class DAQTransferB : public IDAQTransfer {
+// Concrete DAQDataTransferB class
+class DAQDataTransferB : public IDAQDataTransfer {
 public:
-    using IDAQTransfer::IDAQTransfer;
+    using IDAQDataTransfer::IDAQDataTransfer;
     void show() override;
 };
 
-// Singleton DAQTransferFactory class
-class DAQTransferFactory {
+// Singleton DAQDataTransferFactory class
+class DAQDataTransferFactory {
 public:
-    static DAQTransferFactory& getInstance();
-    static std::unique_ptr<IDAQTransfer> createChannel(const std::string& name, const std::string& channelType);
+    static DAQDataTransferFactory& getInstance();
+    static std::unique_ptr<IDAQDataTransfer> createChannel(const std::string& name, const std::string& channelType);
 
 private:
-    DAQTransferFactory() {}
-    DAQTransferFactory(const DAQTransferFactory&) = delete;
-    DAQTransferFactory& operator=(const DAQTransferFactory&) = delete;
+    DAQDataTransferFactory() {}
+    DAQDataTransferFactory(const DAQDataTransferFactory&) = delete;
+    DAQDataTransferFactory& operator=(const DAQDataTransferFactory&) = delete;
 };
 
 #endif // FACTORY_DESIGN_HPP

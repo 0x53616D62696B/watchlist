@@ -17,20 +17,20 @@ int main(int argc, char* argv[]){
     //MemoryManagement::memory_mng_main('a', &e);
 
     //* Factory Design
-    auto channelA = DAQTransferFactory::createChannel("First Channel", "A");
+    auto channelA = DAQDataTransferFactory::createChannel("First Channel", "A");
     channelA->show();
     
-    auto channelB = DAQTransferFactory::createChannel("Second Channel", "B");
+    auto channelB = DAQDataTransferFactory::createChannel("Second Channel", "B");
     channelB->show();
 
-    auto& factory = DAQTransferFactory::getInstance();
+    auto& factory = DAQDataTransferFactory::getInstance();
     auto channelB2 = factory.createChannel("Third Channel", "B");
     channelB2->show();
 
     //? These could be part of Unit Tests
-    // DAQTransferFactory factory3 = DAQTransferFactory(); //TODO create better singleton error handling
-    // DAQTransferFactory factory4; //TODO create better singleton error handling
-    // auto factory2 = DAQTransferFactory::getInstance(); //TODO create better singleton error handling
+    // DAQDataTransferFactory factory3 = DAQDataTransferFactory(); //TODO create better singleton error handling
+    // DAQDataTransferFactory factory4; //TODO create better singleton error handling
+    // auto factory2 = DAQDataTransferFactory::getInstance(); //TODO create better singleton error handling
 
     //TODO unit tests
 
