@@ -17,14 +17,14 @@ int main(int argc, char* argv[]){
     //MemoryManagement::memory_mng_main('a', &e);
 
     //* Factory Design
-    auto channelA = DAQDataTransferFactory::createChannel("First Channel", "A");
+    auto channelA = DAQDataTransferFactory::CreateChannel("First Channel", "A", "test_path");
     channelA->show();
     
-    auto channelB = DAQDataTransferFactory::createChannel("Second Channel", "B");
+    auto channelB = DAQDataTransferFactory::CreateChannel("Second Channel", "B", "test_path", "test_path_2");
     channelB->show();
 
     auto& factory = DAQDataTransferFactory::getInstance();
-    auto channelB2 = factory.createChannel("Third Channel", "B");
+    auto channelB2 = factory.CreateChannel("Third Channel", "B", "test_path", "test_path_2");
     channelB2->show();
 
     //? These could be part of Unit Tests
@@ -46,8 +46,5 @@ int main(int argc, char* argv[]){
     obj.Derived1::show();
     obj.Derived2::show();
     */
-
-
-
     return 0; 
 }

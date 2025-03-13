@@ -32,7 +32,14 @@ public:
 class DAQDataTransferFactory {
 public:
     static DAQDataTransferFactory& getInstance();
-    static std::unique_ptr<IDAQDataTransfer> createChannel(const std::string& name, const std::string& channelType);
+    static std::unique_ptr<IDAQDataTransfer> CreateChannel(const std::string& name, 
+                                                           const std::string& channelType, 
+                                                           const std::string& mmap_path);
+    static std::unique_ptr<IDAQDataTransfer> CreateChannel(const std::string& name, 
+                                                           const std::string& channelType, 
+                                                           const std::string& mmap_path,
+                                                           const std::string& fifo_path);
+
 
 private:
     DAQDataTransferFactory() {}
