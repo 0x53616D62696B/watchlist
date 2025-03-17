@@ -3,6 +3,7 @@
 #include "memory_mng.hpp"
 #include "factory_design.hpp"
 #include "diamond_problem.cpp"
+#include "pure_virtual_method_in_abs_cls.hpp"
 
 int main(int argc, char* argv[]){
     if (argc!= 2){
@@ -46,5 +47,18 @@ int main(int argc, char* argv[]){
     obj.Derived1::Show();
     obj.Derived2::show();
     */
+
+    // Handle undefined states of int and size_t
+    #include <limits>
+    const int INT_UNDEFINED = -1;
+    const size_t SIZE_T_UNDEFINED = std::numeric_limits<size_t>::max();
+    const size_t SIZE_T_UNDEFINED_MIN = std::numeric_limits<size_t>::min();
+    printf("INT_UNDEFINED: %d\n", INT_UNDEFINED);
+    printf("SIZE_T_UNDEFINED: %zu\n", SIZE_T_UNDEFINED);
+    printf("SIZE_T_UNDEFINED_MIN: %zu\n", SIZE_T_UNDEFINED_MIN);
+
+    //* abs cls
+    abs_cls_main();
+
     return 0; 
 }

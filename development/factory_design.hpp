@@ -18,6 +18,7 @@ public:
 class DAQDataTransferA : public IDAQDataTransfer {
 public:
     using IDAQDataTransfer::IDAQDataTransfer;
+private:
     void Show() override;
 };
 
@@ -33,10 +34,10 @@ class DAQDataTransferFactory {
 public:
     static DAQDataTransferFactory& GetInstance();
     static std::unique_ptr<IDAQDataTransfer> CreateChannel(const std::string& name, 
-                                                           const std::string& channelType, 
+                                                           const std::string& channel_type, 
                                                            const std::string& mmap_path);
     static std::unique_ptr<IDAQDataTransfer> CreateChannel(const std::string& name, 
-                                                           const std::string& channelType, 
+                                                           const std::string& channel_type, 
                                                            const std::string& mmap_path,
                                                            const std::string& fifo_path);
 
