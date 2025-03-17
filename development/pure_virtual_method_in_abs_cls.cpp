@@ -50,81 +50,66 @@
 // Jixxy's example
 #include <iostream>
 
-class ConnectableBase {
-public:
-    ConnectableBase(const std::string& aName):mName(aName) {
-        std::cout << "ConnectableBase constructed with name " << aName << "\n"; 
-    }
-    ~ConnectableBase() { std::cout << "ConnectableBase destroyed\n"; }
-    std::string mName;
-};
+#include "pure_virtual_method_in_abs_cls.hpp"
+
+
+ConnectableBase::ConnectableBase(const std::string& aName):mName(aName) {
+    std::cout << "ConnectableBase constructed with name " << aName << "\n"; 
+}
+ConnectableBase::~ConnectableBase() { std::cout << "ConnectableBase destroyed\n"; }
+
 
 // Base class using CRTP (curiously reocurring template pattern)
+
+// Makes connectImpl "pure virtual" - has to be defined in derived class
 template <typename Derived>
-class Connectable: public ConnectableBase {
-public:
-    // Makes connectImpl "pure virtual" - has to be defined in derived class
-    Connectable(const std::string& aName): ConnectableBase(aName) {
-        // Automatically call connect when object is constructed
-        static_cast<Derived*>(this)->connectImpl();
-        std::cout << "Constructed name is: " << static_cast<Derived*>(this)->mName << std::endl;
-    }
+Connectable<Derived>::Connectable(const std::string& aName): ConnectableBase(aName) {
+    // Automatically call connect when object is constructed
+    static_cast<Derived*>(this)->connectImpl();
+    std::cout << "Constructed name is: " << static_cast<Derived*>(this)->mName << std::endl;
+}
 
-    // Makes disconnectImpl "pure virtual" - has to be defined in derived class
-    ~Connectable() {
-        // Automatically call disconnect when object is destroyed
-        static_cast<Derived*>(this)->disconnectImpl();
-    }
+// Makes disconnectImpl "pure virtual" - has to be defined in derived class
+template <typename Derived>
+Connectable<Derived>::~Connectable() {
+    // Automatically call disconnect when object is destroyed
+    static_cast<Derived*>(this)->disconnectImpl();
+}
 
-    // Prevent copying to avoid confusion with connect/disconnect
-    Connectable(const Connectable&) = delete;
-    Connectable& operator=(const Connectable&) = delete;
-};
 
 // Derived class 1
-class DeviceA : public Connectable<DeviceA> {
-public:
-    DeviceA(const std::string& aName):Connectable(aName) { std::cout << "DeviceA constructed\n"; }
-    ~DeviceA() { std::cout << "DeviceA destroyed\n"; }
+DeviceA::DeviceA(const std::string& aName):Connectable(aName) { std::cout << "DeviceA constructed\n"; }
+DeviceA::~DeviceA() { std::cout << "DeviceA destroyed\n"; }
 
-    void connectImpl() {
-        std::cout << "DeviceA connecting\n";
-        mValue = 4;
-        getValue();
-    }
+void DeviceA::connectImpl() {
+    std::cout << "DeviceA connecting\n";
+    mValue = 4;
+    getValue();
+}
 
-    void disconnectImpl() {
-        std::cout << "DeviceA disconnecting\n";
-        mValue = 0;
-        getValue();
-        std::cout << "DeviceA name is:" << mName << "\n";
-    }
+void DeviceA::disconnectImpl() {
+    std::cout << "DeviceA disconnecting\n";
+    mValue = 0;
+    getValue();
+    std::cout << "DeviceA name is:" << mName << "\n";
+}
 
-    int getValue() const { return mValue; }
-
-    int mValue = 1; //? Define before implementation?
-
-};
 
 // Derived class 2
-class DeviceB : public Connectable<DeviceB> {
-public:
-    DeviceB(const std::string& aName):Connectable(aName) { std::cout << "DeviceB constructed\n"; }
-    ~DeviceB() { std::cout << "DeviceB destroyed\n"; }
 
-    void connectImpl() {
-        std::cout << "DeviceB connecting\n";
-    }
+DeviceB::DeviceB(const std::string& aName):Connectable(aName) { std::cout << "DeviceB constructed\n"; }
+DeviceB::~DeviceB() { std::cout << "DeviceB destroyed\n"; }
 
-    void disconnectImpl() {
-        std::cout << "DeviceB disconnecting\n";
-        mValue = 0;
-        std::cout << "DeviceB name is:" << mName << "\n";
+void DeviceB::connectImpl() {
+    std::cout << "DeviceB connecting\n";
+}
 
-    }
+void DeviceB::disconnectImpl() {
+    std::cout << "DeviceB disconnecting\n";
+    mValue = 0;
+    std::cout << "DeviceB name is:" << mName << "\n";
 
-    int mValue = 2;
-};
+}
 
 void abs_cls_main() {
 
