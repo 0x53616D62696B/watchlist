@@ -50,14 +50,24 @@
 // Jixxy's example
 #include <iostream>
 
+class ConnectableBase {
+public:
+    ConnectableBase(const std::string& aName):mName(aName) {
+        std::cout << "ConnectableBase constructed with name " << aName << "\n"; 
+    }
+    ~ConnectableBase() { std::cout << "ConnectableBase destroyed\n"; }
+    std::string mName;
+};
+
 // Base class using CRTP (curiously reocurring template pattern)
 template <typename Derived>
-class Connectable {
+class Connectable: public ConnectableBase {
 public:
     // Makes connectImpl "pure virtual" - has to be defined in derived class
-    Connectable(const std::string& aName): mName(aName) {
+    Connectable(const std::string& aName): ConnectableBase(aName) {
         // Automatically call connect when object is constructed
         static_cast<Derived*>(this)->connectImpl();
+        std::cout << "Constructed name is: " << static_cast<Derived*>(this)->mName << std::endl;
     }
 
     // Makes disconnectImpl "pure virtual" - has to be defined in derived class
@@ -69,9 +79,6 @@ public:
     // Prevent copying to avoid confusion with connect/disconnect
     Connectable(const Connectable&) = delete;
     Connectable& operator=(const Connectable&) = delete;
-
-    std::string mName;
-
 };
 
 // Derived class 1
@@ -96,6 +103,7 @@ public:
     int getValue() const { return mValue; }
 
     int mValue = 1; //? Define before implementation?
+
 };
 
 // Derived class 2
