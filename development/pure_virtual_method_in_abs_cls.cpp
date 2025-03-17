@@ -54,13 +54,13 @@
 template <typename Derived>
 class Connectable {
 public:
-    // Makes connectImpl "pure virtual"
+    // Makes connectImpl "pure virtual" - has to be defined in derived class
     Connectable() {
         // Automatically call connect when object is constructed
         static_cast<Derived*>(this)->connectImpl();
     }
 
-    // Makes disconnectImpl "pure virtual"
+    // Makes disconnectImpl "pure virtual" - has to be defined in derived class
     ~Connectable() {
         // Automatically call disconnect when object is destroyed
         static_cast<Derived*>(this)->disconnectImpl();
@@ -69,9 +69,6 @@ public:
     // Prevent copying to avoid confusion with connect/disconnect
     Connectable(const Connectable&) = delete;
     Connectable& operator=(const Connectable&) = delete;
-
-    // virtual void connectImpl() = 0;
-    // virtual void disconnectImpl() = 0;
 
 };
 
