@@ -55,7 +55,7 @@ template <typename Derived>
 class Connectable {
 public:
     // Makes connectImpl "pure virtual" - has to be defined in derived class
-    Connectable() {
+    Connectable(const std::string& aName): mName(aName) {
         // Automatically call connect when object is constructed
         static_cast<Derived*>(this)->connectImpl();
     }
@@ -70,33 +70,38 @@ public:
     Connectable(const Connectable&) = delete;
     Connectable& operator=(const Connectable&) = delete;
 
+    std::string mName;
+
 };
 
 // Derived class 1
 class DeviceA : public Connectable<DeviceA> {
 public:
-    DeviceA() { std::cout << "DeviceA constructed\n"; }
+    DeviceA(const std::string& aName):Connectable(aName) { std::cout << "DeviceA constructed\n"; }
     ~DeviceA() { std::cout << "DeviceA destroyed\n"; }
 
     void connectImpl() {
         std::cout << "DeviceA connecting\n";
+        mValue = 4;
+        getValue();
     }
 
     void disconnectImpl() {
         std::cout << "DeviceA disconnecting\n";
         mValue = 0;
         getValue();
+        std::cout << "DeviceA name is:" << mName << "\n";
     }
 
     int getValue() const { return mValue; }
 
-    int mValue = 1;
+    int mValue = 1; //? Define before implementation?
 };
 
 // Derived class 2
 class DeviceB : public Connectable<DeviceB> {
 public:
-    DeviceB() { std::cout << "DeviceB constructed\n"; }
+    DeviceB(const std::string& aName):Connectable(aName) { std::cout << "DeviceB constructed\n"; }
     ~DeviceB() { std::cout << "DeviceB destroyed\n"; }
 
     void connectImpl() {
@@ -106,6 +111,8 @@ public:
     void disconnectImpl() {
         std::cout << "DeviceB disconnecting\n";
         mValue = 0;
+        std::cout << "DeviceB name is:" << mName << "\n";
+
     }
 
     int mValue = 2;
@@ -113,8 +120,8 @@ public:
 
 void abs_cls_main() {
 
-    DeviceA a;
+    DeviceA a("DeviceA");
     std::cout << "---\n";
-    DeviceB b;
+    DeviceB b("DeviceB");
 // Destruction happens here
 }
