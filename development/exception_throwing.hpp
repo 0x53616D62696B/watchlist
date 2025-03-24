@@ -1,0 +1,1 @@
+void main_exception_throwing();

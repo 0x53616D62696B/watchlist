@@ -110,12 +110,13 @@ void DeviceB::disconnectImpl() {
     std::cout << "DeviceB name is:" << mName << "\n";
 }
 
-std::unique_ptr<Connectable<DeviceA>> get_device(const std::string& aName){
-    return std::make_unique<DeviceA>(aName);
+std::unique_ptr<DeviceA> get_device(const std::string& aName){
+    // return std::make_unique<DeviceA>(aName);
+    return std::unique_ptr<DeviceA>(new DeviceA(aName));
 }
 
 void abs_cls_main() {
-    std::unique_ptr<Connectable<DeviceA>> dev = get_device("DeviceA");
+    std::unique_ptr<DeviceA> dev = get_device("DeviceA");
     std::cout << "---\n";
     DeviceB b("DeviceB");
     // Destruction happens here

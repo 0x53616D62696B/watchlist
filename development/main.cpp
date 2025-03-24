@@ -4,6 +4,7 @@
 #include "factory_design.hpp"
 #include "diamond_problem.cpp"
 #include "pure_virtual_method_in_abs_cls.hpp"
+#include "exception_throwing.hpp"
 
 int main(int argc, char* argv[]){
     if (argc!= 2){
@@ -59,6 +60,10 @@ int main(int argc, char* argv[]){
 
     //* abs cls
     abs_cls_main();
+
+
+    //* exception handling
+    main_exception_throwing();
 
     return 0; 
 }
