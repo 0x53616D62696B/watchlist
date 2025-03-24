@@ -1,35 +1,7 @@
-#include <string>
-#include <stdexcept>
-#include <iostream>
-
-
-class DataTransferFailure: public std::runtime_error
-{
-public:
-    DataTransferFailure(const std::string& message)
-        : std::runtime_error(message)
-    {}
-};
-
-template <const std::string& PREMSG>
-class DataTransferFailureTemplate: public DataTransferFailure
-{
-public:
-    DataTransferFailureTemplate(const std::string& message = "")
-        : DataTransferFailure(PREMSG + message)
-    {}
-};
-
-
-// Create a type alias
-const std::string COMMUNICATION_FAILURE = "Data transfer communication failure: ";
-using DataTransferCommunicationFailure = DataTransferFailureTemplate<COMMUNICATION_FAILURE>;
-const std::string DISCONNECTED = "Disconnected while transfering data: ";
-using DataTransferDisconnectedFailure = DataTransferFailureTemplate<DISCONNECTED>;
-
+#include "exception_throwing.hpp"
 
 void main_exception_throwing(){
-    std::cout << "\n" << std::endl;
+    std::cout << "\n";
     try{
 
         throw DataTransferFailure("Test message");
