@@ -7,22 +7,22 @@
 class DataTransferFailure: public std::runtime_error
 {
 public:
-	DataTransferFailure(const std::string& message)
-		: std::runtime_error(message)
-	{}
+    DataTransferFailure(const std::string& message)
+        : std::runtime_error(message)
+    {}
 };
 
-template <const char* premsg>
+template <const std::string& PREMSG>
 class DataTransferFailureTemplate: public DataTransferFailure
 {
 public:
-	DataTransferFailureTemplate(const std::string& message = "")
-		: DataTransferFailure(premsg + message)
-	{}
+    DataTransferFailureTemplate(const std::string& message = "")
+        : DataTransferFailure(PREMSG + message)
+    {}
 };
 
-constexpr char premsg_[] = "Some premsq: ";
-constexpr char premsg_2_[] = "Premsq 2: ";
+const std::string premsg_ = "Some premsq: ";
+const std::string premsg_2_ = "Premsq 2: ";
 
 // Create a type alias
 using MyNewClass = DataTransferFailureTemplate<premsg_>;
@@ -39,6 +39,7 @@ using MyNewClass_2 = DataTransferFailureTemplate<premsg_2_>;
 //         : DataTransferFailureTemplate<premsg_>(message)
 //     {}
 // };
+
 
 
 
