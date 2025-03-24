@@ -1,5 +1,4 @@
 #include <string>
-// #include <exception>
 #include <stdexcept>
 #include <iostream>
 
@@ -21,38 +20,13 @@ public:
     {}
 };
 
-const std::string premsg_ = "Some premsq: ";
-const std::string premsg_2_ = "Premsq 2: ";
 
 // Create a type alias
-using MyNewClass = DataTransferFailureTemplate<premsg_>;
-using MyNewClass_2 = DataTransferFailureTemplate<premsg_2_>;
+const std::string COMMUNICATION_FAILURE = "Data transfer communication failure: ";
+using DataTransferCommunicationFailure = DataTransferFailureTemplate<COMMUNICATION_FAILURE>;
+const std::string DISCONNECTED = "Disconnected while transfering data: ";
+using DataTransferDisconnectedFailure = DataTransferFailureTemplate<DISCONNECTED>;
 
-
-// DataTransferFailureTemplate<premsg_> MyNewClass;
-// MyNewClass("Constructor message");
-
-// class MyNewClass : public DataTransferFailureTemplate<premsg_>
-// {
-// public:
-//     MyNewClass(const std::string& message = "")
-//         : DataTransferFailureTemplate<premsg_>(message)
-//     {}
-// };
-
-
-
-
-
-
-//TODO create template for class? Only diff would be the message
-class DataTransferCommunicationFailure: public DataTransferFailure
-{
-public:
-	DataTransferCommunicationFailure(const std::string& message = "Data transfer communication failure")
-		: DataTransferFailure(message)
-	{}
-};
 
 void main_exception_throwing(){
     std::cout << "\n" << std::endl;
@@ -82,14 +56,14 @@ void main_exception_throwing(){
 
     try{
 
-        throw MyNewClass("Test message");
+        throw DataTransferCommunicationFailure("ID 123");
     }
     catch (DataTransferFailure& e){
         std::cout << e.what() << std::endl;
     }
     try{
 
-        throw MyNewClass_2("Test message 2");
+        throw DataTransferDisconnectedFailure("Disconnected while transfering data in time 12:23");
     }
     catch (DataTransferFailure& e){
         std::cout << e.what() << std::endl;
