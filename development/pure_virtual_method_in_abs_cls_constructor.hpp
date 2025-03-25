@@ -34,7 +34,7 @@ public:
 
     int getValue() const { return mValue; }
 
-    int mValue = 1; //? Define before implementation?
+    int mValue = 123; //! Defined before implementation, design is flowed.
 
 };
 
@@ -48,5 +48,5 @@ public:
 
     void disconnectImpl();
 
-    int mValue = 2;
+    int mValue = 222;
 };

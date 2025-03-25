@@ -49,8 +49,9 @@
 
 // Jixxy's example
 #include <iostream>
+#include <cassert>
 
-#include "pure_virtual_method_in_abs_cls.hpp"
+#include "pure_virtual_method_in_abs_cls_constructor.hpp"
 
 
 ConnectableBase::ConnectableBase(const std::string& aName):mName(aName) {
@@ -83,6 +84,9 @@ DeviceA::~DeviceA() { std::cout << "DeviceA destroyed\n"; }
 
 void DeviceA::connectImpl() {
     std::cout << "DeviceA connecting\n";
+    
+    //assert(mValue == 123); //! This fails. This design is not good when you want to reach data members defined in derived class.
+
     mValue = 4;
     getValue();
 }

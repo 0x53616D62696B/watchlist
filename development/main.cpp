@@ -3,7 +3,7 @@
 #include "memory_mng.hpp"
 #include "factory_design.hpp"
 #include "diamond_problem.cpp"
-#include "pure_virtual_method_in_abs_cls.hpp"
+#include "pure_virtual_method_in_abs_cls_constructor.hpp"
 #include "exception_throwing.hpp"
 
 int main(int argc, char* argv[]){
