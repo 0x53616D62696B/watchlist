@@ -6,7 +6,7 @@ void main_exception_throwing(){
 
         throw DataTransferFailure("Test message");
     }
-    catch (DataTransferFailure& e){
+    catch (RuntimeException& e){
         std::cout << e.what() << std::endl;
     }
 
@@ -14,7 +14,7 @@ void main_exception_throwing(){
 
         throw DataTransferCommunicationFailure();
     }
-    catch (DataTransferFailure& e){
+    catch (DataTransferCommunicationFailure& e){
         std::cout << e.what() << std::endl;
     }
 
@@ -22,7 +22,7 @@ void main_exception_throwing(){
 
         throw DataTransferCommunicationFailure("Test message");
     }
-    catch (DataTransferFailure& e){
+    catch (DataTransferCommunicationFailure& e){
         std::cout << e.what() << std::endl;
     }
 
@@ -30,14 +30,14 @@ void main_exception_throwing(){
 
         throw DataTransferCommunicationFailure("ID 123");
     }
-    catch (DataTransferFailure& e){
+    catch (DataTransferCommunicationFailure& e){
         std::cout << e.what() << std::endl;
     }
     try{
 
         throw DataTransferDisconnectedFailure("Disconnected while transfering data in time 12:23");
     }
-    catch (DataTransferFailure& e){
+    catch (DataTransferDisconnectedFailure& e){
         std::cout << e.what() << std::endl;
     }
 }
