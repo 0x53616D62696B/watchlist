@@ -5,6 +5,7 @@
 #include "diamond_problem.cpp"
 #include "pure_virtual_method_in_abs_cls_constructor.hpp"
 #include "exception_throwing.hpp"
+#include "unique_ptrs.hpp"
 
 int main(int argc, char* argv[]){
     if (argc!= 2){
@@ -64,6 +65,9 @@ int main(int argc, char* argv[]){
 
     //* exception handling
     main_exception_throwing();
+
+    //* unique pointers
+    main_unique_ptrs();
 
     return 0; 
 }
