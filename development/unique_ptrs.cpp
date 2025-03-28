@@ -2,16 +2,14 @@
 #include <memory>
 #include <iostream>
 
+#include <typeinfo>
+
 using u32 = uint32_t;
 
 typedef struct hermes_usb_acqu_setup
 {
-	u32 id;			/* id returned with event */
-	u32 board;		/* board address */
-	u32 address;	/* address offset in the acquisition mem to place the data */
-	u32 size;		/* expected size in bytes */
-	u32 preview_a;	/* preview expected size in bytes, if >0, an event will be generated to wake the application */
-	u32 preview_b;	/* preview expected size in bytes, if >0, an event will be generated to wake the application */
+	u32 id;
+	u32 address;
 
 } hermes_usb_acqu_setup;
 
@@ -22,23 +20,18 @@ typedef struct AcquSetupBuffer
 } AcquSetupBuffer;
 
 template <typename AcquBufferStruct>
-std::unique_ptr<AcquBufferStruct> SetupBuffer(char aCmd, void* aXchangeData)
+// std::unique_ptr<AcquBufferStruct> SetupBuffer(char aCmd, void* aXchangeData) //* Or this possibility with raw pointer param
+std::unique_ptr<AcquBufferStruct> SetupBuffer(char aCmd, decltype(AcquBufferStruct::data)* aXchangeData)
 {
     //* Concatenate data buffer
     // Allocate memory for char + hermes_usb_acqu_setup 
     std::unique_ptr<AcquBufferStruct> concatenatedBuf = std::unique_ptr<AcquBufferStruct>(new AcquBufferStruct);
 
-    //* Memcpy aXchangeData into 1. position for data
-    //reinterpret_cast<AcquBufferStruct*>(concatenatedBuf.get())->data = *reinterpret_cast<hermes_usb_acqu_setup*>(aXchangeData);
-    
-    //AcquBufferStruct::data* aXchangeDataReinterpreted = reinterpret_cast<AcquBufferStruct::data*>(aXchangeData); //! NEW
-    hermes_usb_acqu_setup* aXchangeDataReinterpreted = reinterpret_cast<hermes_usb_acqu_setup*>(aXchangeData); //! NEW
-
-    //memcpy(concatenatedBuf->data, aXchangeDataReinterpreted, sizeof(AcquBufferStruct::data));
-    //memcpy(concatenatedBuf->data, aXchangeDataReinterpreted, sizeof(AcquBufferStruct::data));
+    //* Cpy aXchangeData into position for data
+    concatenatedBuf->data = *(reinterpret_cast<decltype(AcquBufferStruct::data)*>(aXchangeData));
 
     //* Initialize cmd
-    concatenatedBuf.get()->cmd = aCmd; //? will this work?
+    concatenatedBuf->cmd = aCmd;
 
     // Memory will be automatically freed when concatenatedBuf goes out of scope
     //* Concatenate data buffer end
@@ -49,7 +42,7 @@ std::unique_ptr<AcquBufferStruct> SetupBuffer(char aCmd, void* aXchangeData)
 void main_unique_ptrs(){
     hermes_usb_acqu_setup* acqu_setup = new hermes_usb_acqu_setup;
     std::unique_ptr<AcquSetupBuffer> my_buff = SetupBuffer<AcquSetupBuffer>('a', acqu_setup);
-    std::cout << "my_buff->cmd: " << my_buff->cmd << std::endl;
+    std::cout << "my_buff->cmd: " << my_buff->data.id << std::endl;
     std::cout << "my_buff.get()->cmd: " << my_buff.get()->cmd << std::endl; // Same
     std::cout << "&(my_buff->cmd): " << &(my_buff->cmd) << std::endl; // Pointer to cmd - strange output because it is not initialized
     std::cout << "&(my_buff->data): " << &(my_buff->data) << std::endl; //Pointer to data
