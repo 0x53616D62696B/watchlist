@@ -33,10 +33,10 @@ public:
 class DAQDataTransferFactory {
 public:
     static DAQDataTransferFactory& GetInstance();
-    static std::unique_ptr<IDAQDataTransfer> CreateChannel(const std::string& name, 
+    static IDAQDataTransfer* CreateChannel(const std::string& name, 
                                                            const std::string& channel_type, 
                                                            const std::string& mmap_path);
-    static std::unique_ptr<IDAQDataTransfer> CreateChannel(const std::string& name, 
+    static IDAQDataTransfer* CreateChannel(const std::string& name, 
                                                            const std::string& channel_type, 
                                                            const std::string& mmap_path,
                                                            const std::string& fifo_path);

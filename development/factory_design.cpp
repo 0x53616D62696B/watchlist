@@ -20,15 +20,15 @@ DAQDataTransferFactory& DAQDataTransferFactory::GetInstance() {
 }
 
 // Implementation of DAQDataTransferFactory's CreateChannel method 
-std::unique_ptr<IDAQDataTransfer> DAQDataTransferFactory::CreateChannel(const std::string& name, 
+IDAQDataTransfer* DAQDataTransferFactory::CreateChannel(const std::string& name, 
                                                                         const std::string& channelType,
                                                                         const std::string& mmap_path) {
-    return std::unique_ptr<IDAQDataTransfer>(new DAQDataTransferA(name)); //TODO redo new
+    return new DAQDataTransferA(name);
 }
 
-std::unique_ptr<IDAQDataTransfer> DAQDataTransferFactory::CreateChannel(const std::string& name, 
+IDAQDataTransfer* DAQDataTransferFactory::CreateChannel(const std::string& name, 
                                                                         const std::string& channelType,
                                                                         const std::string& mmap_path,
                                                                         const std::string& fifo_path) {
-    return std::unique_ptr<IDAQDataTransfer>(new DAQDataTransferB(name)); //TODO redo new
+    return new DAQDataTransferB(name)
 }

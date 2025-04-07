@@ -20,10 +20,10 @@ int main(int argc, char* argv[]){
     //MemoryManagement::memory_mng_main('a', &e);
 
     //* Factory Design
-    auto channelA = DAQDataTransferFactory::CreateChannel("First Channel", "A", "test_path");
+    IDAQDataTransfer* channelA = DAQDataTransferFactory::CreateChannel("First Channel", "A", "test_path");
     channelA->Show();
     
-    auto channelB = DAQDataTransferFactory::CreateChannel("Second Channel", "B", "test_path", "test_path_2");
+    IDAQDataTransfer* channelB = DAQDataTransferFactory::CreateChannel("Second Channel", "B", "test_path", "test_path_2");
     channelB->Show();
 
     auto& factory = DAQDataTransferFactory::GetInstance();
