@@ -30,5 +30,5 @@ IDAQDataTransfer* DAQDataTransferFactory::CreateChannel(const std::string& name,
                                                                         const std::string& channelType,
                                                                         const std::string& mmap_path,
                                                                         const std::string& fifo_path) {
-    return new DAQDataTransferB(name)
+    return new DAQDataTransferB(name);
 }

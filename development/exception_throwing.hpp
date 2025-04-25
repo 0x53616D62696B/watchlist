@@ -31,22 +31,41 @@ public:
 // const std::string DISCONNECTED = "Disconnected while transfering data: ";
 // using DataTransferDisconnectedFailure = DataTransferFailureTemplate<DISCONNECTED>;
 
-constexpr char DATA_TRANSFER_FAILURE_MSG[] = "Data Transfer Generic Failure.";
-using DataTransferFailure = RuntimeExceptionTemplate<DATA_TRANSFER_FAILURE_MSG>;
-constexpr char COMMUNICATION_FAILURE_MSG[] = "Transfer Communication Failure.";
-using DataTransferCommunicationFailure = RuntimeExceptionTemplate<COMMUNICATION_FAILURE_MSG>;
-constexpr char MMAP_FAILURE_MSG[] = "MMap Failure.";
-using DataTransferMemMapFailure = RuntimeExceptionTemplate<MMAP_FAILURE_MSG>;
-constexpr char READ_FAILURE_MSG[] = "Data Transfer Read Failure.";
-using DataTransferReadFailure = RuntimeExceptionTemplate<READ_FAILURE_MSG>;
-constexpr char READ_TIMEOUT_FAILURE_MSG[] = "Data Transfer Read Timeout Failure.";
-using DataTransferReadTimeoutFailure = RuntimeExceptionTemplate<READ_TIMEOUT_FAILURE_MSG>;
-constexpr char READ_NOT_CONNECTED_FAILURE_MSG[] = "Data Transfer Read Not Connected Failure.";
-using DataTransferReadNotConnectedFailure = RuntimeExceptionTemplate<READ_NOT_CONNECTED_FAILURE_MSG>;
-constexpr char WRITE_FAILURE_MSG[] = "Data Transfer Write Failure.";
-using DataTransferWriteFailure = RuntimeExceptionTemplate<WRITE_FAILURE_MSG>;
-constexpr char DISCONNECTED[] = "Disconnected while transfering data: ";
-using DataTransferDisconnectedFailure = RuntimeExceptionTemplate<DISCONNECTED>;
+struct ExceptionMsgs {
+    static constexpr char COMMUNICATION_FAILURE_MSG[] = "Transfer Communication Failure. ";
+    static constexpr char MMAP_FAILURE_MSG[] = "MMap Failure. ";
+    static constexpr char READ_FAILURE_MSG[] = "Data Transfer Read Failure. ";
+    static constexpr char READ_TIMEOUT_FAILURE_MSG[] = "Data Transfer Read Timeout Failure. ";
+    static constexpr char READ_NOT_CONNECTED_FAILURE_MSG[] = "Data Transfer Read Not Connected Failure. ";
+    static constexpr char WRITE_FAILURE_MSG[] = "Data Transfer Write Failure. ";
+    static constexpr char DISCONNECTED[] = "Disconnected while transfering data. ";
+};
+
+using DataTransferFailure = RuntimeException;
+using DataTransferCommunicationFailure = RuntimeExceptionTemplate<ExceptionMsgs::COMMUNICATION_FAILURE_MSG>;
+using DataTransferMemMapFailure = RuntimeExceptionTemplate<ExceptionMsgs::MMAP_FAILURE_MSG>;
+using DataTransferReadFailure = RuntimeExceptionTemplate<ExceptionMsgs::READ_FAILURE_MSG>;
+using DataTransferReadTimeoutFailure = RuntimeExceptionTemplate<ExceptionMsgs::READ_TIMEOUT_FAILURE_MSG>;
+using DataTransferReadNotConnectedFailure = RuntimeExceptionTemplate<ExceptionMsgs::READ_NOT_CONNECTED_FAILURE_MSG>;
+using DataTransferWriteFailure = RuntimeExceptionTemplate<ExceptionMsgs::WRITE_FAILURE_MSG>;
+using DataTransferDisconnectedFailure = RuntimeExceptionTemplate<ExceptionMsgs::DISCONNECTED>;
+
+// constexpr char DATA_TRANSFER_FAILURE_MSG[] = "Data Transfer Generic Failure.";
+// using DataTransferFailure = RuntimeExceptionTemplate<DATA_TRANSFER_FAILURE_MSG>;
+// constexpr char COMMUNICATION_FAILURE_MSG[] = "Transfer Communication Failure.";
+// using DataTransferCommunicationFailure = RuntimeExceptionTemplate<COMMUNICATION_FAILURE_MSG>;
+// constexpr char MMAP_FAILURE_MSG[] = "MMap Failure.";
+// using DataTransferMemMapFailure = RuntimeExceptionTemplate<MMAP_FAILURE_MSG>;
+// constexpr char READ_FAILURE_MSG[] = "Data Transfer Read Failure.";
+// using DataTransferReadFailure = RuntimeExceptionTemplate<READ_FAILURE_MSG>;
+// constexpr char READ_TIMEOUT_FAILURE_MSG[] = "Data Transfer Read Timeout Failure.";
+// using DataTransferReadTimeoutFailure = RuntimeExceptionTemplate<READ_TIMEOUT_FAILURE_MSG>;
+// constexpr char READ_NOT_CONNECTED_FAILURE_MSG[] = "Data Transfer Read Not Connected Failure.";
+// using DataTransferReadNotConnectedFailure = RuntimeExceptionTemplate<READ_NOT_CONNECTED_FAILURE_MSG>;
+// constexpr char WRITE_FAILURE_MSG[] = "Data Transfer Write Failure.";
+// using DataTransferWriteFailure = RuntimeExceptionTemplate<WRITE_FAILURE_MSG>;
+// constexpr char DISCONNECTED[] = "Disconnected while transfering data: ";
+// using DataTransferDisconnectedFailure = RuntimeExceptionTemplate<DISCONNECTED>;
 
 
 void main_exception_throwing();
