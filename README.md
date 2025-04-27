@@ -17,10 +17,21 @@ from Developer Command Prompt for VS (2022 currently).
 
 C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Visual Studio 2022\Visual Studio Tools
 
+### TODO
+
+- asynchronous loop within single thread for lightweight messaging
+  - client (windows) server (linux)
+  - simple messages
+  - LIBRARIES:
+    - asyncio - Boost.Asio; iNTEL tbb, hpx 
+    - thread pools? or hardcoded?
+- structure for data
+- persistent server data storage - databaze?
+
 ## Authors
 
 Patrik Maraczek
 
 ## Thanks
 
-Many thanks to Zdeněk Hrazíra, who guided me through first hell of cpp full-stack programming.
+Many thanks to Zdeněk Hrazdíra, who guided me through first hell of cpp full-stack programming.
