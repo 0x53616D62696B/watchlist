@@ -11,10 +11,17 @@ set(ENABLE_PCH ON)
 
 # compiler flags
 if(MSVC)
+  # Don't want the compiler to suggest the secure versions of the library functions, e.g. scanf_s when you use scanf.
+  set(_CRT_SECURE_NO_WARNINGS ON)
+
+# Eliminates deprication warnings by changing e. g. the strcpy call to strcpy_s, which prevents buffer overruns.
+# set(_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES ON)
+
 # add_compile_options(/favor:INTEL64 /arch:SSE /arch:SSE2 /arch:AVX /arch:AVX2 /openmp)
 # add_compile_options(/favor:INTEL64 /arch:AVX /arch:AVX2 /openmp)
 # add_compile_options(/Wall /WX)
 
+# TODO:
 # ! every warning treat as error?????? chechk this
 else()
   add_compile_options(-march=native -fopenmp -pthread)
@@ -48,7 +55,7 @@ message(STATUS "CMAKE_CXX_COMPILER_LAUNCHER: " ${CMAKE_CXX_COMPILER_LAUNCHER})
 # targets
 add_executable(Application ${SRC_APPLICATION})
 add_executable(MultithreadDemo ${SRC_MULTITHREAD_DEMO})
-# add_executable(Logger ${SRC_LOGGER})
+add_executable(Logger ${SRC_LOGGER})
 add_executable(Development ${SRC_DEVELOPMENT})
 
 # precompiled headers
@@ -97,6 +104,18 @@ target_sources(MultithreadDemo PRIVATE ${SRC_MULTITHREAD_DEMO})
 file(GLOB_RECURSE SRC_APPLICATION_APP CONFIGURE_DEPENDS src/Watchlist/*.cpp)
 target_sources(Application PRIVATE ${SRC_APPLICATION_APP})
 
+# watchlist definitions
+# # definition of GUI interface to use
+set_target_properties(Application PROPERTIES COMPILE_DEFINITIONS "MYAPP=1")
+
+# logger app sources
+file(GLOB SRC_LOGGER CONFIGURE_DEPENDS src/Utils/Logger/*.cpp)
+target_sources(Logger PRIVATE ${SRC_LOGGER})
+
+# watchlist definitions
+# # defining Logger.cpp as main cpp file
+set_target_properties(Logger PROPERTIES COMPILE_DEFINITIONS "DEBUG_LOGGER=1")
+
 # multithread_demo app sources
 # file(GLOB SRC_LOGGER CONFIGURE_DEPENDS src/Utils/Logger/*.cpp)
 # target_sources(Logger PRIVATE ${SRC_LOGGER})
@@ -105,6 +124,7 @@ target_sources(Application PRIVATE ${SRC_APPLICATION_APP})
 file(GLOB SRC_DEVELOPMENT CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/development/*.cpp)
 list(REMOVE_ITEM SRC_DEVELOPMENT
   ${CMAKE_CURRENT_SOURCE_DIR}/development/excluded/*.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/development/another_excluded_file.cpp
   #${CMAKE_CURRENT_SOURCE_DIR}/development/another_excluded_file.cpp
 )
 target_sources(Development PRIVATE ${SRC_DEVELOPMENT})
