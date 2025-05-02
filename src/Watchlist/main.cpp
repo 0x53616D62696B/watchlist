@@ -15,6 +15,13 @@
 int main(int argc, char** argv)
 try
 {
+    //TODO Init Multithreading pool
+
+    //TODO Thread Async MQTT
+
+    //TODO Thread MQTT processing
+
+    // Thread GUI
     ImGuiStart();
     return EXIT_SUCCESS;
 }
