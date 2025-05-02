@@ -39,8 +39,7 @@ Testing with compiler MSVC (Visual Studio Build Tools) 2022 Release amd64 - comp
   - one file is in logger_testing.cpp - not sure why it is outside
 - **Multithreading exmaple** buildable, runable
   - move to apropriate place!
-- **Development**
-  - runable
+- **Development** runable
 - **Main App**
   - gui moved outside of utils
   - compiler errors
