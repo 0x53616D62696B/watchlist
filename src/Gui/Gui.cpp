@@ -225,7 +225,7 @@ int ImGuiStart()
             // Place user code here
             // ImGui::ShowDemoWindow();
             bool p_open = true;
-            MyApp::ShowWindow(p_open); //! continue here! place pointer of true value here
+            //MyApp::ShowWindow(p_open); //!!! continue here! place pointer of true value here
 
             ImGuiRender(window, io);
         }

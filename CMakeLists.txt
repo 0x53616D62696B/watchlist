@@ -77,6 +77,10 @@ file(GLOB_RECURSE SRC_UTILS CONFIGURE_DEPENDS src/Utils/*.hpp src/Utils/*.cpp)
 target_sources(Application PRIVATE ${SRC_UTILS})
 target_sources(Development PRIVATE ${SRC_UTILS})
 
+# gui
+file(GLOB_RECURSE SRC_GUI CONFIGURE_DEPENDS src/Gui/*.hpp src/Gui/*.cpp)
+target_sources(Application PRIVATE ${SRC_GUI})
+
 # imgui
 include_directories(libs/imgui)
 include_directories(libs/imgui/misc/cpp)
@@ -116,15 +120,10 @@ target_sources(Logger PRIVATE ${SRC_LOGGER})
 # # defining Logger.cpp as main cpp file
 set_target_properties(Logger PROPERTIES COMPILE_DEFINITIONS "DEBUG_LOGGER=1")
 
-# multithread_demo app sources
-# file(GLOB SRC_LOGGER CONFIGURE_DEPENDS src/Utils/Logger/*.cpp)
-# target_sources(Logger PRIVATE ${SRC_LOGGER})
-
 # app sources used for development and reaserch
 file(GLOB SRC_DEVELOPMENT CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/development/*.cpp)
 list(REMOVE_ITEM SRC_DEVELOPMENT
   ${CMAKE_CURRENT_SOURCE_DIR}/development/excluded/*.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/development/another_excluded_file.cpp
   #${CMAKE_CURRENT_SOURCE_DIR}/development/another_excluded_file.cpp
 )
 target_sources(Development PRIVATE ${SRC_DEVELOPMENT})

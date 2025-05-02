@@ -9,7 +9,8 @@
  *
  */
 
-#include "../Utils/Gui/Gui.hpp"
+#include "src/Gui/Gui.hpp" //! How to make "Gui/Gui.hpp" work? 
+// #include "Gui/Gui.hpp"
 
 int main(int argc, char** argv)
 try
