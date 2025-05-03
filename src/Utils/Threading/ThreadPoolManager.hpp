@@ -9,6 +9,10 @@
 #include <future>
 #include <atomic>
 
+#include "src/Utils/Logger/Logger.hpp"
+
+namespace Threading {
+
 /** @brief Thread pool manager for executing tasks in parallel.
  *
  * @details The ThreadPoolManager class is a thread pool implementation designed to manage and execute tasks in parallel
@@ -161,3 +165,5 @@ inline void ThreadPoolManager::workerThread() {
         task(); // Execute the task.
     }
 }
+
+} // namespace Threading
