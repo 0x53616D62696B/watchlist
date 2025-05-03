@@ -11,11 +11,29 @@
 
 #include "src/Gui/Gui.hpp" //! How to make "Gui/Gui.hpp" work? 
 // #include "Gui/Gui.hpp"
+#include "ThreadPoolManager.hpp"
 
 int main(int argc, char** argv)
 try
 {
-    //TODO Init Multithreading pool
+    //! In progress: Init Multithreading pool
+    // Initialize ThreadPoolManager with 4 threads
+    ThreadPoolManager threadPool(4);
+
+    // Example: Enqueue tasks
+    auto future1 = threadPool.enqueue([] {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        return "Task 1 completed";
+    });
+
+    auto future2 = threadPool.enqueue([] {
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        return "Task 2 completed";
+    });
+
+    // Retrieve results
+    std::cout << future1.get() << std::endl;
+    std::cout << future2.get() << std::endl;
 
     //TODO Thread Async MQTT
 
