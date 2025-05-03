@@ -60,7 +60,8 @@ public:
 
     // Enqueue a task into the thread pool and return a future to retrieve the result.
     template <typename F, typename... Args>
-    auto enqueue(F&& func, Args&&... args) -> std::future<typename std::result_of<F(Args...)>::type>;
+    auto enqueue(F&& func, Args&&... args) -> std::future<typename std::invoke_result<F, Args...>::type>;
+    // auto enqueue(F&& func, Args&&... args) -> std::future<typename std::invoke_result<F(Args...)>::type>;
 
     // Set the maximum number of threads in the pool.
     void setMaxThreads(size_t maxThreads);
@@ -115,8 +116,10 @@ inline ThreadPoolManager::~ThreadPoolManager() {
 
 // Enqueue a task into the thread pool and return a future to retrieve the result.
 template <typename F, typename... Args>
-auto ThreadPoolManager::enqueue(F&& func, Args&&... args) -> std::future<typename std::result_of<F(Args...)>::type> {
-    using returnType = typename std::result_of<F(Args...)>::type;
+auto ThreadPoolManager::enqueue(F&& func, Args&&... args) -> std::future<typename std::invoke_result<F, Args...>::type> {
+// auto ThreadPoolManager::enqueue(F&& func, Args&&... args) -> std::future<typename std::invoke_result<F(Args...)>::type> {
+    using returnType = typename std::invoke_result<F, Args...>::type;
+    // using returnType = typename std::invoke_result<F(Args...)>::type;
 
     // Wrap the task in a packaged_task to allow retrieving the result via a future.
     auto task = std::make_shared<std::packaged_task<returnType()>>(
