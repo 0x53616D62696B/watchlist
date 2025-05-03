@@ -11,14 +11,14 @@
 
 #include "src/Gui/Gui.hpp" //! How to make "Gui/Gui.hpp" work? 
 // #include "Gui/Gui.hpp"
-#include "ThreadPoolManager.hpp"
+#include "src/Utils/Threading/ThreadPoolManager.hpp"
 
 int main(int argc, char** argv)
 try
 {
     //! In progress: Init Multithreading pool
     // Initialize ThreadPoolManager with 4 threads
-    ThreadPoolManager threadPool(4);
+    Threading::ThreadPoolManager threadPool(4);
 
     // Example: Enqueue tasks
     auto future1 = threadPool.enqueue([] {
