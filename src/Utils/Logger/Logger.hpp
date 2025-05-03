@@ -6,11 +6,10 @@
 #include <filesystem>
 #include <format>
 
-//TODO implement colored logger, which will be on only if terminal supports it
+// TODO implement colored logger, which will be on only if terminal supports it
 #define COLORED_LOG false
 
-
-enum class LogLevel : char // TODO: place std::string here
+enum class LogLevel : char // TODO: test this
 {
     Info = 'I',
     Warning = 'W',
@@ -22,10 +21,9 @@ enum class LogLevel : char // TODO: place std::string here
 
 auto LocalTime(std::chrono::system_clock::time_point const);
 std::string ToString(std::source_location const);
-//void Log(LogLevel const, std::string_view const, std::source_location const);
+// void Log(LogLevel const, std::string_view const, std::source_location const);
 void Log(LogLevel const level, std::string_view const message,
-         std::source_location const source = std::source_location::current()); //TODO enter the third parameter as optional parameter
-
+    std::source_location const source = std::source_location::current());
 
 #define LOG_INFO(...) Log(LogLevel::Info, __VA_ARGS__)
 #define LOG_WARNING(...) Log(LogLevel::Warning, __VA_ARGS__)
@@ -33,5 +31,6 @@ void Log(LogLevel const level, std::string_view const message,
 #define LOG_FATAL(...) Log(LogLevel::Fatal, __VA_ARGS__)
 #define LOG_DEBUG(...) Log(LogLevel::Debug, __VA_ARGS__)
 #define LOG_TRACE(...) Log(LogLevel::Trace, __VA_ARGS__)
+#define LOG_EXCEPTION(e) Log(LogLevel::Error, std::format("Exception error: {}", e.what()))
 
-//TODO create Logger Class instea of logger funtion
+// TODO create Logger Class instea of logger funtion
