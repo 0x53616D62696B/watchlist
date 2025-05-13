@@ -51,6 +51,20 @@ namespace Threading {
  * @todo Be able to specify which thread is endless, long living and short living.
  * - when thread is endless, do not count with it in maxThreads
  * - cant specify more endless threads than (maxThreads -1)
+ * - implement priority management for thread pools
+ * - be able to have multiple thread pools instances with different pool priority 
+ *   - there can be multiple thread pools with same priority - if so, first created will be highest priority 
+ *       -> create priority list output for debugging reasons
+ *   - pool priority > thread priority
+ *   - thread pool priority is set when creating the thread pool
+ *   - any thread created in pool with higher priority will always have higher priority then any thread created in a pool with 
+ *     lower priority
+ * - use TRACY!
+ * - co_await .. neco jako event_loop's await - Coroutines https://en.cppreference.com/w/cpp/language/coroutines
+ *  https://stackoverflow.com/questions/66281348/why-does-cs-async-await-not-need-an-event-loop
+ * - std::generator - courutine support
+ *     - https://en.cppreference.com/w/cpp/language/generator 
+ *     - https://www.youtube.com/watch?v=7ZazVQB-RKc&ab_channel=C%2B%2BWeeklyWithJasonTurner
  */
 
 class ThreadPoolManager {
