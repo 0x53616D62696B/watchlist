@@ -15,6 +15,41 @@
 namespace Threading {
 
 /**
+ * @file EventLoopCoroutine.hpp
+ * @brief Implementation of an event loop using C++20 coroutines
+ * 
+ * This file provides a coroutine-based event loop implementation that allows for:
+ * - Asynchronous task scheduling with customizable delays
+ * - Non-blocking execution of multiple concurrent tasks
+ * - Clean suspension and resumption of operations
+ * 
+ * The implementation uses C++20 coroutines with custom awaitable types to create
+ * an efficient event processing system. The main components are:
+ * 
+ * - EventLoopCoroutine: Main class that manages the event queue and executes tasks
+ * - Task: Nested coroutine return type that represents an asynchronous operation
+ * - Delay: Nested awaitable that suspends execution for a specified duration
+ * 
+ * Usage example:
+ * ```cpp
+ * EventLoopCoroutine loop;
+ * 
+ * // Schedule a task with a delay
+ * loop.schedule([](EventLoopCoroutine& loop) -> EventLoopCoroutine::Task {
+ *     std::cout << "Starting task\n";
+ *     co_await loop.delay(100ms);
+ *     std::cout << "Task completed after delay\n";
+ * });
+ * 
+ * // Run the event loop
+ * loop.run();
+ * ```
+ * 
+ * The nested class pattern is used for logical containment, proper coroutine 
+ * machinery integration, and scope limitation.
+ */
+
+/**
  * @brief A simple event loop implementation using C++20 coroutines.
  * 
  * This example demonstrates:
