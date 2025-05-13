@@ -15,6 +15,51 @@
 #include <variant>
 #include <map>
 
+/**
+ * @file HybridEventLoop.hpp
+ * @brief Implementation of a hybrid event loop using both coroutines and generators
+ * 
+ * This file demonstrates an advanced event processing system that combines:
+ * - C++20 coroutines for asynchronous task execution
+ * - C++23 generators for creating event streams
+ * - Event-based programming patterns for reactive applications
+ * 
+ * The hybrid approach offers significant advantages:
+ * - Powerful composition of both push-based (coroutines) and pull-based (generators) models
+ * - Ability to wait for specific events using coroutines
+ * - Creation of complex event processing pipelines using generators
+ * - Natural expression of both synchronous and asynchronous logic
+ * 
+ * Key components include:
+ * - Task: Represents coroutine-based asynchronous operations
+ * - Generator: Creates streams of events that can be processed
+ * - Delay: Awaitable for time-based suspension
+ * - EventAwaiter: Awaitable for waiting on specific events
+ * 
+ * Usage example:
+ * ```cpp
+ * HybridEventLoop loop;
+ * 
+ * // Create a task that waits for a specific event
+ * loop.schedule([](HybridEventLoop& loop) -> HybridEventLoop::Task {
+ *     std::cout << "Waiting for event 'update'\n";
+ *     auto event = co_await loop.waitForEvent("update");
+ *     std::cout << "Received update event with data: " << event.data << "\n";
+ * });
+ * 
+ * // Generate a sequence of events
+ * auto events = loop.generateEvents("update", 5);
+ * loop.processEvents(events);
+ * 
+ * // Run the loop
+ * loop.run();
+ * ```
+ * 
+ * This implementation demonstrates how coroutines and generators can be
+ * integrated to create a flexible, expressive, and powerful event processing
+ * system suitable for complex asynchronous applications.
+ */
+
 namespace Threading {
 
 /**

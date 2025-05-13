@@ -1,3 +1,40 @@
+/**
+ * @file EventLoopGenerator.hpp
+ * @brief Implementation of an event loop using C++23 generators
+ * 
+ * This file provides a generator-based event loop implementation that allows for:
+ * - Creating streams of events that can be processed sequentially
+ * - Lazy evaluation of event sequences
+ * - Compositional event processing pipelines
+ * 
+ * The implementation leverages C++23 generators to create an elegant and
+ * efficient event processing system. Key components include:
+ * 
+ * - EventLoopGenerator: Main class that processes event streams
+ * - Event: Represents a discrete occurrence to be processed
+ * - Generator adapters: Functions that transform, filter, or combine event streams
+ * 
+ * Usage example:
+ * ```cpp
+ * EventLoopGenerator loop;
+ * 
+ * // Create an event generator
+ * auto timeEvents = loop.createTimerEvents(100ms);
+ * 
+ * // Process events from the generator
+ * loop.process(timeEvents, [](const Event& event) {
+ *     std::cout << "Processing event at " << event.timestamp << "\n";
+ * });
+ * 
+ * // Run the event loop
+ * loop.run();
+ * ```
+ * 
+ * The generator approach allows for elegant composition of event sources and
+ * provides a pull-based model for event processing that can be more efficient
+ * for certain types of applications.
+ */
+
 #pragma once
 
 #include <iostream>
