@@ -1,5 +1,31 @@
 # Chat with AI which created EventLoops examples
 
+## EventLoopCoroutine vs EventLoopGenerator: Differences and Usage Patterns
+
+Based on your code, these represent two different approaches to implementing event loops with C++ coroutines:
+
+| Feature           | EventLoopCoroutine            | EventLoopGenerator         |
+|-------------------|-------------------------------|----------------------------|
+| C++ Version       | C++20                         | C++23                      |
+| Primary Keyword   | co_await                     | co_yield                   |
+| Processing Model  | Push-based (awaiting)         | Pull-based (yielding)      |
+| Core Pattern      | Task-based awaitable pattern | Generator/iterator pattern |
+| Flow Control      | Suspends waiting for events   | Produces event sequences   |
+
+### Design Patterns Used
+
+#### EventLoopCoroutine
+
+Awaitable Pattern: Custom types that can suspend coroutines
+Promise Type Pattern: Defines coroutine behavior through promise types
+Task-based Asynchrony: Encapsulates async operations as awaitable tasks
+
+#### EventLoopGenerator
+
+Generator Pattern: Produces sequences of values with co_yield
+Iterator Pattern: Provides iterator-like access to generated values
+Pipeline Pattern: Enables chaining of event processing steps
+
 ## Step-by-step solution
 
 - Create a C++20 coroutine-based event loop example
@@ -44,3 +70,7 @@ The example shows a complete workflow where you can create event generators, pro
 - **Logical containment:** Task and Delay are logically part of the event loop's implementation details and aren't meant to be used separately.
 - **Coroutine machinery:** C++20 coroutines require a tightly coupled promise type. The Task class needs a `promise_type` for the coroutine machinery to work.
 - **Scope limitation:** Keeping these types inside the `EventLoopCoroutine` prevents namespace pollution and clearly shows their relationship.
+
+## Papers
+
+[Read the Reactor Siemens Paper](https://www.dre.vanderbilt.edu/~schmidt/PDF/reactor-siemens.pdf "A detailed exploration of the Reactor pattern applied in Siemens systems")
