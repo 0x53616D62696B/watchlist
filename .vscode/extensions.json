@@ -1,22 +1,39 @@
 {
+    // My favorite extensions
     "recommendations": [
-        "ms-vscode-remote.vscode-remote-extensionpack",
+        // C++
         "ms-vscode.cpptools",
         "jbenden.c-cpp-flylint",
-        "austin.code-gnu-global",
         "xaver.clang-format",
         "twxs.cmake",
         "ms-vscode.cmake-tools",
+        "jeff-hykin.better-cpp-syntax",
+        "matepek.vscode-catch2-test-adapter",// Unit test
+        "mcu-debug.memory-view", // Memory view
+        
+        // Python
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-toolsai.jupyter",
+        "ms-toolsai.jupyter-renderers",
+        "tamasfe.even-better-toml",
+
+        // Usefull
+        "aaron-bond.better-comments",
+        "mhutchie.git-graph",
+        "eamodio.gitlens",
+        "shd101wyy.markdown-preview-enhanced",
+        "hediet.vscode-drawio",
+
+        // From Jixxy
         "editorconfig.editorconfig",
         "gruntfuggly.format-modified",
         "mhutchie.git-graph",
         "eamodio.gitlens",
         "shd101wyy.markdown-preview-enhanced",
         "ms-python.vscode-pylance",
-        "jeff-hykin.better-cpp-syntax",
-        "matepek.vscode-catch2-test-adapter",
-        "ms-toolsai.jupyter",
-        "ms-python.python",
+        "ms-vscode-remote.vscode-remote-extensionpack",
         "hediet.vscode-drawio"
     ]
 }
+

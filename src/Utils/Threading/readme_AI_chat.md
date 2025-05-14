@@ -1,4 +1,4 @@
-# Chat with AI which created EventLoops examples.
+# Chat with AI which created EventLoops examples
 
 ## Step-by-step solution
 
