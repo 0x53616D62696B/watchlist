@@ -202,8 +202,8 @@ private:
 };
 
 // Example usage:
-/*
-int main() {
+
+int main_eloop_coro() {
     EventLoopCoroutine event_loop;
     
     // Schedule tasks with different delays
@@ -219,6 +219,6 @@ int main() {
     std::this_thread::sleep_for(std::chrono::seconds(2));
     return 0;
 }
-*/
+
 
 } // namespace Threading
