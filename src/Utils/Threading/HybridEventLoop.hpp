@@ -277,9 +277,9 @@ public:
 
     // Create a generator that produces a sequence of events
     Generator<Event> create_event_stream(const std::string& pattern, int count) {
-        for (int i = 0; i < count; ++i) {
+        for (int i = 0; i < count; ++i) { //! pattern is always empty string.. but count is not empty.. why??
             Event event{
-                pattern + "_" + std::to_string(i),
+                std::format("{}_{}", pattern, i),
                 i
             };
             co_yield event; //* With this Event will become a coroutine. It can be resumed by handle.resume()
@@ -297,12 +297,12 @@ public:
         while (generator.next()) {
             std::cout << "Processing event: " << generator.value().name << std::endl;
             emit_event(generator.value());
-            co_await Delay(std::chrono::milliseconds(200));
+            co_await Delay(std::chrono::milliseconds(200)); //! why it is here? I guess only simulation
         }
     }
 
     // Emit an event into the event loop
-    void emit_event(const Event& event) {
+    void emit_event(const Event& event) { //! missing call of passed event callable
         std::lock_guard<std::mutex> lock(mutex_);
         last_event_ = event;
         
@@ -428,7 +428,9 @@ int main_eloop_hybrid() {
     });
     
     // Create an event stream using a generator
-    auto event_stream = loop.create_event_stream("sensor_data", 5);
+    auto event_stream = loop.create_event_stream("sensor_data", 5); //! ERROR IS HEERE? IT does not call this it creates a promise.
+    //! However this promise does not contain any passed arguments and it is empty for some reason..
+    //! Only the integer 5 is passed.. Get inspiratiopn from working generator perhaps?
     
     // Process the events from the generator
     //! Not working
