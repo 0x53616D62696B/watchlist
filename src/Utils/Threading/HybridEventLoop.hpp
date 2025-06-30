@@ -282,7 +282,7 @@ public:
                 pattern + "_" + std::to_string(i),
                 i
             };
-            co_yield event;
+            co_yield event; //* With this Event will become a coroutine. It can be resumed by handle.resume()
         }
     }
 
@@ -295,6 +295,7 @@ public:
     // Process and emit events from a generator
     Task process_events(Generator<Event>&& generator) {
         while (generator.next()) {
+            std::cout << "Processing event: " << generator.value().name << std::endl;
             emit_event(generator.value());
             co_await Delay(std::chrono::milliseconds(200));
         }
@@ -311,7 +312,11 @@ public:
             for (auto& handle : it->second) {
                 pending_handles_.push_back(handle);
             }
+            // Remove the waiters from the map to prevent duplicate processing
             event_waiters_.erase(it);
+            
+            // Debug output
+            std::cout << "Emitted event: " << event.name << std::endl;
         }
         
         condition_.notify_one();
@@ -408,9 +413,14 @@ Event received: sensor_data_4
 
 int main_eloop_hybrid() {
     HybridEventLoop loop;
+    std::thread::id thisThreadId = std::this_thread::get_id();
     
     // Wait for a specific event
     loop.wait_for_event("custom_event");
+
+    // Wait for a specific event
+    //! sensor data events from generator does not work for some reason
+    loop.wait_for_event("sensor_data_0");
     
     // Schedule a delayed task
     loop.schedule_after(std::chrono::seconds(1), []() {
@@ -421,13 +431,14 @@ int main_eloop_hybrid() {
     auto event_stream = loop.create_event_stream("sensor_data", 5);
     
     // Process the events from the generator
+    //! Not working
     loop.process_events(std::move(event_stream));
     
     // Manually emit a custom event
     loop.emit_event({"custom_event", std::string("Hello from custom event!")});
     
     // Keep the program running to see all events
-    std::this_thread::sleep_for(std::chrono::seconds(3));
+    std::this_thread::sleep_for(std::chrono::seconds(5));
     
     return 0;
 }

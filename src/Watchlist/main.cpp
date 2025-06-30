@@ -21,6 +21,7 @@
 int main(int argc, char** argv)
 try
 {
+    /*
     //! In progress: Init Multithreading pool
     // Initialize ThreadPoolManager with 4 threads
     Threading::ThreadPoolManager threadPool(4);
@@ -39,17 +40,18 @@ try
     // Retrieve results
     std::cout << future1.get() << std::endl;
     std::cout << future2.get() << std::endl;
-
+    */
     // Tests
-    std::cout << std::format("threadPool DONE\n") << std::endl;
-    Threading::main_eloop_gen();
-    std::cout << std::format("main_eloop_gen DONE\n") << std::endl;
-    Threading::main_eloop_coro();
-    std::cout << std::format("main_eloop_coro DONE\n") << std::endl;
+    // std::cout << std::format("threadPool DONE\n") << std::endl;
+    // Threading::main_eloop_gen();
+    // std::cout << std::format("main_eloop_gen DONE\n") << std::endl;
+    // Threading::main_eloop_coro();
+    // std::cout << std::format("main_eloop_coro DONE\n") << std::endl;
     Threading::main_eloop_hybrid();
     std::cout << std::format("main_eloop_hybrid DONE\n") << std::endl;
 
-
+    //! TESTING ONLY
+    return EXIT_SUCCESS;
     //TODO Thread Async MQTT
 
     //TODO Thread MQTT processing
