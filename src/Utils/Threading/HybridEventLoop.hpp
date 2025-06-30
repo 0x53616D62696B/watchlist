@@ -389,47 +389,48 @@ private:
 
 // Example usage
 /**
- * This example demonstrates a hybrid event loop that combines coroutines and generators.
- * It shows:
- * 1. Creating an event stream using a generator
- * 2. Processing events using coroutines
- * 3. Waiting for specific events
- * 4. Scheduling delayed tasks
- * 
- * int main() {
- *     HybridEventLoop loop;
- *     
- *     // Wait for a specific event
- *     loop.wait_for_event("custom_event");
- *     
- *     // Schedule a delayed task
- *     loop.schedule_after(std::chrono::seconds(1), []() {
- *         std::cout << "Delayed task executed!" << std::endl;
- *     });
- *     
- *     // Create an event stream using a generator
- *     auto event_stream = loop.create_event_stream("sensor_data", 5);
- *     
- *     // Process the events from the generator
- *     loop.process_events(std::move(event_stream));
- *     
- *     // Manually emit a custom event
- *     loop.emit_event({"custom_event", std::string("Hello from custom event!")});
- *     
- *     // Keep the program running to see all events
- *     std::this_thread::sleep_for(std::chrono::seconds(3));
- *     
- *     return 0;
- * }
- * 
- * Expected output:
- * Event received: sensor_data_0
- * Event received: sensor_data_1
- * Event received: sensor_data_2
- * Event received: custom_event
- * Delayed task executed!
- * Event received: sensor_data_3
- * Event received: sensor_data_4
- */
+This example demonstrates an asynchronous multithreaded event loop that combines coroutines and generators.
+It shows:
+1. Creating an event stream using a generator
+2. Processing events using coroutines
+3. Waiting for specific events
+4. Scheduling delayed tasks
+
+Expected output:
+Event received: sensor_data_0
+Event received: sensor_data_1
+Event received: sensor_data_2
+Event received: custom_event
+Delayed task executed!
+Event received: sensor_data_3
+Event received: sensor_data_4
+*/
+
+int main_eloop_hybrid() {
+    HybridEventLoop loop;
+    
+    // Wait for a specific event
+    loop.wait_for_event("custom_event");
+    
+    // Schedule a delayed task
+    loop.schedule_after(std::chrono::seconds(1), []() {
+        std::cout << "Delayed task executed!" << std::endl;
+    });
+    
+    // Create an event stream using a generator
+    auto event_stream = loop.create_event_stream("sensor_data", 5);
+    
+    // Process the events from the generator
+    loop.process_events(std::move(event_stream));
+    
+    // Manually emit a custom event
+    loop.emit_event({"custom_event", std::string("Hello from custom event!")});
+    
+    // Keep the program running to see all events
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    
+    return 0;
+}
+
 
 } // namespace Threading

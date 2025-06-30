@@ -9,9 +9,14 @@
  *
  */
 
+#include <format>
+
 #include "src/Gui/Gui.hpp" //! How to make "Gui/Gui.hpp" work? 
 // #include "Gui/Gui.hpp"
 #include "src/Utils/Threading/ThreadPoolManager.hpp"
+#include "src/Utils/Threading/EventLoopCoroutine.hpp"
+#include "src/Utils/Threading/EventLoopGenerator.hpp"
+#include "src/Utils/Threading/HybridEventLoop.hpp"
 
 int main(int argc, char** argv)
 try
@@ -34,6 +39,16 @@ try
     // Retrieve results
     std::cout << future1.get() << std::endl;
     std::cout << future2.get() << std::endl;
+
+    // Tests
+    std::cout << std::format("threadPool DONE\n") << std::endl;
+    Threading::main_eloop_gen();
+    std::cout << std::format("main_eloop_gen DONE\n") << std::endl;
+    Threading::main_eloop_coro();
+    std::cout << std::format("main_eloop_coro DONE\n") << std::endl;
+    Threading::main_eloop_hybrid();
+    std::cout << std::format("main_eloop_hybrid DONE\n") << std::endl;
+
 
     //TODO Thread Async MQTT
 

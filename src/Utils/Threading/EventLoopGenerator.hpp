@@ -263,9 +263,12 @@ private:
     bool running_;
 };
 
-// Example usage:
-/*
-int main() {
+
+/* Example usage:
+
+
+*/
+int main_eloop_gen() {
     EventLoopGenerator event_loop;
     
     // Schedule individual events
@@ -278,12 +281,13 @@ int main() {
         std::cout << "Executing sequential task step " << i << std::endl;
     });
     
+    std::cout << "Events initiated." << std::endl;
     event_loop.process_event_sequence(std::move(event_gen));
     
     // Keep the event loop running
     std::this_thread::sleep_for(std::chrono::seconds(3));
     return 0;
 }
-*/
+
 
 } // namespace Threading
