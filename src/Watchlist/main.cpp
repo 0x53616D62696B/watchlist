@@ -24,16 +24,16 @@ try
     //* Multithreading Tests
     std::cout << std::format("Starting Multithreading examples") << std::endl;
 
-    Threading::example_thread_pool_manager();
-    std::cout << std::format("thread_pool DONE") << std::endl;
+    // Threading::example_thread_pool_manager();
+    // std::cout << std::format("thread_pool DONE") << std::endl;
 
-    Threading::example_eloop_gen();
-    std::cout << std::format("main_eloop_gen DONE\n") << std::endl;
+    // Threading::example_eloop_gen();
+    // std::cout << std::format("main_eloop_gen DONE\n") << std::endl;
 
-    Threading::example_eloop_coro();
-    std::cout << std::format("main_eloop_coro DONE\n") << std::endl;
+    // Threading::example_eloop_coro();
+    // std::cout << std::format("main_eloop_coro DONE\n") << std::endl;
 
-    Threading::example_eloop_hybrid();
+    Threading::example_async_eloop();
     std::cout << std::format("main_eloop_hybrid DONE\n") << std::endl;
     //* Multithreading Tests END
 
