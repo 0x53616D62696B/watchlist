@@ -276,7 +276,7 @@ public:
     }
 
     // Create a generator that produces a sequence of events
-    Generator<Event> create_event_stream(const std::string& pattern, int count) {
+    Generator<Event> create_event_stream(std::string pattern, int count) {
         for (int i = 0; i < count; ++i) { //! pattern is always empty string.. but count is not empty.. why??
             Event event{
                 std::format("{}_{}", pattern, i),
@@ -434,6 +434,8 @@ int main_eloop_hybrid() {
     
     // Process the events from the generator
     //! Not working
+
+    // loop.process_events(loop.create_event_stream("sensor_data", 5));
     loop.process_events(std::move(event_stream));
     
     // Manually emit a custom event
