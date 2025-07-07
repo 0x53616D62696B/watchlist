@@ -21,36 +21,23 @@
 int main(int argc, char** argv)
 try
 {
-    /*
-    //! In progress: Init Multithreading pool
-    // Initialize ThreadPoolManager with 4 threads
-    Threading::ThreadPoolManager threadPool(4);
+    //* Multithreading Tests
+    std::cout << std::format("Starting Multithreading examples") << std::endl;
 
-    // Example: Enqueue tasks
-    auto future1 = threadPool.enqueue([] {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        return "Task 1 completed";
-    });
+    Threading::example_thread_pool_manager();
+    std::cout << std::format("thread_pool DONE") << std::endl;
 
-    auto future2 = threadPool.enqueue([] {
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-        return "Task 2 completed";
-    });
+    Threading::example_eloop_gen();
+    std::cout << std::format("main_eloop_gen DONE\n") << std::endl;
 
-    // Retrieve results
-    std::cout << future1.get() << std::endl;
-    std::cout << future2.get() << std::endl;
-    */
-    // Tests
-    // std::cout << std::format("threadPool DONE\n") << std::endl;
-    // Threading::main_eloop_gen();
-    // std::cout << std::format("main_eloop_gen DONE\n") << std::endl;
-    // Threading::main_eloop_coro();
-    // std::cout << std::format("main_eloop_coro DONE\n") << std::endl;
-    Threading::main_eloop_hybrid();
+    Threading::example_eloop_coro();
+    std::cout << std::format("main_eloop_coro DONE\n") << std::endl;
+
+    Threading::example_eloop_hybrid();
     std::cout << std::format("main_eloop_hybrid DONE\n") << std::endl;
+    //* Multithreading Tests END
 
-    //! TESTING ONLY
+    //! Ending code here for Testing purpose
     return EXIT_SUCCESS;
     //TODO Thread Async MQTT
 

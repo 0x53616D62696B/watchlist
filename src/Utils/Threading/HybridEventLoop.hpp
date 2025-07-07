@@ -432,7 +432,7 @@ Delayed task executed!
 main_eloop_hybrid DONE
 */
 
-int main_eloop_hybrid() {
+int example_eloop_hybrid() {
     HybridEventLoop loop;
     std::thread::id thisThreadId = std::this_thread::get_id();
     
