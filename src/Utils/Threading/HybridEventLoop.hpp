@@ -16,7 +16,7 @@
 #include <map>
 
 /**
- * @file HybridEventLoop.hpp
+ * @file AsyncEventLoop.hpp
  * @brief Implementation of a hybrid event loop using both coroutines and generators
  * 
  * This file demonstrates an advanced event processing system that combines:
@@ -38,10 +38,10 @@
  * 
  * Usage example:
  * ```cpp
- * HybridEventLoop loop;
+ * AsyncEventLoop loop;
  * 
  * // Create a task that waits for a specific event
- * loop.schedule([](HybridEventLoop& loop) -> HybridEventLoop::Task {
+ * loop.schedule([](AsyncEventLoop& loop) -> AsyncEventLoop::Task {
  *     std::cout << "Waiting for event 'update'\n";
  *     auto event = co_await loop.waitForEvent("update");
  *     std::cout << "Received update event with data: " << event.data << "\n";
@@ -63,14 +63,18 @@
 namespace Threading {
 
 /**
- * @brief Advanced event loop implementation combining C++20 coroutines and generators.
+ * @brief Asynchronous multithreaded event loop implementation combining C++20 coroutines and generators.
+ * 
+ * Worker thread handling all tasks awaiting for specific events and assigning new threads for tasks 
+ * when events are emitted and tasks are resumed.
+ * ? Is this correct?
  * 
  * This example demonstrates:
  * - Using coroutines for asynchronous task scheduling
  * - Using generators for event stream creation
  * - Combining both patterns for powerful event-driven programming
  */
-class HybridEventLoop {
+class AsyncEventLoop {
 public:
     // Event type definition with variant data
     struct Event {
@@ -124,6 +128,14 @@ public:
                 other.handle_ = {};
             }
             return *this;
+        }
+
+        // Resume the coroutine 
+        //! Should be done by manager, not manually! and should be prrivate here and poublic/resumable/pausable by manager only.
+        void resume() {
+            if (handle_) {
+                handle_.resume();
+            }
         }
 
     private:
@@ -216,17 +228,17 @@ public:
 
         void await_resume() noexcept {}
 
-        static void set_event_loop(HybridEventLoop* loop) {
+        static void set_event_loop(AsyncEventLoop* loop) {
             event_loop_ = loop;
         }
 
     private:
         std::chrono::milliseconds duration_;
-        static inline HybridEventLoop* event_loop_ = nullptr;
+        static inline AsyncEventLoop* event_loop_ = nullptr;
     };
 
-// Awaitable for waiting on an event
-class EventAwaiter {
+    // Awaitable for waiting on an event
+    class EventAwaiter {
     public:
         explicit EventAwaiter(const std::string& event_name) : event_name_(event_name) {}
     
@@ -243,23 +255,23 @@ class EventAwaiter {
             return event_;
         }
     
-        static void set_event_loop(HybridEventLoop* loop) {
+        static void set_event_loop(AsyncEventLoop* loop) {
             event_loop_ = loop;
         }
     
     private:
         std::string event_name_;
         Event event_; // Store event specific to this awaiter
-        static inline HybridEventLoop* event_loop_ = nullptr;
+        static inline AsyncEventLoop* event_loop_ = nullptr;
     };
 
-    HybridEventLoop() : running_(true) {
+    AsyncEventLoop() : running_(true) {
         Delay::set_event_loop(this);
         EventAwaiter::set_event_loop(this);
         worker_thread_ = std::thread([this] { run(); });
     }
 
-    ~HybridEventLoop() {
+    ~AsyncEventLoop() {
         {
             std::lock_guard<std::mutex> lock(mutex_);
             running_ = false;
@@ -276,9 +288,17 @@ class EventAwaiter {
         task();
     }
 
+    // Schedule a task to run asap
+    //TODO Need to create manager for this. We need a list of tasks that are scheduled to be started when app is ready 
+    //TODO with task prioritisation.
+    static Task schedule(std::function<void()> task) {
+        co_await std::suspend_always{}; //! Should be resumed in event loop automatically or with one main resume/pause call only.
+        task();
+    }
+
     // Create a generator that produces a sequence of events
     Generator<Event> create_event_stream(std::string pattern, int count) {
-        for (int i = 0; i < count; ++i) { //! pattern is always empty string.. but count is not empty.. why??
+        for (int i = 0; i < count; ++i) {
             Event event{
                 std::format("{}_{}", pattern, i),
                 i
@@ -432,30 +452,44 @@ Delayed task executed!
 main_eloop_hybrid DONE
 */
 
-int example_eloop_hybrid() {
-    HybridEventLoop loop;
-    std::thread::id thisThreadId = std::this_thread::get_id();
+void task_to_be_executed_immediately() {
+    std::cout << "Task executed immediately!" << std::endl;
+}
+
+void task_to_be_executed() {
+    std::cout << "Delayed task body executed" << std::endl;
+}
+
+int example_async_eloop() {
+    AsyncEventLoop loop;
     
     // Wait for a specific event
-    loop.wait_for_event("custom_event");
+    AsyncEventLoop::Task task1 = loop.wait_for_event("custom_event");
 
     // Wait for a specific event
-    loop.wait_for_event("sensor_data_0");
+    AsyncEventLoop::Task task2 = loop.wait_for_event("sensor_data_0");
     
     // Schedule a delayed task
-    loop.schedule_after(std::chrono::seconds(1), []() {
+    AsyncEventLoop::Task scheduled_task = loop.schedule_after(std::chrono::seconds(1), []() {
         std::cout << "Delayed task executed!" << std::endl;
     });
+
+    // Schedule a delayed task
+    AsyncEventLoop::Task scheduled_task_2 = loop.schedule_after(std::chrono::milliseconds(250), task_to_be_executed);
+
+    // Schedule a task to be executed immediately
+    AsyncEventLoop::Task task3 = loop.schedule(task_to_be_executed_immediately);
+    task3.resume(); // Resume the task immediately //! Should be part of manager not manually called
     
     // Create an event stream using a generator
     auto event_stream = loop.create_event_stream("sensor_data", 5);
     
     // Process the events from the generator
-    loop.process_events(std::move(event_stream));
+    AsyncEventLoop::Task generated_task = loop.process_events(std::move(event_stream));
     
     // Manually emit a custom event
     loop.emit_event({"custom_event", std::string("Hello from custom event!")});
-    
+
     // Keep the program running to see all events
     std::this_thread::sleep_for(std::chrono::seconds(5));
     
