@@ -225,30 +225,31 @@ public:
         static inline HybridEventLoop* event_loop_ = nullptr;
     };
 
-    // Awaitable for waiting on an event
-    class EventAwaiter {
+// Awaitable for waiting on an event
+class EventAwaiter {
     public:
         explicit EventAwaiter(const std::string& event_name) : event_name_(event_name) {}
-
+    
         bool await_ready() const noexcept {
             return false;
         }
-
+    
         void await_suspend(std::coroutine_handle<> handle) {
             std::lock_guard<std::mutex> lock(event_loop_->mutex_);
-            event_loop_->event_waiters_[event_name_].push_back(handle);
+            event_loop_->event_waiters_[event_name_].push_back({handle, &event_});
         }
-
+    
         Event await_resume() noexcept {
-            return event_loop_->last_event_;
+            return event_;
         }
-
+    
         static void set_event_loop(HybridEventLoop* loop) {
             event_loop_ = loop;
         }
-
+    
     private:
         std::string event_name_;
+        Event event_; // Store event specific to this awaiter
         static inline HybridEventLoop* event_loop_ = nullptr;
     };
 
@@ -302,15 +303,16 @@ public:
     }
 
     // Emit an event into the event loop
-    void emit_event(const Event& event) { //! missing call of passed event callable
+    void emit_event(const Event& event) {
         std::lock_guard<std::mutex> lock(mutex_);
-        last_event_ = event;
         
         // Wake up any coroutines waiting for this event
         auto it = event_waiters_.find(event.name);
         if (it != event_waiters_.end()) {
-            for (auto& handle : it->second) {
-                pending_handles_.push_back(handle);
+            for (auto& waiter : it->second) {
+                // Store the event in the waiter's event pointer
+                *(waiter.event_ptr) = event;
+                pending_handles_.push_back(waiter.handle);
             }
             // Remove the waiters from the map to prevent duplicate processing
             event_waiters_.erase(it);
@@ -372,13 +374,18 @@ private:
             return time > other.time;
         }
     };
+
+    struct EventWaiter {
+        std::coroutine_handle<> handle;
+        Event* event_ptr; // Pointer to store the specific event
+    };
     
     // Task management
     std::priority_queue<DelayedTask, std::vector<DelayedTask>, std::greater<>> delayed_tasks_;
     std::vector<std::coroutine_handle<>> pending_handles_;
     
     // Event management
-    std::map<std::string, std::vector<std::coroutine_handle<>>> event_waiters_;
+    std::map<std::string, std::vector<EventWaiter>> event_waiters_;
     Event last_event_{"", 0};
     
     // Synchronization
@@ -409,6 +416,20 @@ Event received: custom_event
 Delayed task executed!
 Event received: sensor_data_3
 Event received: sensor_data_4
+
+
+Real output (may vary due to timing):
+Processing event: sensor_data_0
+Emitted event: sensor_data_0
+Emitted event: custom_event
+Event received: custom_event
+Event received: sensor_data_0
+Processing event: sensor_data_1
+Processing event: sensor_data_2
+Processing event: sensor_data_3
+Processing event: sensor_data_4
+Delayed task executed!
+main_eloop_hybrid DONE
 */
 
 int main_eloop_hybrid() {
@@ -419,7 +440,6 @@ int main_eloop_hybrid() {
     loop.wait_for_event("custom_event");
 
     // Wait for a specific event
-    //! sensor data events from generator does not work for some reason
     loop.wait_for_event("sensor_data_0");
     
     // Schedule a delayed task
@@ -428,14 +448,9 @@ int main_eloop_hybrid() {
     });
     
     // Create an event stream using a generator
-    auto event_stream = loop.create_event_stream("sensor_data", 5); //! ERROR IS HEERE? IT does not call this it creates a promise.
-    //! However this promise does not contain any passed arguments and it is empty for some reason..
-    //! Only the integer 5 is passed.. Get inspiratiopn from working generator perhaps?
+    auto event_stream = loop.create_event_stream("sensor_data", 5);
     
     // Process the events from the generator
-    //! Not working
-
-    // loop.process_events(loop.create_event_stream("sensor_data", 5));
     loop.process_events(std::move(event_stream));
     
     // Manually emit a custom event
