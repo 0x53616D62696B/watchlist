@@ -268,7 +268,7 @@ private:
 
 
 */
-int main_eloop_gen() {
+int example_eloop_gen() {
     EventLoopGenerator event_loop;
     
     // Schedule individual events

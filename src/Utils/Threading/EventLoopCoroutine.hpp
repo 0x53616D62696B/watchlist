@@ -203,7 +203,7 @@ private:
 
 // Example usage:
 
-int main_eloop_coro() {
+int example_eloop_coro() {
     EventLoopCoroutine event_loop;
     
     // Schedule tasks with different delays

@@ -8,6 +8,7 @@
 #include <functional>
 #include <future>
 #include <atomic>
+//#include <iostream>
 
 #include "src/Utils/Logger/Logger.hpp"
 
@@ -206,4 +207,22 @@ inline void ThreadPoolManager::workerThread() {
     }
 }
 
+void example_thread_pool_manager() {
+    ThreadPoolManager threadPool(4); // Create a thread pool with 4 threads.
+
+    // Example: Enqueue tasks
+    auto future1 = threadPool.enqueue([] {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        return "Task 1 completed";
+    });
+
+    auto future2 = threadPool.enqueue([] {
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        return "Task 2 completed";
+    });
+
+    // Retrieve results
+    std::cout << future1.get() << std::endl; // Output: Task 1 completed
+    std::cout << future2.get() << std::endl; // Output: Task 2 completed
+}
 } // namespace Threading
