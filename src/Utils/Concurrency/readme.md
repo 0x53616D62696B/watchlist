@@ -18,7 +18,7 @@ events without paralellism.
 
 ### TODO
 
-- Currently worker does not behave exactly as described above.
+- Currentl worker does not behave exactly as described above.
 
 ## ThreadPoolManager
 

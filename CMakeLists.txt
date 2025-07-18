@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.7) # Can't use VERSION >= 4.0, it is not compatible with used glad.
+
+cmake_minimum_required(VERSION 3.21) # Can't use VERSION >= 4.0, it is not compatible with used glad.
 project(watchlist)
 
 # Include CMake modules
@@ -16,8 +17,33 @@ generate_version_resource()
 # Set general project variables
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(ENABLE_PROFILING OFF)
+# set(ENABLE_PROFILING OFF)
 set(ENABLE_PCH ON)
+
+
+# Args
+option(ENABLE_PROFILING "Enable profiling with Tracy" OFF)
+
+# Define Debug-Tracy build type that inherits from Debug
+list(APPEND CMAKE_CONFIGURATION_TYPES "Debug-Tracy")
+set(CMAKE_CXX_FLAGS_DEBUG_TRACY "${CMAKE_CXX_FLAGS_DEBUG}" CACHE STRING "Flags for Debug-Tracy build type" FORCE)
+set(CMAKE_C_FLAGS_DEBUG_TRACY "${CMAKE_C_FLAGS_DEBUG}" CACHE STRING "Flags for Debug-Tracy build type" FORCE)
+mark_as_advanced(CMAKE_CXX_FLAGS_DEBUG_TRACY CMAKE_C_FLAGS_DEBUG_TRACY)
+
+# Register build type for single-config generators
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo" "Debug-Tracy")
+endif()
+
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+
+# Flags for Debug-Tracy build type
+if(CMAKE_BUILD_TYPE STREQUAL "Debug-Tracy")
+  # Use Debug settings, Tracy will be enabled automatically for this configuration
+  # add_compile_definitions(TRACY_ENABLE)
+  add_compile_definitions(ENABLE_PROFILING)
+endif()
+
 
 # status messages
 message(STATUS "CMAKE_CXX_COMPILER: " ${CMAKE_CXX_COMPILER_ID} " " ${CMAKE_CXX_COMPILER_VERSION})
@@ -26,6 +52,8 @@ message(STATUS "CMAKE_CXX_FLAGS: " ${CMAKE_CXX_FLAGS})
 message(STATUS "CMAKE_CXX_FLAGS_DEBUG: " ${CMAKE_CXX_FLAGS_DEBUG})
 message(STATUS "CMAKE_CXX_FLAGS_RELEASE: " ${CMAKE_CXX_FLAGS_RELEASE})
 message(STATUS "CMAKE_CXX_COMPILER_LAUNCHER: " ${CMAKE_CXX_COMPILER_LAUNCHER})
+message(STATUS "ENABLE_PROFILING: " ${ENABLE_PROFILING})
+
 
 # targets
 add_executable(Application ${SRC_APPLICATION})
@@ -74,6 +102,22 @@ target_link_libraries(Application PRIVATE glfw)
 # glad
 add_subdirectory(libs/glad)
 target_link_libraries(Application PRIVATE glad)
+
+# tracy
+if(ENABLE_PROFILING)
+  include_directories(libs/tracy)
+  add_compile_definitions(TRACY_ENABLE) # for tracy macros
+  add_compile_definitions(ENABLE_PROFILING) # for custom macros
+  add_compile_definitions(TRACY_NO_FRAME_IMAGE) # not using frame images
+  set(SRC_TRACY libs/tracy/Tracy.hpp libs/tracy/TracyClient.cpp)
+  # target_sources(shenanigans PRIVATE ${SRC_TRACY})
+  # target_sources(shenanigans_test PRIVATE ${SRC_TRACY})
+  # target_sources(shenanigans_terminal PRIVATE ${SRC_TRACY})
+  # target_link_libraries(shenanigans PRIVATE ${CMAKE_DL_LIBS})
+  # target_link_libraries(shenanigans_test PRIVATE ${CMAKE_DL_LIBS})
+  # target_link_libraries(shenanigans_terminal PRIVATE ${CMAKE_DL_LIBS})
+  # target_link_libraries(shenanigans_benchmark PRIVATE ${CMAKE_DL_LIBS})
+endif()
 
 # multithread_demo app sources
 file(GLOB_RECURSE SRC_MULTITHREAD_DEMO CONFIGURE_DEPENDS src/examples/multithread_demo/*.cpp)

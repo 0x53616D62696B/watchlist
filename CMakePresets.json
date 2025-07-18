@@ -1,0 +1,32 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "default",
+            "displayName": "Default Config",
+            "description": "Default build configuration",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/default"
+        },
+        {
+            "name": "with-profiling",
+            "displayName": "With Tracy Profiling",
+            "description": "Enable Tracy profiling",
+            "inherits": "default",
+            "binaryDir": "${sourceDir}/build/profiling",
+            "cacheVariables": {
+                "ENABLE_PROFILING": "ON"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "default",
+            "configurePreset": "default"
+        },
+        {
+            "name": "with-profiling",
+            "configurePreset": "with-profiling"
+        }
+    ]
+}
