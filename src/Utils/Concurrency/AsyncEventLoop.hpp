@@ -60,7 +60,7 @@
  * system suitable for complex asynchronous applications.
  */
 
-namespace Threading {
+namespace Concurrency {
 
 /**
  * @brief Asynchronous multithreaded event loop implementation combining C++20 coroutines and generators.
@@ -497,4 +497,4 @@ int example_async_eloop() {
 }
 
 
-} // namespace Threading
+} // namespace Concurrency
