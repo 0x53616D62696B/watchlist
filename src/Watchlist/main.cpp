@@ -13,29 +13,29 @@
 
 #include "src/Gui/Gui.hpp" //! How to make "Gui/Gui.hpp" work? 
 // #include "Gui/Gui.hpp"
-#include "src/Utils/Threading/ThreadPoolManager.hpp"
-#include "src/Utils/Threading/EventLoopCoroutine.hpp"
-#include "src/Utils/Threading/EventLoopGenerator.hpp"
-#include "src/Utils/Threading/HybridEventLoop.hpp"
+#include "src/Utils/Concurrency/ThreadPoolManager.hpp"
+#include "src/Utils/Concurrency/EventLoopCoroutine.hpp"
+#include "src/Utils/Concurrency/EventLoopGenerator.hpp"
+#include "src/Utils/Concurrency/AsyncEventLoop.hpp"
 
 int main(int argc, char** argv)
 try
 {
-    //* Multithreading Tests
-    std::cout << std::format("Starting Multithreading examples") << std::endl;
+    //* Concurrency Examples
+    std::cout << std::format("Starting Concurrency examples") << std::endl;
 
-    // Threading::example_thread_pool_manager();
+    // Concurrency::example_thread_pool_manager();
     // std::cout << std::format("thread_pool DONE") << std::endl;
 
-    // Threading::example_eloop_gen();
+    // Concurrency::example_eloop_gen();
     // std::cout << std::format("main_eloop_gen DONE\n") << std::endl;
 
-    // Threading::example_eloop_coro();
+    // Concurrency::example_eloop_coro();
     // std::cout << std::format("main_eloop_coro DONE\n") << std::endl;
 
-    Threading::example_async_eloop();
+    Concurrency::example_async_eloop();
     std::cout << std::format("main_eloop_hybrid DONE\n") << std::endl;
-    //* Multithreading Tests END
+    //* Concurrency Examples END
 
     //! Ending code here for Testing purpose
     return EXIT_SUCCESS;
