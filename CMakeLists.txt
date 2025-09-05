@@ -87,10 +87,7 @@ else()
       set(PROJECT_VERSION_COMMIT "unknown")
     endif()
     
-    # Build full version string following the format:
-    # {major}.{minor}.{patch}-{release}{build}+{metadata-branch}.{metadata-commit}
-    set(PROJECT_VERSION_FULL "${PROJECT_VERSION}")
-    
+    # Apply pre-release tag if present
     if(PROJECT_VERSION_PRERELEASE)
       if(PROJECT_VERSION_BUILD)
         string(APPEND PROJECT_VERSION_FULL "-${PROJECT_VERSION_PRERELEASE}${PROJECT_VERSION_BUILD}")
@@ -99,6 +96,7 @@ else()
       endif()
     endif()
     
+    # Always append metadata with branch and commit
     string(APPEND PROJECT_VERSION_FULL "+${PROJECT_VERSION_BRANCH}.${PROJECT_VERSION_COMMIT}")
     
     message(STATUS "Version from GitVersion: ${PROJECT_VERSION_FULL}")

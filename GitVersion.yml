@@ -18,43 +18,83 @@ commit-date-format: 'yyyy-MM-dd'
 branches:
   main:
     regex: ^master$|^main$
-    mode: ContinuousDelivery
-    tag: ''
-    increment: Patch
-    prevent-increment-of-merged-branch-version: true
-    track-merge-target: false
-    source-branches: [ 'develop', 'release' ]
-    tracks-release-branches: false
-    is-release-branch: true
-    is-mainline: true
-  develop:
-    regex: ^dev(elop)?(ment)?$
     mode: ContinuousDeployment
     tag: 'dev'
-    increment: Minor
+    increment: Patch
     prevent-increment-of-merged-branch-version: false
-    track-merge-target: true
-    source-branches: [ 'main', 'master' ]
-    tracks-release-branches: true
+    track-merge-target: false
+    source-branches: [ 'release' ]
+    tracks-release-branches: false
     is-release-branch: false
+    is-mainline: true
+  
+  # Feature and bugfix branches
   feature:
     regex: ^feature[/-]
-    mode: ContinuousDeployment
-    tag: 'feat'
+    mode: ContinuousDelivery
+    tag: ''
     increment: Inherit
-    source-branches: [ 'develop', 'main', 'master' ]
+    source-branches: [ 'main', 'master' ]
     prevent-increment-of-merged-branch-version: false
     track-merge-target: false
     is-release-branch: false
+  
+  bugfix:
+    regex: ^bugfix[/-]
+    mode: ContinuousDelivery
+    tag: ''
+    increment: Inherit
+    source-branches: [ 'main', 'master' ]
+    prevent-increment-of-merged-branch-version: false
+    track-merge-target: false
+    is-release-branch: false
+  
+  # Release stages
   release:
-    regex: ^release[/-]
+    regex: ^release[/-][0-9]+\.[0-9]+\.[0-9]+$
+    mode: ContinuousDelivery
+    tag: ''  # No tag for final releases
+    increment: None
+    prevent-increment-of-merged-branch-version: true
+    track-merge-target: false
+    source-branches: [ 'main', 'master', 'release/-alpha$', 'release/-rc$', 'release/-beta$' ]
+    is-release-branch: true
+    pre-release-weight: 50000
+  
+  release-alpha:
+    regex: ^release[/-][0-9]+\.[0-9]+\.[0-9]+-alpha$
+    mode: ContinuousDelivery
+    tag: 'alpha'
+    increment: None
+    prevent-increment-of-merged-branch-version: true
+    track-merge-target: false
+    source-branches: [ 'main', 'master' ]
+    is-release-branch: true
+    pre-release-weight: 10000
+  
+  release-beta:
+    regex: ^release[/-][0-9]+\.[0-9]+\.[0-9]+-beta$
+    mode: ContinuousDelivery
+    tag: 'beta'
+    increment: None
+    prevent-increment-of-merged-branch-version: true
+    track-merge-target: false
+    source-branches: [ 'release/-alpha$' ]
+    is-release-branch: true
+    pre-release-weight: 20000
+  
+  release-rc:
+    regex: ^release[/-][0-9]+\.[0-9]+\.[0-9]+-rc$
     mode: ContinuousDelivery
     tag: 'rc'
     increment: None
     prevent-increment-of-merged-branch-version: true
     track-merge-target: false
-    source-branches: [ 'develop' ]
+    source-branches: [ 'release/-beta$' ]
     is-release-branch: true
+    pre-release-weight: 30000
+  
+  # Hotfix branches
   hotfix:
     regex: ^hotfix[/-]
     mode: ContinuousDelivery

@@ -60,14 +60,49 @@ Our versioning is fully automated through GitVersion and follows these rules:
 
 #### Branch Strategy
 
-- **main/master**: Ongoing development with `-dev{build}` pre-release tag
-- **develop**: Development branch, labeled with `-dev{build}`
-- **feature/xxx**: Feature branches, labeled with `-feat{build}`
-- **release/x.y.z**: Release candidates with `-rc{build}` tag during testing
-- **release/x.y.z (final)**: When fully tested, releases merge to main without pre-release tags, creating stable versions
-- **hotfix/xxx**: Hotfix branches, labeled with `-fix{build}`
+- **main/master**: Ongoing development with `-dev{build}`
+- **feature/xxx**, **bugfix/xxx**: Branches, that has same version as main they come from, but hase metadata in form of `+{branch}.{commit}`
+- **release/x.y.z**: Release candidates with `-alpha{build}`, `-beta{build}`, `-rc{build}` tag during testing. When fully tested,
+releases stays on release branch, and all fixes done during testing are merged back to main as patch version, with note it is 
+from tested release branch.
 
-Only fully tested versions coming from finalized release branches have no pre-release tags. These stable versions are released once and represent production-ready software.
+Only fully tested versions comming from finalized release branches have no pre-release tags. These stable versions are released once and represent production-ready software.
+
+#### Release Stage Transitions
+
+To progress a release through different stages:
+
+1. **Development to Alpha**: 
+   ```
+   git checkout -b release/1.2.0-alpha
+   ```
+   This creates an alpha release branch with `-alpha` tag.
+
+2. **Alpha to Beta**: 
+   ```
+   git checkout release/1.2.0-alpha
+   git tag v1.2.0-beta
+   git checkout -b release/1.2.0-beta
+   ```
+   Tag the alpha branch and create a beta branch.
+
+3. **Beta to RC**: 
+   ```
+   git checkout release/1.2.0-beta
+   git tag v1.2.0-rc
+   git checkout -b release/1.2.0-rc
+   ```
+   Tag the beta branch and create an RC branch.
+
+4. **RC to Stable Release**: 
+   ```
+   git checkout release/1.2.0-rc
+   # After final testing is complete:
+   git tag v1.2.0
+   ```
+   Create a stable version tag without pre-release identifier.
+
+Each stage can involve multiple builds (alpha1, alpha2, etc.) as issues are fixed. The final stable tag removes the pre-release identifier entirely.
 
 #### Commit Messages
 
