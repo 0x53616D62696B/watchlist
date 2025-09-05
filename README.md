@@ -23,11 +23,25 @@ This project uses [GitVersion](https://gitversion.net/) for automatic semantic v
 
 ### Version Format
 
-We follow the [Semantic Versioning 2.0.0](https://semver.org/) specification:
+We follow standard [Semantic Versioning 2.0.0](https://semver.org/) with pre-release identifiers and build metadata:
+
+```
+{major}.{minor}.{patch}-{prerelease}+{buildmetadata}
+```
+
+Specifically, our format is:
+```
+{major}.{minor}.{patch}-{release}{build}+{metadata-branch}.{metadata-commit}
+```
+
+Example: `1.3.2-dev1+feature-login.a1b2c3d`
 
 - **MAJOR** version when making incompatible API changes
 - **MINOR** version when adding functionality in a backward-compatible manner
 - **PATCH** version when making backward-compatible bug fixes
+- **PRERELEASE** identifier for pre-releases (dev, feat, rc, fix)
+- **BUILD** number incremented for successive builds
+- **BRANCH** name and **COMMIT** SHA used as build metadata
 
 ### Setup and Requirements
 
@@ -46,11 +60,14 @@ Our versioning is fully automated through GitVersion and follows these rules:
 
 #### Branch Strategy
 
-- **main/master**: Production code, increments PATCH with every merge
-- **develop**: Development branch, increments MINOR, has "-alpha" suffix
-- **feature/xxx**: Feature branches, uses branch name in suffix
-- **release/x.y.z**: Release branches, has "-beta" suffix
-- **hotfix/xxx**: Hotfix branches, increments PATCH, has "-beta" suffix
+- **main/master**: Ongoing development with `-dev{build}` pre-release tag
+- **develop**: Development branch, labeled with `-dev{build}`
+- **feature/xxx**: Feature branches, labeled with `-feat{build}`
+- **release/x.y.z**: Release candidates with `-rc{build}` tag during testing
+- **release/x.y.z (final)**: When fully tested, releases merge to main without pre-release tags, creating stable versions
+- **hotfix/xxx**: Hotfix branches, labeled with `-fix{build}`
+
+Only fully tested versions coming from finalized release branches have no pre-release tags. These stable versions are released once and represent production-ready software.
 
 #### Commit Messages
 
@@ -142,9 +159,28 @@ To see the current calculated version:
 dotnet-gitversion
 ```
 
-### Build Integration
+### Accessing Version Information in Code
 
-Our CMake system automatically integrates with GitVersion to embed the correct version in build artifacts.
+The build system generates a `Version.h` file with all version components:
+
+```cpp
+#include "Version.h"
+
+// Basic version: 1.2.3
+std::cout << "Version: " << VERSION_STRING << std::endl;
+
+// Full version: 1.2.3-dev1+develop.a1b2c3d
+std::cout << "Full version: " << VERSION_FULL << std::endl;
+
+// Individual components
+std::cout << "Major: " << VERSION_MAJOR << std::endl;
+std::cout << "Minor: " << VERSION_MINOR << std::endl;
+std::cout << "Patch: " << VERSION_PATCH << std::endl;
+std::cout << "PreRelease: " << VERSION_PRERELEASE << std::endl;
+std::cout << "Build: " << VERSION_BUILD << std::endl;
+std::cout << "Branch: " << VERSION_BRANCH << std::endl;
+std::cout << "Commit: " << VERSION_COMMIT << std::endl;
+```
 
 ### Configuration
 

@@ -10,6 +10,11 @@ if(NOT GITVERSION_EXECUTABLE)
   set(PROJECT_VERSION_MINOR 1)
   set(PROJECT_VERSION_PATCH 0)
   set(PROJECT_VERSION "0.1.0")
+  set(PROJECT_VERSION_PRERELEASE "")
+  set(PROJECT_VERSION_BUILD "")
+  set(PROJECT_VERSION_BRANCH "unknown")
+  set(PROJECT_VERSION_COMMIT "unknown")
+  set(PROJECT_VERSION_FULL "0.1.0")
 else()
   message(STATUS "GitVersion found: ${GITVERSION_EXECUTABLE}")
   
@@ -34,6 +39,11 @@ else()
     set(PROJECT_VERSION_MINOR 1)
     set(PROJECT_VERSION_PATCH 0)
     set(PROJECT_VERSION "0.1.0")
+    set(PROJECT_VERSION_PRERELEASE "")
+    set(PROJECT_VERSION_BUILD "")
+    set(PROJECT_VERSION_BRANCH "unknown")
+    set(PROJECT_VERSION_COMMIT "unknown") 
+    set(PROJECT_VERSION_FULL "0.1.0")
   else()
     # Parse the JSON output - using a simple approach
     string(REGEX MATCH "\"Major\":[ ]*([0-9]+)" _ ${GITVERSION_JSON})
@@ -45,18 +55,53 @@ else()
     string(REGEX MATCH "\"Patch\":[ ]*([0-9]+)" _ ${GITVERSION_JSON})
     set(PROJECT_VERSION_PATCH ${CMAKE_MATCH_1})
     
-    # Get full semantic version and pre-release label if any
-    string(REGEX MATCH "\"SemVer\":[ ]*\"([^\"]+)\"" _ ${GITVERSION_JSON})
-    set(PROJECT_VERSION ${CMAKE_MATCH_1})
+    # Get base version
+    set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
     
-    # Get branch name for display
+    # Get pre-release tag and build number
+    string(REGEX MATCH "\"PreReleaseTag\":[ ]*\"([^\"]*)\""  _ ${GITVERSION_JSON})
+    set(PROJECT_VERSION_PRERELEASE ${CMAKE_MATCH_1})
+    
+    string(REGEX MATCH "\"BuildMetaData\":[ ]*\"([^\"]*)\""  _ ${GITVERSION_JSON})
+    set(PROJECT_VERSION_BUILD ${CMAKE_MATCH_1})
+    
+    # Get branch name for metadata
     string(REGEX MATCH "\"BranchName\":[ ]*\"([^\"]+)\"" _ ${GITVERSION_JSON})
     if(CMAKE_MATCH_1)
-      set(BRANCH_NAME ${CMAKE_MATCH_1})
-      message(STATUS "Building from branch: ${BRANCH_NAME}")
+      set(PROJECT_VERSION_BRANCH ${CMAKE_MATCH_1})
+      # Remove slashes from branch name if present (convert to dash)
+      string(REPLACE "/" "-" PROJECT_VERSION_BRANCH ${PROJECT_VERSION_BRANCH})
+      string(REPLACE "\\" "-" PROJECT_VERSION_BRANCH ${PROJECT_VERSION_BRANCH})
+      message(STATUS "Building from branch: ${PROJECT_VERSION_BRANCH}")
+    else()
+      set(PROJECT_VERSION_BRANCH "unknown")
     endif()
     
-    message(STATUS "Version from GitVersion: ${PROJECT_VERSION}")
+    # Get commit SHA for metadata
+    string(REGEX MATCH "\"Sha\":[ ]*\"([^\"]+)\"" _ ${GITVERSION_JSON})
+    if(CMAKE_MATCH_1)
+      set(PROJECT_VERSION_COMMIT ${CMAKE_MATCH_1})
+      # Use shortened SHA
+      string(SUBSTRING ${PROJECT_VERSION_COMMIT} 0 7 PROJECT_VERSION_COMMIT)
+    else()
+      set(PROJECT_VERSION_COMMIT "unknown")
+    endif()
+    
+    # Build full version string following the format:
+    # {major}.{minor}.{patch}-{release}{build}+{metadata-branch}.{metadata-commit}
+    set(PROJECT_VERSION_FULL "${PROJECT_VERSION}")
+    
+    if(PROJECT_VERSION_PRERELEASE)
+      if(PROJECT_VERSION_BUILD)
+        string(APPEND PROJECT_VERSION_FULL "-${PROJECT_VERSION_PRERELEASE}${PROJECT_VERSION_BUILD}")
+      else()
+        string(APPEND PROJECT_VERSION_FULL "-${PROJECT_VERSION_PRERELEASE}")
+      endif()
+    endif()
+    
+    string(APPEND PROJECT_VERSION_FULL "+${PROJECT_VERSION_BRANCH}.${PROJECT_VERSION_COMMIT}")
+    
+    message(STATUS "Version from GitVersion: ${PROJECT_VERSION_FULL}")
   endif()
 endif()
 
@@ -68,6 +113,11 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/Version.h"
 #define VERSION_MINOR ${PROJECT_VERSION_MINOR}
 #define VERSION_PATCH ${PROJECT_VERSION_PATCH}
 #define VERSION_STRING \"${PROJECT_VERSION}\"
+#define VERSION_PRERELEASE \"${PROJECT_VERSION_PRERELEASE}\"
+#define VERSION_BUILD \"${PROJECT_VERSION_BUILD}\"
+#define VERSION_BRANCH \"${PROJECT_VERSION_BRANCH}\"
+#define VERSION_COMMIT \"${PROJECT_VERSION_COMMIT}\"
+#define VERSION_FULL \"${PROJECT_VERSION_FULL}\"
 ")
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
