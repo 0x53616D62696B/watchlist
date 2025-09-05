@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.7)
 project(watchlist)
 
+# Version information
+set(PROJECT_VERSION_MAJOR 1)
+set(PROJECT_VERSION_MINOR 0)
+set(PROJECT_VERSION_PATCH 0)
+set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
+
 # variables
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED OFF)
@@ -57,6 +63,24 @@ add_executable(Application ${SRC_APPLICATION})
 add_executable(MultithreadDemo ${SRC_MULTITHREAD_DEMO})
 add_executable(Logger ${SRC_LOGGER})
 add_executable(Development ${SRC_DEVELOPMENT})
+
+# Configure version header
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/Version.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/Version.h"
+  @ONLY
+)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+# Windows version resource
+if(WIN32)
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/version.rc.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/version.rc"
+    @ONLY
+  )
+  target_sources(Application PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/version.rc")
+endif()
 
 # precompiled headers
 if(ENABLE_PCH)
