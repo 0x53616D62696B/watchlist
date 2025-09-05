@@ -1,11 +1,114 @@
 cmake_minimum_required(VERSION 3.7)
 project(watchlist)
 
-# Version information
-set(PROJECT_VERSION_MAJOR 1)
-set(PROJECT_VERSION_MINOR 0)
-set(PROJECT_VERSION_PATCH 0)
-set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
+# GitVersion integration
+find_program(GITVERSION_EXECUTABLE dotnet-gitversion PATHS ${CMAKE_SOURCE_DIR}/tools)
+
+if(NOT GITVERSION_EXECUTABLE)
+  message(STATUS "GitVersion not found. Using default version 0.1.0")
+  set(PROJECT_VERSION_MAJOR 0)
+  set(PROJECT_VERSION_MINOR 1)
+  set(PROJECT_VERSION_PATCH 0)
+  set(PROJECT_VERSION "0.1.0")
+else()
+  message(STATUS "GitVersion found: ${GITVERSION_EXECUTABLE}")
+  
+  # Check if GitVersion.yml exists
+  if(EXISTS "${CMAKE_SOURCE_DIR}/GitVersion.yml")
+    message(STATUS "Using GitVersion.yml configuration")
+  else()
+    message(STATUS "GitVersion.yml not found. Using default configuration")
+  endif()
+  
+  execute_process(
+    COMMAND ${GITVERSION_EXECUTABLE} /output json
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE GITVERSION_JSON
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_VARIABLE GITVERSION_ERROR
+  )
+  
+  if(GITVERSION_ERROR)
+    message(WARNING "GitVersion error: ${GITVERSION_ERROR}")
+    set(PROJECT_VERSION_MAJOR 0)
+    set(PROJECT_VERSION_MINOR 1)
+    set(PROJECT_VERSION_PATCH 0)
+    set(PROJECT_VERSION "0.1.0")
+  else()
+    # Parse the JSON output - using a simple approach
+    string(REGEX MATCH "\"Major\":[ ]*([0-9]+)" _ ${GITVERSION_JSON})
+    set(PROJECT_VERSION_MAJOR ${CMAKE_MATCH_1})
+    
+    string(REGEX MATCH "\"Minor\":[ ]*([0-9]+)" _ ${GITVERSION_JSON})
+    set(PROJECT_VERSION_MINOR ${CMAKE_MATCH_1})
+    
+    string(REGEX MATCH "\"Patch\":[ ]*([0-9]+)" _ ${GITVERSION_JSON})
+    set(PROJECT_VERSION_PATCH ${CMAKE_MATCH_1})
+    
+    # Get full semantic version and pre-release label if any
+    string(REGEX MATCH "\"SemVer\":[ ]*\"([^\"]+)\"" _ ${GITVERSION_JSON})
+    set(PROJECT_VERSION ${CMAKE_MATCH_1})
+    
+    # Get branch name for display
+    string(REGEX MATCH "\"BranchName\":[ ]*\"([^\"]+)\"" _ ${GITVERSION_JSON})
+    if(CMAKE_MATCH_1)
+      set(BRANCH_NAME ${CMAKE_MATCH_1})
+      message(STATUS "Building from branch: ${BRANCH_NAME}")
+    endif()
+    
+    message(STATUS "Version from GitVersion: ${PROJECT_VERSION}")
+  endif()
+endif()
+
+# Generate version header file directly
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/Version.h" 
+"#pragma once
+
+#define VERSION_MAJOR ${PROJECT_VERSION_MAJOR}
+#define VERSION_MINOR ${PROJECT_VERSION_MINOR}
+#define VERSION_PATCH ${PROJECT_VERSION_PATCH}
+#define VERSION_STRING \"${PROJECT_VERSION}\"
+")
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+# Windows version resource
+if(WIN32)
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/version.rc" 
+"#include <windows.h>
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION     ${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},${PROJECT_VERSION_PATCH},0
+PRODUCTVERSION  ${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},${PROJECT_VERSION_PATCH},0
+FILEFLAGSMASK   0x3fL
+FILEFLAGS       0x0L
+FILEOS          0x40004L
+FILETYPE        0x1L
+FILESUBTYPE     0x0L
+BEGIN
+    BLOCK \"StringFileInfo\"
+    BEGIN
+        BLOCK \"040904b0\"
+        BEGIN
+            VALUE \"CompanyName\", \"Your Company\"
+            VALUE \"FileDescription\", \"${PROJECT_NAME}\"
+            VALUE \"FileVersion\", \"${PROJECT_VERSION}\"
+            VALUE \"InternalName\", \"${PROJECT_NAME}\"
+            VALUE \"LegalCopyright\", \"Copyright (C) Your Company\"
+            VALUE \"OriginalFilename\", \"${PROJECT_NAME}.exe\"
+            VALUE \"ProductName\", \"${PROJECT_NAME}\"
+            VALUE \"ProductVersion\", \"${PROJECT_VERSION}\"
+        END
+    END
+    BLOCK \"VarFileInfo\"
+    BEGIN
+        VALUE \"Translation\", 0x409, 1200
+    END
+END
+")
+  if(TARGET Application)
+    target_sources(Application PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/version.rc")
+  endif()
+endif()
 
 # variables
 set(CMAKE_CXX_STANDARD 20)
@@ -63,24 +166,6 @@ add_executable(Application ${SRC_APPLICATION})
 add_executable(MultithreadDemo ${SRC_MULTITHREAD_DEMO})
 add_executable(Logger ${SRC_LOGGER})
 add_executable(Development ${SRC_DEVELOPMENT})
-
-# Configure version header
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/Version.h.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/Version.h"
-  @ONLY
-)
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
-# Windows version resource
-if(WIN32)
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/version.rc.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/version.rc"
-    @ONLY
-  )
-  target_sources(Application PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/version.rc")
-endif()
 
 # precompiled headers
 if(ENABLE_PCH)
