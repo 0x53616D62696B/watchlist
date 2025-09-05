@@ -12,14 +12,13 @@ next-version: 0.1.0
 legacy-semver-padding: 4
 build-metadata-padding: 4
 commits-since-version-source-padding: 4
-commit-message-incrementing: Enabled
 commit-date-format: 'yyyy-MM-dd'
 
 branches:
   main:
     regex: ^master$|^main$
     mode: ContinuousDeployment
-    tag: 'dev'
+    label: 'dev'
     increment: Patch
     prevent-increment-of-merged-branch-version: false
     track-merge-target: false
@@ -27,78 +26,58 @@ branches:
     tracks-release-branches: false
     is-release-branch: false
     is-mainline: true
-  
-  # Feature and bugfix branches
   feature:
     regex: ^feature[/-]
     mode: ContinuousDelivery
-    tag: ''
+    label: ''
     increment: Inherit
     source-branches: [ 'main', 'master' ]
     prevent-increment-of-merged-branch-version: false
     track-merge-target: false
     is-release-branch: false
-  
   bugfix:
     regex: ^bugfix[/-]
     mode: ContinuousDelivery
-    tag: ''
+    label: ''
     increment: Inherit
     source-branches: [ 'main', 'master' ]
     prevent-increment-of-merged-branch-version: false
     track-merge-target: false
     is-release-branch: false
-  
-  # Release stages
   release:
-    regex: ^release[/-][0-9]+\.[0-9]+\.[0-9]+$
+    regex: ^release[/-]
     mode: ContinuousDelivery
-    tag: ''  # No tag for final releases
+    label: 'rc'
     increment: None
     prevent-increment-of-merged-branch-version: true
     track-merge-target: false
-    source-branches: [ 'main', 'master', 'release/-alpha$', 'release/-rc$', 'release/-beta$' ]
+    source-branches: [ 'main', 'master' ]
     is-release-branch: true
-    pre-release-weight: 50000
-  
+    pre-release-weight: 30000
   release-alpha:
-    regex: ^release[/-][0-9]+\.[0-9]+\.[0-9]+-alpha$
+    regex: ^release[/-].*-alpha$
     mode: ContinuousDelivery
-    tag: 'alpha'
+    label: 'alpha'
     increment: None
     prevent-increment-of-merged-branch-version: true
     track-merge-target: false
     source-branches: [ 'main', 'master' ]
     is-release-branch: true
     pre-release-weight: 10000
-  
   release-beta:
-    regex: ^release[/-][0-9]+\.[0-9]+\.[0-9]+-beta$
+    regex: ^release[/-].*-beta$
     mode: ContinuousDelivery
-    tag: 'beta'
+    label: 'beta'
     increment: None
     prevent-increment-of-merged-branch-version: true
     track-merge-target: false
-    source-branches: [ 'release/-alpha$' ]
+    source-branches: [ 'main', 'master' ]
     is-release-branch: true
     pre-release-weight: 20000
-  
-  release-rc:
-    regex: ^release[/-][0-9]+\.[0-9]+\.[0-9]+-rc$
-    mode: ContinuousDelivery
-    tag: 'rc'
-    increment: None
-    prevent-increment-of-merged-branch-version: true
-    track-merge-target: false
-    source-branches: [ 'release/-beta$' ]
-    is-release-branch: true
-    pre-release-weight: 30000
-  
-  # Hotfix branches
   hotfix:
     regex: ^hotfix[/-]
     mode: ContinuousDelivery
-    tag: 'fix'
+    label: 'fix'
     increment: Patch
     prevent-increment-of-merged-branch-version: false
     track-merge-target: false
