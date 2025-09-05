@@ -45,14 +45,47 @@ Example: `1.3.2-dev1+feature-login.a1b2c3d`
 
 ### Setup and Requirements
 
-1. Install GitVersion:
+There are multiple ways to install GitVersion:
+
+#### Option 1: Standalone Executable (Recommended)
+
+1. Download the latest GitVersion from [GitVersion releases page](https://github.com/GitTools/GitVersion/releases)
+2. Extract the zip file to a location on your machine (e.g., `C:\Program Files\GitVersion` or `~/tools/gitversion`)
+3. Add this location to your PATH environment variable
+4. Verify installation by running:
    ```
-   dotnet tool install --global GitVersion.Tool
+   gitversion
    ```
-2. To verify installation:
-   ```
-   dotnet-gitversion
-   ```
+
+#### Option 2: Using Package Managers
+
+**For Windows (Chocolatey)**:
+```
+choco install gitversion.portable
+```
+
+**For macOS (Homebrew)**:
+```
+brew install gitversion
+```
+
+**For Linux (LinuxBrew)**:
+```
+brew install gitversion
+```
+
+#### Option 3: Using Docker
+
+If you have Docker installed, you can run GitVersion without installing it:
+```
+docker run --rm -v "$(pwd):/repo" gittools/gitversion:latest /repo
+```
+
+> Note: The original .NET tool installation method requires .NET SDK to be installed:
+> ```
+> dotnet tool install --global GitVersion.Tool
+> ```
+> Then verify with: `dotnet-gitversion`
 
 ### How Versioning Works
 

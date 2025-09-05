@@ -1,8 +1,15 @@
 cmake_minimum_required(VERSION 3.7)
 project(watchlist)
 
-# GitVersion integration
-find_program(GITVERSION_EXECUTABLE dotnet-gitversion PATHS ${CMAKE_SOURCE_DIR}/tools)
+# GitVersion integration - look for multiple possible executable names
+find_program(GITVERSION_EXECUTABLE NAMES gitversion GitVersion.exe dotnet-gitversion 
+             PATHS 
+             ${CMAKE_SOURCE_DIR}/tools
+             $ENV{ProgramFiles}/GitVersion
+             $ENV{ChocolateyInstall}/bin
+             $ENV{HOME}/tools/gitversion
+             /usr/local/bin
+             /usr/bin)
 
 if(NOT GITVERSION_EXECUTABLE)
   message(STATUS "GitVersion not found. Using default version 0.1.0")
@@ -25,8 +32,16 @@ else()
     message(STATUS "GitVersion.yml not found. Using default configuration")
   endif()
   
+  # Determine which command to use based on the executable name
+  get_filename_component(GITVERSION_NAME ${GITVERSION_EXECUTABLE} NAME)
+  if(GITVERSION_NAME STREQUAL "dotnet-gitversion")
+    set(GITVERSION_COMMAND ${GITVERSION_EXECUTABLE} /output json)
+  else()
+    set(GITVERSION_COMMAND ${GITVERSION_EXECUTABLE} -output json)
+  endif()
+  
   execute_process(
-    COMMAND ${GITVERSION_EXECUTABLE} /output json
+    COMMAND ${GITVERSION_COMMAND}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     OUTPUT_VARIABLE GITVERSION_JSON
     OUTPUT_STRIP_TRAILING_WHITESPACE
