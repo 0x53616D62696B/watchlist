@@ -266,6 +266,12 @@ See `GitVersion.yml` in the root directory for the complete configuration.
     - thread pools? or hardcoded?
 - structure for data
 - persistent server data storage - databaze?
+- project dependancies
+  - integrate with Conan (or vcpkg, but Conan is more customizable. You may create recipe for any code.
+                           You cant do that with vcpkg.)
+- testing v ctest
+- packaging with cpack
+- cmake workflow
 
 #### revival progress
 
