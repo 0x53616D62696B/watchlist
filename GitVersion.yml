@@ -33,7 +33,7 @@ branches:
     is-main-branch: false
     pre-release-weight: 30000
   feature:
-    mode: ManualDeployment
+    mode: ContinuousDeployment
     label: '{BranchName}'
     increment: Inherit
     prevent-increment:
