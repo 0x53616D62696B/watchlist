@@ -1,220 +1,23 @@
 cmake_minimum_required(VERSION 3.7)
 project(watchlist)
 
-# GitVersion integration - look for multiple possible executable names
-find_program(GITVERSION_EXECUTABLE NAMES gitversion GitVersion.exe dotnet-gitversion 
-             PATHS 
-             ${CMAKE_SOURCE_DIR}/tools
-             $ENV{ProgramFiles}/GitVersion
-             $ENV{ChocolateyInstall}/bin
-             $ENV{HOME}/tools/gitversion
-             /usr/local/bin
-             /usr/bin)
+# Include CMake modules
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-if(NOT GITVERSION_EXECUTABLE)
-  message(STATUS "GitVersion not found. Using default version 0.1.0")
-  set(PROJECT_VERSION_MAJOR 0)
-  set(PROJECT_VERSION_MINOR 1)
-  set(PROJECT_VERSION_PATCH 0)
-  set(PROJECT_VERSION "0.1.0")
-  set(PROJECT_VERSION_PRERELEASE "")
-  set(PROJECT_VERSION_BUILD "")
-  set(PROJECT_VERSION_BRANCH "unknown")
-  set(PROJECT_VERSION_COMMIT "unknown")
-  set(PROJECT_VERSION_FULL "0.1.0")
-else()
-  message(STATUS "GitVersion found: ${GITVERSION_EXECUTABLE}")
-  
-  # Check if GitVersion.yml exists
-  if(EXISTS "${CMAKE_SOURCE_DIR}/GitVersion.yml")
-    message(STATUS "Using GitVersion.yml configuration")
-  else()
-    message(STATUS "GitVersion.yml not found. Using default configuration")
-  endif()
-  
-  # Determine which command to use based on the executable name
-  get_filename_component(GITVERSION_NAME ${GITVERSION_EXECUTABLE} NAME)
-  if(GITVERSION_NAME STREQUAL "dotnet-gitversion")
-    set(GITVERSION_COMMAND ${GITVERSION_EXECUTABLE} /output json)
-  else()
-    set(GITVERSION_COMMAND ${GITVERSION_EXECUTABLE} -output json)
-  endif()
-  
-  execute_process(
-    COMMAND ${GITVERSION_COMMAND}
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    OUTPUT_VARIABLE GITVERSION_JSON
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    ERROR_VARIABLE GITVERSION_ERROR
-  )
-  
-  if(GITVERSION_ERROR)
-    message(WARNING "GitVersion error: ${GITVERSION_ERROR}")
-    set(PROJECT_VERSION_MAJOR 0)
-    set(PROJECT_VERSION_MINOR 1)
-    set(PROJECT_VERSION_PATCH 0)
-    set(PROJECT_VERSION "0.1.0")
-    set(PROJECT_VERSION_PRERELEASE "")
-    set(PROJECT_VERSION_BUILD "")
-    set(PROJECT_VERSION_BRANCH "unknown")
-    set(PROJECT_VERSION_COMMIT "unknown") 
-    set(PROJECT_VERSION_FULL "0.1.0")
-  else()
-    # Parse the JSON output - using a simple approach
-    string(REGEX MATCH "\"Major\":[ ]*([0-9]+)" _ ${GITVERSION_JSON})
-    set(PROJECT_VERSION_MAJOR ${CMAKE_MATCH_1})
-    
-    string(REGEX MATCH "\"Minor\":[ ]*([0-9]+)" _ ${GITVERSION_JSON})
-    set(PROJECT_VERSION_MINOR ${CMAKE_MATCH_1})
-    
-    string(REGEX MATCH "\"Patch\":[ ]*([0-9]+)" _ ${GITVERSION_JSON})
-    set(PROJECT_VERSION_PATCH ${CMAKE_MATCH_1})
-    
-    # Get base version
-    set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
-    
-    # Get pre-release tag and build number
-    string(REGEX MATCH "\"PreReleaseTag\":[ ]*\"([^\"]*)\""  _ ${GITVERSION_JSON})
-    set(PROJECT_VERSION_PRERELEASE ${CMAKE_MATCH_1})
-    
-    string(REGEX MATCH "\"BuildMetaData\":[ ]*\"([^\"]*)\""  _ ${GITVERSION_JSON})
-    set(PROJECT_VERSION_BUILD ${CMAKE_MATCH_1})
-    
-    # Get branch name for metadata
-    string(REGEX MATCH "\"BranchName\":[ ]*\"([^\"]+)\"" _ ${GITVERSION_JSON})
-    if(CMAKE_MATCH_1)
-      set(PROJECT_VERSION_BRANCH ${CMAKE_MATCH_1})
-      # Remove slashes from branch name if present (convert to dash)
-      string(REPLACE "/" "-" PROJECT_VERSION_BRANCH ${PROJECT_VERSION_BRANCH})
-      string(REPLACE "\\" "-" PROJECT_VERSION_BRANCH ${PROJECT_VERSION_BRANCH})
-      message(STATUS "Building from branch: ${PROJECT_VERSION_BRANCH}")
-    else()
-      set(PROJECT_VERSION_BRANCH "unknown")
-    endif()
-    
-    # Get commit SHA for metadata
-    string(REGEX MATCH "\"Sha\":[ ]*\"([^\"]+)\"" _ ${GITVERSION_JSON})
-    if(CMAKE_MATCH_1)
-      set(PROJECT_VERSION_COMMIT ${CMAKE_MATCH_1})
-      # Use shortened SHA
-      string(SUBSTRING ${PROJECT_VERSION_COMMIT} 0 7 PROJECT_VERSION_COMMIT)
-    else()
-      set(PROJECT_VERSION_COMMIT "unknown")
-    endif()
-    
-    # Apply pre-release tag if present
-    if(PROJECT_VERSION_PRERELEASE)
-      if(PROJECT_VERSION_BUILD)
-        string(APPEND PROJECT_VERSION_FULL "-${PROJECT_VERSION_PRERELEASE}${PROJECT_VERSION_BUILD}")
-      else()
-        string(APPEND PROJECT_VERSION_FULL "-${PROJECT_VERSION_PRERELEASE}")
-      endif()
-    endif()
-    
-    # Always append metadata with branch and commit
-    string(APPEND PROJECT_VERSION_FULL "+${PROJECT_VERSION_BRANCH}.${PROJECT_VERSION_COMMIT}")
-    
-    message(STATUS "Version from GitVersion: ${PROJECT_VERSION_FULL}")
-  endif()
-endif()
+# Include compiler settings
+include(CompilerSettings)
 
-# Generate version header file directly
-file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/Version.h" 
-"#pragma once
+# Include version handling
+include(GitVersionConfig)
+configure_version()
+generate_version_header("version.hpp")
+generate_version_resource()
 
-#define VERSION_MAJOR ${PROJECT_VERSION_MAJOR}
-#define VERSION_MINOR ${PROJECT_VERSION_MINOR}
-#define VERSION_PATCH ${PROJECT_VERSION_PATCH}
-#define VERSION_STRING \"${PROJECT_VERSION}\"
-#define VERSION_PRERELEASE \"${PROJECT_VERSION_PRERELEASE}\"
-#define VERSION_BUILD \"${PROJECT_VERSION_BUILD}\"
-#define VERSION_BRANCH \"${PROJECT_VERSION_BRANCH}\"
-#define VERSION_COMMIT \"${PROJECT_VERSION_COMMIT}\"
-#define VERSION_FULL \"${PROJECT_VERSION_FULL}\"
-")
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
-# Windows version resource
-if(WIN32)
-  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/version.rc" 
-"#include <windows.h>
-
-VS_VERSION_INFO VERSIONINFO
-FILEVERSION     ${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},${PROJECT_VERSION_PATCH},0
-PRODUCTVERSION  ${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},${PROJECT_VERSION_PATCH},0
-FILEFLAGSMASK   0x3fL
-FILEFLAGS       0x0L
-FILEOS          0x40004L
-FILETYPE        0x1L
-FILESUBTYPE     0x0L
-BEGIN
-    BLOCK \"StringFileInfo\"
-    BEGIN
-        BLOCK \"040904b0\"
-        BEGIN
-            VALUE \"CompanyName\", \"Your Company\"
-            VALUE \"FileDescription\", \"${PROJECT_NAME}\"
-            VALUE \"FileVersion\", \"${PROJECT_VERSION}\"
-            VALUE \"InternalName\", \"${PROJECT_NAME}\"
-            VALUE \"LegalCopyright\", \"Copyright (C) Your Company\"
-            VALUE \"OriginalFilename\", \"${PROJECT_NAME}.exe\"
-            VALUE \"ProductName\", \"${PROJECT_NAME}\"
-            VALUE \"ProductVersion\", \"${PROJECT_VERSION}\"
-        END
-    END
-    BLOCK \"VarFileInfo\"
-    BEGIN
-        VALUE \"Translation\", 0x409, 1200
-    END
-END
-")
-  if(TARGET Application)
-    target_sources(Application PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/version.rc")
-  endif()
-endif()
-
-# variables
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED OFF)
+# Set general project variables
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(ENABLE_PROFILING OFF)
 set(ENABLE_PCH ON)
-
-# compiler flags
-if(MSVC)
-  # Don't want the compiler to suggest the secure versions of the library functions, e.g. scanf_s when you use scanf.
-  set(_CRT_SECURE_NO_WARNINGS ON)
-
-# Eliminates deprication warnings by changing e. g. the strcpy call to strcpy_s, which prevents buffer overruns.
-# set(_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES ON)
-
-# add_compile_options(/favor:INTEL64 /arch:SSE /arch:SSE2 /arch:AVX /arch:AVX2 /openmp)
-# add_compile_options(/favor:INTEL64 /arch:AVX /arch:AVX2 /openmp)
-# add_compile_options(/Wall /WX)
-
-# TODO:
-# ! every warning treat as error?????? chechk this
-else()
-  add_compile_options(-march=native -fopenmp -pthread)
-  add_compile_options(-Wall -Werror -Wfatal-errors -Wextra -Wpedantic -Wshadow)
-  add_compile_options(-Wno-unused-parameter -Wno-missing-field-initializers -Wno-unused-function)
-  add_compile_options("$<$<CONFIG:DEBUG>:-g;-O0>")
-  add_compile_options("$<$<CONFIG:RELEASE>:-O3>")
-  add_compile_options("$<$<COMPILE_LANGUAGE:C>:-w>")
-  add_link_options(-fopenmp -pthread)
-endif()
-
-# ignore warnings from libs sources
-file(GLOB_RECURSE SRC_LIBS CONFIGURE_DEPENDS libs/*.h libs/*.hpp libs/*.c libs/*.cpp)
-set_source_files_properties(${SRC_LIBS} PROPERTIES COMPILE_FLAGS "-w")
-
-# ccache
-find_program(CCACHE_FOUND ccache)
-
-if(CCACHE_FOUND)
-  set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
-endif()
 
 # status messages
 message(STATUS "CMAKE_CXX_COMPILER: " ${CMAKE_CXX_COMPILER_ID} " " ${CMAKE_CXX_COMPILER_VERSION})
