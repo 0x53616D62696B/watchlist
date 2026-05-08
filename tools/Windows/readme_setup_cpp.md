@@ -52,11 +52,26 @@ Go to *c:\<your msys installation path>\mingw64\bin* and enter following cmd:
 
     mklink make.exe mingw32-make.exe
 
-#### CMAKE
+### CMAKE ✅
 
 Used to control compilation proccess.
 
-    pacman -S mingw-w64-x86_64-cmake
+    pacman -S mingw-w64-x86_64-cmake 
+
+Or manually [CMake 3.30.9](https://github.com/Kitware/CMake/releases/tag/v3.30.9)
+
+Last known working CMake version is 3.30.9 ✅
+
+## Versioning tools
+
+Instal gitversion in order to CMAKE not failing.
+
+- Install DotNET SDK
+- Install GItVersion via DotNET
+
+        dotnet tool install --global GitVersion.Tool --version 6.5.1
+
+Last knowkn functional version is [GitVersion 6.5.1](https://www.nuget.org/packages/GitVersion.Tool/6.5.1).
 
 ## Linters, formatters
 

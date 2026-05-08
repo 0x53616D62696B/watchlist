@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.7) # Can't use VERSION >= 4.0, it is not compatible with used glad.
 project(watchlist)
 
 # Include CMake modules
