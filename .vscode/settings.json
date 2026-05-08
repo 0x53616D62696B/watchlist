@@ -4,7 +4,7 @@
     "C_Cpp.default.cStandard": "c11",
     "C_Cpp.autoAddFileAssociations": false,
     "cmake.cmakePath": "C:\\Users\\patrik.maraczek\\DevTools\\CMake-3.30.9\\bin\\cmake.exe",
-    "cmake.generator": "Ninja",
+    // "cmake.generator": "Ninja", // This is duplicite and overrides presets
     "cmake.parallelJobs": 0,
     "cmake.configureOnOpen": true,
     "makefile.configureOnOpen": false,

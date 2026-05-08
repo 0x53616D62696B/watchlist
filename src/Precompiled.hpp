@@ -13,7 +13,7 @@
 #include "Utils/Logger/Logger.hpp"
 
 #ifdef ENABLE_PROFILING
-  #include <Tracy.hpp>
+  #include <tracy/Tracy.hpp>
   // use FrameMark for frames (at the end of each frame)
   // use ZoneScoped once per scope (automatic name)
   // use ZoneScopedN once per scope (user-supplied name)

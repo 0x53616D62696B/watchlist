@@ -6,7 +6,11 @@
             "displayName": "Default Config",
             "description": "Default build configuration",
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build/default"
+            "binaryDir": "${sourceDir}/build/default",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_MAKE_PROGRAM": "C:/Users/patrik.maraczek/DevTools/Microsoft Visual Studio/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe"
+            }
         },
         {
             "name": "with-profiling",
@@ -15,6 +19,7 @@
             "inherits": "default",
             "binaryDir": "${sourceDir}/build/profiling",
             "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "DebugTracy",
                 "ENABLE_PROFILING": "ON"
             }
         }

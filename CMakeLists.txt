@@ -24,26 +24,24 @@ set(ENABLE_PCH ON)
 # Args
 option(ENABLE_PROFILING "Enable profiling with Tracy" OFF)
 
-# Define Debug-Tracy build type that inherits from Debug
-list(APPEND CMAKE_CONFIGURATION_TYPES "Debug-Tracy")
-set(CMAKE_CXX_FLAGS_DEBUG_TRACY "${CMAKE_CXX_FLAGS_DEBUG}" CACHE STRING "Flags for Debug-Tracy build type" FORCE)
-set(CMAKE_C_FLAGS_DEBUG_TRACY "${CMAKE_C_FLAGS_DEBUG}" CACHE STRING "Flags for Debug-Tracy build type" FORCE)
-mark_as_advanced(CMAKE_CXX_FLAGS_DEBUG_TRACY CMAKE_C_FLAGS_DEBUG_TRACY)
+set(CMAKE_CXX_FLAGS_DEBUGTRACY "${CMAKE_CXX_FLAGS_DEBUG}" CACHE STRING "Flags for DebugTracy build type" FORCE)
+set(CMAKE_C_FLAGS_DEBUGTRACY "${CMAKE_C_FLAGS_DEBUG}" CACHE STRING "Flags for DebugTracy build type" FORCE)
+mark_as_advanced(CMAKE_CXX_FLAGS_DEBUGTRACY CMAKE_C_FLAGS_DEBUGTRACY)
 
-# Register build type for single-config generators
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo" "Debug-Tracy")
+# Register DebugTracy without turning every default build into a Tracy build.
+get_property(IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(IS_MULTI_CONFIG)
+  set(CMAKE_CONFIGURATION_TYPES "Debug;Release;MinSizeRel;RelWithDebInfo;DebugTracy" CACHE STRING "Available configurations" FORCE)
+else()
+  set(CMAKE_BUILD_TYPE "${CMAKE_BUILD_TYPE}" CACHE STRING "Build type")
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo" "DebugTracy")
+endif()
+
+if(CMAKE_BUILD_TYPE STREQUAL "DebugTracy")
+  set(ENABLE_PROFILING ON CACHE BOOL "Enable profiling with Tracy" FORCE)
 endif()
 
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
-
-# Flags for Debug-Tracy build type
-if(CMAKE_BUILD_TYPE STREQUAL "Debug-Tracy")
-  # Use Debug settings, Tracy will be enabled automatically for this configuration
-  # add_compile_definitions(TRACY_ENABLE)
-  add_compile_definitions(ENABLE_PROFILING)
-endif()
-
 
 # status messages
 message(STATUS "CMAKE_CXX_COMPILER: " ${CMAKE_CXX_COMPILER_ID} " " ${CMAKE_CXX_COMPILER_VERSION})
@@ -105,18 +103,10 @@ target_link_libraries(Application PRIVATE glad)
 
 # tracy
 if(ENABLE_PROFILING)
-  include_directories(libs/tracy)
-  add_compile_definitions(TRACY_ENABLE) # for tracy macros
   add_compile_definitions(ENABLE_PROFILING) # for custom macros
-  add_compile_definitions(TRACY_NO_FRAME_IMAGE) # not using frame images
-  set(SRC_TRACY libs/tracy/Tracy.hpp libs/tracy/TracyClient.cpp)
-  # target_sources(shenanigans PRIVATE ${SRC_TRACY})
-  # target_sources(shenanigans_test PRIVATE ${SRC_TRACY})
-  # target_sources(shenanigans_terminal PRIVATE ${SRC_TRACY})
-  # target_link_libraries(shenanigans PRIVATE ${CMAKE_DL_LIBS})
-  # target_link_libraries(shenanigans_test PRIVATE ${CMAKE_DL_LIBS})
-  # target_link_libraries(shenanigans_terminal PRIVATE ${CMAKE_DL_LIBS})
-  # target_link_libraries(shenanigans_benchmark PRIVATE ${CMAKE_DL_LIBS})
+  set(TRACY_NO_FRAME_IMAGE ON CACHE BOOL "Disable Tracy frame image support" FORCE)
+  add_subdirectory(libs/tracy)
+  target_link_libraries(Application PRIVATE Tracy::TracyClient)
 endif()
 
 # multithread_demo app sources
