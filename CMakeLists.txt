@@ -1,48 +1,23 @@
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.7) # Can't use VERSION >= 4.0, it is not compatible with used glad.
 project(watchlist)
 
-# variables
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED OFF)
+# Include CMake modules
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
+# Include compiler settings
+include(CompilerSettings)
+
+# Include version handling
+include(GitVersionConfig)
+configure_version()
+generate_version_header("version.hpp")
+generate_version_resource()
+
+# Set general project variables
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(ENABLE_PROFILING OFF)
 set(ENABLE_PCH ON)
-
-# compiler flags
-if(MSVC)
-  # Don't want the compiler to suggest the secure versions of the library functions, e.g. scanf_s when you use scanf.
-  set(_CRT_SECURE_NO_WARNINGS ON)
-
-# Eliminates deprication warnings by changing e. g. the strcpy call to strcpy_s, which prevents buffer overruns.
-# set(_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES ON)
-
-# add_compile_options(/favor:INTEL64 /arch:SSE /arch:SSE2 /arch:AVX /arch:AVX2 /openmp)
-# add_compile_options(/favor:INTEL64 /arch:AVX /arch:AVX2 /openmp)
-# add_compile_options(/Wall /WX)
-
-# TODO:
-# ! every warning treat as error?????? chechk this
-else()
-  add_compile_options(-march=native -fopenmp -pthread)
-  add_compile_options(-Wall -Werror -Wfatal-errors -Wextra -Wpedantic -Wshadow)
-  add_compile_options(-Wno-unused-parameter -Wno-missing-field-initializers -Wno-unused-function)
-  add_compile_options("$<$<CONFIG:DEBUG>:-g;-O0>")
-  add_compile_options("$<$<CONFIG:RELEASE>:-O3>")
-  add_compile_options("$<$<COMPILE_LANGUAGE:C>:-w>")
-  add_link_options(-fopenmp -pthread)
-endif()
-
-# ignore warnings from libs sources
-file(GLOB_RECURSE SRC_LIBS CONFIGURE_DEPENDS libs/*.h libs/*.hpp libs/*.c libs/*.cpp)
-set_source_files_properties(${SRC_LIBS} PROPERTIES COMPILE_FLAGS "-w")
-
-# ccache
-find_program(CCACHE_FOUND ccache)
-
-if(CCACHE_FOUND)
-  set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
-endif()
 
 # status messages
 message(STATUS "CMAKE_CXX_COMPILER: " ${CMAKE_CXX_COMPILER_ID} " " ${CMAKE_CXX_COMPILER_VERSION})

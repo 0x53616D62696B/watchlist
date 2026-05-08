@@ -1,0 +1,88 @@
+mode: ContinuousDelivery
+tag-prefix: 'v'
+commit-message-incrementing: Enabled
+major-version-bump-message: '\+semver:\s?(breaking|major)'
+minor-version-bump-message: '\+semver:\s?(feature|minor)'
+patch-version-bump-message: '\+semver:\s?(fix|patch)'
+no-bump-message: '\+semver:\s?(none|skip)'
+assembly-versioning-scheme: MajorMinorPatch
+assembly-file-versioning-scheme: MajorMinorPatchTag
+assembly-informational-format: '{SemVer}+{BranchName}.{ShortSha}'
+next-version: 0.1.0
+legacy-semver-padding: 4
+build-metadata-padding: 4
+commits-since-version-source-padding: 4
+commit-date-format: 'yyyy-MM-dd'
+
+branches:
+  main:
+    regex: ^master$|^main$
+    mode: ContinuousDeployment
+    label: 'dev'
+    increment: Patch
+    prevent-increment-of-merged-branch-version: false
+    track-merge-target: false
+    source-branches: [ 'release' ]
+    tracks-release-branches: false
+    is-release-branch: false
+    is-mainline: true
+  feature:
+    regex: ^feature[/-]
+    mode: ContinuousDelivery
+    label: ''
+    increment: Inherit
+    source-branches: [ 'main', 'master' ]
+    prevent-increment-of-merged-branch-version: false
+    track-merge-target: false
+    is-release-branch: false
+  bugfix:
+    regex: ^bugfix[/-]
+    mode: ContinuousDelivery
+    label: ''
+    increment: Inherit
+    source-branches: [ 'main', 'master' ]
+    prevent-increment-of-merged-branch-version: false
+    track-merge-target: false
+    is-release-branch: false
+  release:
+    regex: ^release[/-]
+    mode: ContinuousDelivery
+    label: 'rc'
+    increment: None
+    prevent-increment-of-merged-branch-version: true
+    track-merge-target: false
+    source-branches: [ 'main', 'master' ]
+    is-release-branch: true
+    pre-release-weight: 30000
+  release-alpha:
+    regex: ^release[/-].*-alpha$
+    mode: ContinuousDelivery
+    label: 'alpha'
+    increment: None
+    prevent-increment-of-merged-branch-version: true
+    track-merge-target: false
+    source-branches: [ 'main', 'master' ]
+    is-release-branch: true
+    pre-release-weight: 10000
+  release-beta:
+    regex: ^release[/-].*-beta$
+    mode: ContinuousDelivery
+    label: 'beta'
+    increment: None
+    prevent-increment-of-merged-branch-version: true
+    track-merge-target: false
+    source-branches: [ 'main', 'master' ]
+    is-release-branch: true
+    pre-release-weight: 20000
+  hotfix:
+    regex: ^hotfix[/-]
+    mode: ContinuousDelivery
+    label: 'fix'
+    increment: Patch
+    prevent-increment-of-merged-branch-version: false
+    track-merge-target: false
+    source-branches: [ 'main', 'master' ]
+    is-release-branch: false
+
+ignore:
+  sha: []
