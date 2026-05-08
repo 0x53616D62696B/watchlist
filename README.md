@@ -10,11 +10,11 @@ Go throught installation [Documentation](https://github.com/wolfpld/tracy/releas
 
 Read setup tools in tools\
 
-## Compilers
+### Compilers
 
 This project is trying to be cross-pltafrom. GCC Linux and MSVC Windows.
 
-### MSVC
+#### MSVC
 
 In order the MSVC is running porperly in Visual Studio Code, you have to start VSCode \
 from Developer Command Prompt for VS (2022 currently).
@@ -326,7 +326,7 @@ This means the alternative file models a more staged release flow, where release
 
 At the moment, documenting this file is informational only. To actually use it, the build integration would need to be updated so that CMake invokes GitVersion with `AIBasedGitVersion.yml` instead of `GitVersion.yml`, or the file would need to replace the active root configuration.
 
-### TODO
+## TODO
 
 - revive project
   - add cpp 23
@@ -344,8 +344,9 @@ At the moment, documenting this file is informational only. To actually use it, 
 - testing v ctest
 - packaging with cpack
 - cmake workflow
+- update version with pre-commit hooks
 
-#### revival progress
+### revival progress
 
 Testing with compiler MSVC (Visual Studio Build Tools) 2022 Release amd64 - compiler version 17.11.5 (_MSVC_VER 1941)
 
