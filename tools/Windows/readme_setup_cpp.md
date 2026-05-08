@@ -18,7 +18,7 @@ To run the MSVC compiler from VS Code you have to run the VSCode from "Developer
 ##### Setup for VS Code ✅
 
 - Install MSVC compiler:
-  - Install VS Build Tools.
+  - Install [VS Build Tools](https://aka.ms/vs/stable/vs_BuildTools.exe)
 - Use tasks.json and rename the path to the VsDevCmd.
 
 **References**

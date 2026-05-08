@@ -6,6 +6,10 @@ Watchlist of series and movies.
 
 Go throught installation [Documentation](https://github.com/wolfpld/tracy/releases/latest/download/tracy.pdf)
 
+## Setup
+
+Read setup tools in tools\
+
 ## Compilers
 
 This project is trying to be cross-pltafrom. GCC Linux and MSVC Windows.
@@ -93,49 +97,28 @@ Our versioning is fully automated through GitVersion and follows these rules:
 
 #### Branch Strategy
 
-- **main/master**: Ongoing development with `-dev{build}`
-- **feature/xxx**, **bugfix/xxx**: Branches, that has same version as main they come from, but hase metadata in form of `+{branch}.{commit}`
-- **release/x.y.z**: Release candidates with `-alpha{build}`, `-beta{build}`, `-rc{build}` tag during testing. When fully tested,
-releases stays on release branch, and all fixes done during testing are merged back to main as patch version, with note it is 
-from tested release branch.
+- **main/master**: Mainline branch. The config uses an empty label, so versions are based on the latest reachable tag and branch history without a fixed prerelease label.
+- **feature/xxx**: Continuous deployment mode. The prerelease label is the branch name, for example `1.2.3-my-feature.4`.
+- **release/xxx**: Manual deployment mode with prerelease label `beta`.
+- **pull/123**, **pr/123**: Continuous delivery mode with label `PullRequest123`.
+- **other branches**: Manual deployment mode with the branch name as label.
 
-Only fully tested versions comming from finalized release branches have no pre-release tags. These stable versions are released once and represent production-ready software.
+This repository uses GitVersion's `GitHubFlow/v1` workflow, so the branch name matters. Use branch names that match the regular expressions defined in `GitVersion.yml`, especially `main`, `feature/...`, `release/...`, and `pr/...`.
 
-#### Release Stage Transitions
+#### When Version Is Calculated
 
-To progress a release through different stages:
+Version calculation happens during the CMake configure step, not during C++ compilation itself.
 
-1. **Development to Alpha**: 
-   ```
-   git checkout -b release/1.2.0-alpha
-   ```
-   This creates an alpha release branch with `-alpha` tag.
+- `configure_version()` is called from `CMakeLists.txt`
+- `generate_version_header("version.hpp")` writes the generated header during configure
+- if GitVersion is not installed or not found on `PATH`, CMake falls back to version `0.1.0`
 
-2. **Alpha to Beta**: 
-   ```
-   git checkout release/1.2.0-alpha
-   git tag v1.2.0-beta
-   git checkout -b release/1.2.0-beta
-   ```
-   Tag the alpha branch and create a beta branch.
+Typical triggers for configure are:
 
-3. **Beta to RC**: 
-   ```
-   git checkout release/1.2.0-beta
-   git tag v1.2.0-rc
-   git checkout -b release/1.2.0-rc
-   ```
-   Tag the beta branch and create an RC branch.
-
-4. **RC to Stable Release**: 
-   ```
-   git checkout release/1.2.0-rc
-   # After final testing is complete:
-   git tag v1.2.0
-   ```
-   Create a stable version tag without pre-release identifier.
-
-Each stage can involve multiple builds (alpha1, alpha2, etc.) as issues are fixed. The final stable tag removes the pre-release identifier entirely.
+1. Running `cmake -S . -B build`
+2. Opening/configuring the project in a CMake-aware IDE such as VS Code with CMake Tools
+3. Running a build when the build directory does not exist yet
+4. Automatic re-configure when CMake detects relevant project file changes
 
 #### Commit Messages
 
@@ -160,84 +143,118 @@ GitVersion will use that tag as the base for calculating versions.
 #### Regular Development
 
 1. Create a feature branch:
-   ```
+   ```sh
    git checkout -b feature/new-functionality
    ```
 
-2. Make commits with appropriate messages:
-   ```
+2. Make a commit with the desired semver hint:
+   ```sh
    git commit -m "Add new search feature +semver: minor"
    ```
 
-3. When ready, merge to develop:
-   ```
-   git checkout develop
-   git merge feature/new-functionality
-   ```
-
-#### Hotfixes
-
-1. Create a hotfix branch from main:
-   ```
-   git checkout -b hotfix/critical-bug
+3. Check the calculated version:
+   ```sh
+   gitversion -output json
    ```
 
-2. Fix the issue and commit:
-   ```
-   git commit -m "Fix critical issue in login function +semver: patch"
-   ```
-
-3. Merge to both main and develop:
-   ```
-   git checkout main
-   git merge hotfix/critical-bug
-   git checkout develop
-   git merge hotfix/critical-bug
+4. Re-run CMake configure so `version.hpp` is refreshed for the build:
+   ```sh
+   cmake -S . -B build
    ```
 
-#### Releases
+5. Merge back to `main` when ready.
 
-1. Create a release branch:
-   ```
+#### Release Branches
+
+1. Create a release branch from `main`:
+   ```sh
    git checkout -b release/1.2.0
    ```
 
-2. Make release preparations and commit:
-   ```
-   git commit -m "Update changelog for 1.2.0 release"
+2. Check the calculated version:
+   ```sh
+   gitversion -output json
    ```
 
-3. Merge to main and tag:
-   ```
-   git checkout main
-   git merge release/1.2.0
+3. The prerelease label for release branches is `beta` according to the current configuration.
+
+4. Once the release is finalized, tag the commit:
+   ```sh
    git tag v1.2.0
    ```
 
-4. Merge back to develop:
-   ```
-   git checkout develop
-   git merge main
-   ```
+#### Pull Requests
+
+If your PR branch is named in a supported format such as `pr/123`, GitVersion uses the `PullRequest123` label.
+
+#### CMake Build Integration
+
+After GitVersion is installed, configure and build the project as usual:
+
+```sh
+cmake -S . -B build
+cmake --build build
+```
+
+During configure, CMake runs GitVersion and generates `version.hpp` with the resolved values.
+
+If you already have a configured build directory and only run:
+
+```sh
+cmake --build build
+```
+
+then CMake will only re-run configure if needed.
+
+To force version recalculation after switching branches or adding tags, re-run configure explicitly:
+
+```sh
+cmake -S . -B build
+```
+
+#### Releases and Tags
+
+To publish a stable version, create a Git tag:
+
+```sh
+git tag v1.2.3
+```
+
+GitVersion will use that tag as the version source for future calculations.
+
+Example:
+
+```sh
+git checkout main
+git tag v1.2.3
+cmake -S . -B build
+```
 
 ### Checking Current Version
 
-To see the current calculated version:
+To see the current calculated version directly from GitVersion:
+
+```sh
+gitversion -output json
 ```
-dotnet-gitversion
+
+If you installed the .NET global tool variant, use:
+
+```sh
+dotnet-gitversion /output json
 ```
 
 ### Accessing Version Information in Code
 
-The build system generates a `Version.h` file with all version components:
+The build system generates `version.hpp` during CMake configure with all version components:
 
 ```cpp
-#include "Version.h"
+#include "version.hpp"
 
 // Basic version: 1.2.3
 std::cout << "Version: " << VERSION_STRING << std::endl;
 
-// Full version: 1.2.3-dev1+develop.a1b2c3d
+// Full version: 1.2.3-beta4+release-1.2.0.a1b2c3d
 std::cout << "Full version: " << VERSION_FULL << std::endl;
 
 // Individual components
@@ -250,9 +267,64 @@ std::cout << "Branch: " << VERSION_BRANCH << std::endl;
 std::cout << "Commit: " << VERSION_COMMIT << std::endl;
 ```
 
+If GitVersion is unavailable, CMake falls back to the default version values defined in the CMake integration.
+std::cout << "Branch: " << VERSION_BRANCH << std::endl;
+std::cout << "Commit: " << VERSION_COMMIT << std::endl;
+```
+
 ### Configuration
 
 See `GitVersion.yml` in the root directory for the complete configuration.
+
+## Alternative Versioning Configuration
+
+The repository also contains `AIBasedGitVersion.yml` as an alternative GitVersion setup.
+
+This file is currently **not used** by the CMake build integration. The active configuration is still `GitVersion.yml`, because the CMake helper looks for that filename in the repository root during configure.
+
+### What `AIBasedGitVersion.yml` Defines
+
+This alternative configuration uses a more explicit branch model and a different prerelease strategy than the active setup.
+
+#### General Rules
+
+- `mode: ContinuousDelivery`
+- tag prefix is `v`
+- semantic version bumping is controlled by commit messages
+- default base version is `0.1.0`
+- informational version format is `{SemVer}+{BranchName}.{ShortSha}`
+
+Supported commit message hints are:
+
+- `+semver: major` or `+semver: breaking`
+- `+semver: minor` or `+semver: feature`
+- `+semver: patch` or `+semver: fix`
+- `+semver: none` or `+semver: skip`
+
+#### Branch Strategy in `AIBasedGitVersion.yml`
+
+- **main/master**: `ContinuousDeployment` with label `dev` and patch incrementing
+- **feature/***: `ContinuousDelivery` with inherited increment and no fixed prerelease label
+- **bugfix/***: `ContinuousDelivery` with inherited increment and no fixed prerelease label
+- **release/***: `ContinuousDelivery` with label `rc` and no increment
+- **release/*-alpha**: `ContinuousDelivery` with label `alpha` and no increment
+- **release/*-beta**: `ContinuousDelivery` with label `beta` and no increment
+- **hotfix/***: `ContinuousDelivery` with label `fix` and patch incrementing
+
+This means the alternative file models a more staged release flow, where release branches can explicitly represent `alpha`, `beta`, `rc`, and hotfix scenarios.
+
+### Example Behavior of `AIBasedGitVersion.yml`
+
+- `main` would produce development-style versions with a `dev` label
+- `feature/login` would produce a prerelease based on the inherited version rules
+- `release/1.2.0-alpha` would produce `alpha` prerelease versions
+- `release/1.2.0-beta` would produce `beta` prerelease versions
+- `release/1.2.0` would produce `rc` prerelease versions
+- `hotfix/crash-on-start` would produce `fix` prerelease versions with patch incrementing
+
+### If You Want To Use It
+
+At the moment, documenting this file is informational only. To actually use it, the build integration would need to be updated so that CMake invokes GitVersion with `AIBasedGitVersion.yml` instead of `GitVersion.yml`, or the file would need to replace the active root configuration.
 
 ### TODO
 
