@@ -7,5 +7,5 @@
 #define VERSION_PRERELEASE ""
 #define VERSION_BUILD ""
 #define VERSION_BRANCH "feature-attachable_apps"
-#define VERSION_COMMIT "4f1eace"
-#define VERSION_FULL "0.0.1+feature-attachable_apps.4f1eace"
+#define VERSION_COMMIT "898bc88"
+#define VERSION_FULL "0.0.1+feature-attachable_apps.898bc88"

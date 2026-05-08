@@ -7,9 +7,23 @@
             "description": "Default build configuration",
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build/default",
+            "environment": {
+                "VCToolsInstallDir": "C:/Users/patrik.maraczek/DevTools/Microsoft Visual Studio/BuildTools/VC/Tools/MSVC/14.41.34120/",
+                "VCINSTALLDIR": "C:/Users/patrik.maraczek/DevTools/Microsoft Visual Studio/BuildTools/VC/",
+                "WindowsSdkDir": "C:/Program Files (x86)/Windows Kits/10/",
+                "WindowsSDKVersion": "10.0.26100.0/",
+                "PATH": "C:/Users/patrik.maraczek/DevTools/Microsoft Visual Studio/BuildTools/VC/Tools/MSVC/14.41.34120/bin/HostX64/x64;C:/Users/patrik.maraczek/DevTools/Microsoft Visual Studio/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja;C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64;$penv{PATH}",
+                "INCLUDE": "C:/Users/patrik.maraczek/DevTools/Microsoft Visual Studio/BuildTools/VC/Tools/MSVC/14.41.34120/include;C:/Users/patrik.maraczek/DevTools/Microsoft Visual Studio/BuildTools/VC/Auxiliary/VS/include;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/ucrt;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/um;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/shared;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/winrt;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/cppwinrt",
+                "LIB": "C:/Users/patrik.maraczek/DevTools/Microsoft Visual Studio/BuildTools/VC/Tools/MSVC/14.41.34120/lib/x64;C:/Program Files (x86)/Windows Kits/10/lib/10.0.26100.0/ucrt/x64;C:/Program Files (x86)/Windows Kits/10/lib/10.0.26100.0/um/x64",
+                "LIBPATH": "C:/Users/patrik.maraczek/DevTools/Microsoft Visual Studio/BuildTools/VC/Tools/MSVC/14.41.34120/lib/x64;C:/Users/patrik.maraczek/DevTools/Microsoft Visual Studio/BuildTools/VC/Tools/MSVC/14.41.34120/lib/x86/store/references;C:/Program Files (x86)/Windows Kits/10/UnionMetadata/10.0.26100.0;C:/Program Files (x86)/Windows Kits/10/References/10.0.26100.0;C:/Windows/Microsoft.NET/Framework64/v4.0.30319"
+            },
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_MAKE_PROGRAM": "C:/Users/patrik.maraczek/DevTools/Microsoft Visual Studio/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe"
+                "CMAKE_MAKE_PROGRAM": "C:/Users/patrik.maraczek/DevTools/Microsoft Visual Studio/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe",
+                "CMAKE_C_COMPILER": "C:/Users/patrik.maraczek/DevTools/Microsoft Visual Studio/BuildTools/VC/Tools/MSVC/14.41.34120/bin/HostX64/x64/cl.exe",
+                "CMAKE_CXX_COMPILER": "C:/Users/patrik.maraczek/DevTools/Microsoft Visual Studio/BuildTools/VC/Tools/MSVC/14.41.34120/bin/HostX64/x64/cl.exe",
+                "CMAKE_RC_COMPILER": "C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/rc.exe",
+                "CMAKE_MT": "C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/mt.exe"
             }
         },
         {
