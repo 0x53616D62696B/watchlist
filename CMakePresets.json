@@ -36,6 +36,18 @@
                 "CMAKE_BUILD_TYPE": "DebugTracy",
                 "ENABLE_PROFILING": "ON"
             }
+        },
+        {
+            "name": "with-profiling-no-exit",
+            "displayName": "With Tracy Profiling (NO_EXIT)",
+            "description": "Enable Tracy profiling and keep short-lived apps alive until Tracy connects/flushes.",
+            "inherits": "default",
+            "binaryDir": "${sourceDir}/build/profiling-no-exit",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "DebugTracy",
+                "ENABLE_PROFILING": "ON",
+                "TRACY_NO_EXIT": "ON"
+            }
         }
     ],
     "buildPresets": [
@@ -46,6 +58,10 @@
         {
             "name": "with-profiling",
             "configurePreset": "with-profiling"
+        },
+        {
+            "name": "with-profiling-no-exit",
+            "configurePreset": "with-profiling-no-exit"
         }
     ]
 }

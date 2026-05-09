@@ -1,0 +1,77 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "CMake: Active launch target",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${command:cmake.launchTargetPath}",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${command:cmake.launchTargetDirectory}",
+            "environment": [],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "CMake: Active launch target (TRACY_NO_EXIT env)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${command:cmake.launchTargetPath}",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${command:cmake.launchTargetDirectory}",
+            "environment": [
+                {
+                    "name": "TRACY_NO_EXIT",
+                    "value": "1"
+                }
+            ],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "CMake: Application target",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${input:cmakeApplicationPath}",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${input:cmakeApplicationDirectory}",
+            "environment": [],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "CMake: Application target (TRACY_NO_EXIT env)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${input:cmakeApplicationPath}",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${input:cmakeApplicationDirectory}",
+            "environment": [
+                {
+                    "name": "TRACY_NO_EXIT",
+                    "value": "1"
+                }
+            ],
+            "console": "integratedTerminal"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "cmakeApplicationPath",
+            "type": "command",
+            "command": "cmake.launchTargetPath",
+            "args": {
+                "targetName": "Application"
+            }
+        },
+        {
+            "id": "cmakeApplicationDirectory",
+            "type": "command",
+            "command": "cmake.launchTargetDirectory",
+            "args": {
+                "targetName": "Application"
+            }
+        }
+    ]
+}

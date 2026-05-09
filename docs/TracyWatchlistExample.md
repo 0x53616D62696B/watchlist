@@ -19,11 +19,20 @@ cmake --preset with-profiling
 cmake --build --preset with-profiling --target Application
 ```
 
+For short-lived runs where you want the process to stay alive for Tracy, use:
+
+```powershell
+cmake --preset with-profiling-no-exit
+cmake --build --preset with-profiling-no-exit --target Application
+```
+
 The preset uses:
 
 - `CMAKE_BUILD_TYPE=DebugTracy`
 - `ENABLE_PROFILING=ON`
 - `Tracy::TracyClient` linked into `Application`
+
+The `with-profiling-no-exit` preset also sets `TRACY_NO_EXIT=ON` for Tracy.
 
 ## Run With Tracy
 
@@ -32,6 +41,12 @@ The preset uses:
 
    ```powershell
    .\build\profiling\Application.exe
+   ```
+
+   Or, if you built the NO_EXIT preset:
+
+   ```powershell
+   .\build\profiling-no-exit\Application.exe
    ```
 
 3. In Tracy, connect to the running process.
@@ -46,6 +61,18 @@ The preset uses:
    - `ProcessGeneratedEvent`
 
 The current `main.cpp` returns after the concurrency startup example, so the GUI zones are compiled in but are only visible after the early testing return is removed or the app is changed to call `ImGuiStart()`.
+
+## VS Code CMake Tools
+
+When using the CMake extension:
+
+1. Select configure preset `with-profiling-no-exit`.
+2. Select build preset `with-profiling-no-exit`.
+3. Select launch target `Application`.
+4. Run the target from CMake Tools.
+5. Connect Tracy to `127.0.0.1:8086`.
+
+The `.vscode/launch.json` configs also use CMake Tools target substitution, so the debugger launches either the active CMake launch target or the named `Application` target from the currently selected preset.
 
 ## Profiling The GUI Path
 
