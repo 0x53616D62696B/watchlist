@@ -187,6 +187,8 @@ GitVersion will use that tag as the base for calculating versions.
 
 #### Pull Requests
 
+Use +semver: minor in PR title to bump minor version.
+
 If your PR branch is named in a supported format such as `pr/123`, GitVersion uses the `PullRequest123` label.
 
 #### CMake Build Integration
