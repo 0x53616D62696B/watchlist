@@ -12,6 +12,8 @@
 #include <memory>
 #include <optional>
 
+#include "src/Utils/Profiling/TracyProfiling.hpp"
+
 namespace Concurrency {
 
 /**
@@ -116,10 +118,13 @@ public:
         }
 
         void await_suspend(std::coroutine_handle<> handle) {
+            PROFILE_FUNCTION;
+            PROFILE_MESSAGE("[TRACY][ELOOP_CORO] Coroutine suspends: store handle in delayed-task heap");
             auto wakeup_time = std::chrono::steady_clock::now() + duration_;
             
             std::lock_guard<std::mutex> lock(event_loop_->mutex_);
             event_loop_->delayed_tasks_.push({wakeup_time, handle});
+            event_loop_->condition_.notify_one();
         }
 
         void await_resume() noexcept {}
@@ -134,51 +139,68 @@ public:
     };
 
     EventLoopCoroutine() : running_(true) {
+        PROFILE_FUNCTION;
+        PROFILE_MESSAGE("[TRACY][ELOOP_CORO] Creating coroutine event loop worker thread");
         Delay::set_event_loop(this);
-        worker_thread_ = std::thread([this] { run(); });
+        worker_thread_ = std::thread([this] {
+            PROFILE_THREAD("Coroutine event loop");
+            run();
+        });
     }
 
     ~EventLoopCoroutine() {
+        PROFILE_FUNCTION;
+        PROFILE_MESSAGE("[TRACY][ELOOP_CORO] Stopping coroutine event loop worker thread");
         {
+            PROFILE_SCOPE(EventLoopCoroutineSetStopFlag);
             std::lock_guard<std::mutex> lock(mutex_);
             running_ = false;
         }
         condition_.notify_one();
         if (worker_thread_.joinable()) {
+            PROFILE_SCOPE(EventLoopCoroutineJoinWorker);
             worker_thread_.join();
         }
     }
 
     // Schedule a task to run after a delay
     static Task schedule_after(std::chrono::milliseconds delay, std::function<void()> task) {
+        PROFILE_FUNCTION;
+        PROFILE_MESSAGE("[TRACY][ELOOP_CORO] schedule_after starts, awaits delay, then runs task body");
         co_await Delay(delay);
+        PROFILE_SCOPE(EventLoopCoroutineRunDelayedTaskBody);
         task();
     }
 
 private:
     void run() {
+        PROFILE_FUNCTION;
         while (true) {
             std::unique_lock<std::mutex> lock(mutex_);
             
             if (!running_ && delayed_tasks_.empty()) {
+                PROFILE_MESSAGE("[TRACY][ELOOP_CORO] Worker exits because delayed-task heap is empty and loop is stopping");
                 break;
             }
             
             if (delayed_tasks_.empty()) {
-                condition_.wait(lock, [this] { 
-                    return !running_ || !delayed_tasks_.empty(); 
+                PROFILE_SCOPE(EventLoopCoroutineWorkerWaitForTask);
+                condition_.wait(lock, [this] {
+                    return !running_ || !delayed_tasks_.empty();
                 });
                 continue;
             }
             
             auto now = std::chrono::steady_clock::now();
             if (delayed_tasks_.top().time <= now) {
+                PROFILE_SCOPE(EventLoopCoroutineWorkerResumeReadyTask);
                 auto task = delayed_tasks_.top();
                 delayed_tasks_.pop();
                 lock.unlock();
                 
                 task.handle.resume();
             } else {
+                PROFILE_SCOPE(EventLoopCoroutineWorkerWaitUntilNextTask);
                 condition_.wait_until(lock, delayed_tasks_.top().time);
             }
         }
@@ -204,19 +226,33 @@ private:
 // Example usage:
 
 int example_eloop_coro() {
+    PROFILE_FUNCTION;
+    PROFILE_MESSAGE("[TRACY][ELOOP_CORO_EXAMPLE] Start: create loop, schedule two delayed coroutines, wait while worker resumes them");
+
+    PROFILE_SCOPE(EventLoopCoroutineExampleLifetime);
     EventLoopCoroutine event_loop;
     
     // Schedule tasks with different delays
     event_loop.schedule_after(std::chrono::milliseconds(1000), []() {
+        PROFILE_SCOPE(EventLoopCoroutineExampleOneSecondTask);
+        PROFILE_MESSAGE("[TRACY][ELOOP_CORO_EXAMPLE] One-second coroutine resumed and task body executes");
         std::cout << "Task executed after 1 second\n";
     });
     
     event_loop.schedule_after(std::chrono::milliseconds(500), []() {
+        PROFILE_SCOPE(EventLoopCoroutineExampleHalfSecondTask);
+        PROFILE_MESSAGE("[TRACY][ELOOP_CORO_EXAMPLE] Half-second coroutine resumed and task body executes");
         std::cout << "Task executed after 500ms\n";
     });
     
     // Keep the event loop running
-    std::this_thread::sleep_for(std::chrono::seconds(2));
+    {
+        PROFILE_SCOPE(EventLoopCoroutineExampleObserveDelayedTasks);
+        PROFILE_MESSAGE("[TRACY][ELOOP_CORO_EXAMPLE] Main thread sleeps while the event-loop worker resumes delayed coroutines");
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+    }
+
+    PROFILE_MESSAGE("[TRACY][ELOOP_CORO_EXAMPLE] Done: event loop destructor will stop the worker");
     return 0;
 }
 

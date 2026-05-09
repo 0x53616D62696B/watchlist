@@ -51,6 +51,8 @@
 #include <coroutine>
 #include <format>
 
+#include "src/Utils/Profiling/TracyProfiling.hpp"
+
 namespace Concurrency {
 
 /**
@@ -180,22 +182,33 @@ public:
     };
     
     EventLoopGenerator() : running_(true) {
-        worker_thread_ = std::thread([this] { run(); });
+        PROFILE_FUNCTION;
+        PROFILE_MESSAGE("[TRACY][ELOOP_GEN] Creating event loop worker thread");
+        worker_thread_ = std::thread([this] {
+            PROFILE_THREAD("Generator event loop");
+            run();
+        });
     }
     
     ~EventLoopGenerator() {
+        PROFILE_FUNCTION;
+        PROFILE_MESSAGE("[TRACY][ELOOP_GEN] Stopping event loop worker thread");
         {
+            PROFILE_SCOPE(EventLoopGeneratorSetStopFlag);
             std::lock_guard<std::mutex> lock(mutex_);
             running_ = false;
         }
         condition_.notify_one();
         if (worker_thread_.joinable()) {
+            PROFILE_SCOPE(EventLoopGeneratorJoinWorker);
             worker_thread_.join();
         }
     }
     
     // Schedule an event to be processed
     void schedule_event(const std::string& name, std::function<void()> action) {
+        PROFILE_FUNCTION;
+        PROFILE_MESSAGE("[TRACY][ELOOP_GEN] Schedule event: push action into queue and wake worker");
         static int id_counter = 0;
         
         std::lock_guard<std::mutex> lock(mutex_);
@@ -206,9 +219,15 @@ public:
     // Generate events based on a pattern
     generator<Event> event_generator(int count, const std::string& pattern_name, 
                                     std::function<void(int)> pattern_action) {
+        PROFILE_FUNCTION;
+        PROFILE_MESSAGE("[TRACY][ELOOP_GEN] Generator coroutine starts yielding events lazily");
         for (int i = 0; i < count; ++i) {
+            PROFILE_SCOPE(EventLoopGeneratorYieldEvent);
             auto name = std::format("{} #{}", pattern_name, i + 1);
-            auto action = [i, pattern_action]() { pattern_action(i); };
+            auto action = [i, pattern_action]() {
+                PROFILE_SCOPE(EventLoopGeneratorGeneratedAction);
+                pattern_action(i);
+            };
             
             // Create an event and yield it to the consumer
             Event event{i, name, action};
@@ -221,32 +240,45 @@ public:
     
     // Process events from the generator
     void process_event_sequence(generator<Event>&& gen) {
+        PROFILE_FUNCTION;
+        PROFILE_MESSAGE("[TRACY][ELOOP_GEN] Start producer thread: pull generator values and schedule them");
         std::thread([this, gen = std::move(gen)]() mutable {
+            PROFILE_THREAD("Generator producer");
+            PROFILE_FUNCTION;
             for (const auto& event : gen) {
+                PROFILE_SCOPE(EventLoopGeneratorProducerScheduleEvent);
                 schedule_event(event.name, event.action);
             }
+            PROFILE_MESSAGE("[TRACY][ELOOP_GEN] Producer consumed all generated events");
         }).detach();
     }
     
 private:
     void run() {
+        PROFILE_FUNCTION;
         while (true) {
             std::unique_lock<std::mutex> lock(mutex_);
             
-            condition_.wait(lock, [this] {
-                return !running_ || !events_.empty();
-            });
+            {
+                PROFILE_SCOPE(EventLoopGeneratorWorkerWaitForEvent);
+                condition_.wait(lock, [this] {
+                    return !running_ || !events_.empty();
+                });
+            }
             
             if (!running_ && events_.empty()) {
+                PROFILE_MESSAGE("[TRACY][ELOOP_GEN] Worker exits because queue is empty and loop is stopping");
                 break;
             }
             
             if (!events_.empty()) {
+                PROFILE_SCOPE(EventLoopGeneratorWorkerPopEvent);
                 auto event = std::move(events_.front());
                 events_.pop();
                 lock.unlock();
                 
                 try {
+                    PROFILE_SCOPE(EventLoopGeneratorWorkerExecuteEvent);
                     std::cout << "Processing event: " << event.name << " (ID: " << event.id << ")\n";
                     event.action();
                 } catch (const std::exception& e) {
@@ -269,15 +301,23 @@ private:
 
 */
 int example_eloop_gen() {
+    PROFILE_FUNCTION;
+    PROFILE_MESSAGE("[TRACY][ELOOP_GEN_EXAMPLE] Start: schedule one event, create lazy event generator, process generated events");
+
+    PROFILE_SCOPE(EventLoopGeneratorExampleLifetime);
     EventLoopGenerator event_loop;
     
     // Schedule individual events
     event_loop.schedule_event("Single Task", []() {
+        PROFILE_SCOPE(EventLoopGeneratorExampleSingleTask);
+        PROFILE_MESSAGE("[TRACY][ELOOP_GEN_EXAMPLE] Single queued task executes on the event-loop worker");
         std::cout << "Executing single task\n";
     });
     
     // Generate and process a sequence of events
     auto event_gen = event_loop.event_generator(5, "Sequential Task", [](int i) {
+        PROFILE_SCOPE(EventLoopGeneratorExampleSequentialTask);
+        PROFILE_MESSAGE("[TRACY][ELOOP_GEN_EXAMPLE] Generated task body executes after producer schedules it");
         std::cout << "Executing sequential task step " << i << std::endl;
     });
     
@@ -285,7 +325,13 @@ int example_eloop_gen() {
     event_loop.process_event_sequence(std::move(event_gen));
     
     // Keep the event loop running
-    std::this_thread::sleep_for(std::chrono::seconds(3));
+    {
+        PROFILE_SCOPE(EventLoopGeneratorExampleObserveAsyncWork);
+        PROFILE_MESSAGE("[TRACY][ELOOP_GEN_EXAMPLE] Main thread sleeps while producer and worker threads run");
+        std::this_thread::sleep_for(std::chrono::seconds(3));
+    }
+
+    PROFILE_MESSAGE("[TRACY][ELOOP_GEN_EXAMPLE] Done: event loop destructor will stop the worker");
     return 0;
 }
 

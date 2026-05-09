@@ -11,6 +11,7 @@
 //#include <iostream>
 
 #include "src/Utils/Logger/Logger.hpp"
+#include "src/Utils/Profiling/TracyProfiling.hpp"
 
 namespace Concurrency {
 
@@ -113,6 +114,8 @@ private:
 // Constructor: Initializes the thread pool and starts the worker threads.
 inline ThreadPoolManager::ThreadPoolManager(size_t maxThreads)
     : stop(false), maxThreads(maxThreads) {
+    PROFILE_FUNCTION;
+    PROFILE_MESSAGE("[TRACY][THREAD_POOL] Creating worker threads");
     for (size_t i = 0; i < maxThreads; ++i) {
         workers.emplace_back(&ThreadPoolManager::workerThread, this);
     }
@@ -120,14 +123,18 @@ inline ThreadPoolManager::ThreadPoolManager(size_t maxThreads)
 
 // Destructor: Stops the thread pool and joins all worker threads.
 inline ThreadPoolManager::~ThreadPoolManager() {
+    PROFILE_FUNCTION;
+    PROFILE_MESSAGE("[TRACY][THREAD_POOL] Shutting down worker threads");
     {
         //ThreadPoolManager::queueLock.lock(); //? like unique_ptr - safe for multithreading when error, lock is released
+        PROFILE_SCOPE(ThreadPoolSetStopFlag);
         std::unique_lock<std::mutex> lock(queueMutex);
         stop = true; // Signal all threads to stop.
     }
     condition.notify_all(); // Notify all threads waiting on the condition variable.
     for (std::thread& worker : workers) {
         if (worker.joinable()) {
+            PROFILE_SCOPE(ThreadPoolJoinWorker);
             worker.join(); // Wait for each thread to finish.
         }
     }
@@ -160,6 +167,8 @@ perfect forwarding
  */
 template <typename F, typename... Args>
 auto ThreadPoolManager::enqueue(F&& func, Args&&... args) -> std::future<typename std::invoke_result<F, Args...>::type> {
+    PROFILE_FUNCTION;
+    PROFILE_MESSAGE("[TRACY][THREAD_POOL] Enqueue task: package callable, store it, notify one worker");
     using returnType = typename std::invoke_result<F, Args...>::type;
 
     // Wrap the task in a packaged_task to allow retrieving the result via a future.
@@ -169,6 +178,7 @@ auto ThreadPoolManager::enqueue(F&& func, Args&&... args) -> std::future<typenam
 
     std::future<returnType> result = task->get_future(); // Get the future for the task result.
     {
+        PROFILE_SCOPE(ThreadPoolPushTask);
         std::unique_lock<std::mutex> lock(queueMutex);
         if (stop) {
             throw std::runtime_error("ThreadPoolManager is stopped"); // Prevent adding tasks if stopped.
@@ -191,38 +201,61 @@ inline size_t ThreadPoolManager::getMaxThreads() const {
 
 // Worker thread function: Processes tasks from the queue.
 inline void ThreadPoolManager::workerThread() {
+    PROFILE_THREAD("Thread pool worker");
+    PROFILE_FUNCTION;
     while (true) {
         std::function<void()> task;
         {
+            PROFILE_SCOPE(ThreadPoolWorkerWaitForTask);
             std::unique_lock<std::mutex> lock(queueMutex);
             // Wait until there is a task to process or the pool is stopping.
             condition.wait(lock, [this] { return stop || !tasks.empty(); });
             if (stop && tasks.empty()) {
+                PROFILE_MESSAGE("[TRACY][THREAD_POOL] Worker exits because the queue is empty and the pool is stopping");
                 return; // Exit the thread if the pool is stopping and no tasks remain.
             }
             task = std::move(tasks.front()); // Get the next task from the queue.
             tasks.pop(); // Remove the task from the queue.
         }
+        PROFILE_SCOPE(ThreadPoolWorkerExecuteTask);
         task(); // Execute the task.
     }
 }
 
 void example_thread_pool_manager() {
+    PROFILE_FUNCTION;
+    PROFILE_MESSAGE("[TRACY][THREAD_POOL_EXAMPLE] Start: create pool, enqueue two sleeping tasks, wait on futures");
+
+    PROFILE_SCOPE(ThreadPoolExampleCreatePool);
     ThreadPoolManager threadPool(4); // Create a thread pool with 4 threads.
 
     // Example: Enqueue tasks
     auto future1 = threadPool.enqueue([] {
+        PROFILE_SCOPE(ThreadPoolExampleTaskOneWork);
+        PROFILE_MESSAGE("[TRACY][THREAD_POOL_EXAMPLE] Task 1 simulates work for 1 second");
         std::this_thread::sleep_for(std::chrono::seconds(1));
         return "Task 1 completed";
     });
 
     auto future2 = threadPool.enqueue([] {
+        PROFILE_SCOPE(ThreadPoolExampleTaskTwoWork);
+        PROFILE_MESSAGE("[TRACY][THREAD_POOL_EXAMPLE] Task 2 simulates work for 2 seconds");
         std::this_thread::sleep_for(std::chrono::seconds(2));
         return "Task 2 completed";
     });
 
     // Retrieve results
-    std::cout << future1.get() << std::endl; // Output: Task 1 completed
-    std::cout << future2.get() << std::endl; // Output: Task 2 completed
+    {
+        PROFILE_SCOPE(ThreadPoolExampleWaitTaskOneFuture);
+        PROFILE_MESSAGE("[TRACY][THREAD_POOL_EXAMPLE] Main thread waits for task 1 result");
+        std::cout << future1.get() << std::endl; // Output: Task 1 completed
+    }
+    {
+        PROFILE_SCOPE(ThreadPoolExampleWaitTaskTwoFuture);
+        PROFILE_MESSAGE("[TRACY][THREAD_POOL_EXAMPLE] Main thread waits for task 2 result");
+        std::cout << future2.get() << std::endl; // Output: Task 2 completed
+    }
+
+    PROFILE_MESSAGE("[TRACY][THREAD_POOL_EXAMPLE] Done: futures returned, pool destructor will stop workers");
 }
 } // namespace Concurrency
