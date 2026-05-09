@@ -19,7 +19,7 @@ include(CompilerSettings)
 # Include version handling
 include(GitVersionConfig)
 configure_version()
-generate_version_header("version.hpp")
+generate_version_header("${CMAKE_SOURCE_DIR}/src/Common/version.hpp")
 generate_version_resource()
 
 # Set general project variables

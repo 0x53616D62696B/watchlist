@@ -44,33 +44,34 @@ function(configure_version)
       OUTPUT_VARIABLE GITVERSION_JSON
       OUTPUT_STRIP_TRAILING_WHITESPACE
       ERROR_VARIABLE GITVERSION_ERROR
+      RESULT_VARIABLE GITVERSION_RESULT
     )
     
-    if(GITVERSION_ERROR)
+    if(NOT GITVERSION_RESULT EQUAL 0)
       message(FATAL_ERROR "GitVersion execution failed: ${GITVERSION_ERROR}")
     else()
       # Parse the JSON output - using a simple approach
-      string(REGEX MATCH "\"Major\":[ ]*([0-9]+)" _ ${GITVERSION_JSON})
+      string(REGEX MATCH "\"Major\"[ \t\r\n]*:[ \t\r\n]*([0-9]+)" _ ${GITVERSION_JSON})
       set(VERSION_MAJOR ${CMAKE_MATCH_1})
       
-      string(REGEX MATCH "\"Minor\":[ ]*([0-9]+)" _ ${GITVERSION_JSON})
+      string(REGEX MATCH "\"Minor\"[ \t\r\n]*:[ \t\r\n]*([0-9]+)" _ ${GITVERSION_JSON})
       set(VERSION_MINOR ${CMAKE_MATCH_1})
       
-      string(REGEX MATCH "\"Patch\":[ ]*([0-9]+)" _ ${GITVERSION_JSON})
+      string(REGEX MATCH "\"Patch\"[ \t\r\n]*:[ \t\r\n]*([0-9]+)" _ ${GITVERSION_JSON})
       set(VERSION_PATCH ${CMAKE_MATCH_1})
       
       # Get base version
       set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
       
       # Get pre-release tag and build number
-      string(REGEX MATCH "\"PreReleaseTag\":[ ]*\"([^\"]*)\""  _ ${GITVERSION_JSON})
+      string(REGEX MATCH "\"PreReleaseTag\"[ \t\r\n]*:[ \t\r\n]*\"([^\"]*)\""  _ ${GITVERSION_JSON})
       set(VERSION_PRERELEASE ${CMAKE_MATCH_1})
       
-      string(REGEX MATCH "\"BuildMetaData\":[ ]*\"([^\"]*)\""  _ ${GITVERSION_JSON})
-      set(VERSION_BUILD ${CMAKE_MATCH_1})
+      string(REGEX MATCH "\"BuildMetaData\"[ \t\r\n]*:[ \t\r\n]*(\"([^\"]*)\"|null)"  _ ${GITVERSION_JSON})
+      set(VERSION_BUILD ${CMAKE_MATCH_2})
       
       # Get branch name for metadata
-      string(REGEX MATCH "\"BranchName\":[ ]*\"([^\"]+)\"" _ ${GITVERSION_JSON})
+      string(REGEX MATCH "\"BranchName\"[ \t\r\n]*:[ \t\r\n]*\"([^\"]+)\"" _ ${GITVERSION_JSON})
       if(CMAKE_MATCH_1)
         set(VERSION_BRANCH ${CMAKE_MATCH_1})
         # Remove slashes from branch name if present (convert to dash)
@@ -82,7 +83,7 @@ function(configure_version)
       endif()
       
       # Get commit SHA for metadata
-      string(REGEX MATCH "\"Sha\":[ ]*\"([^\"]+)\"" _ ${GITVERSION_JSON})
+      string(REGEX MATCH "\"Sha\"[ \t\r\n]*:[ \t\r\n]*\"([^\"]+)\"" _ ${GITVERSION_JSON})
       if(CMAKE_MATCH_1)
         set(VERSION_COMMIT ${CMAKE_MATCH_1})
         # Use shortened SHA
@@ -147,6 +148,7 @@ function(generate_version_header)
 
   # Make the directory containing the header available for inclusion
   get_filename_component(HEADER_DIR ${HEADER_FILENAME} DIRECTORY)
+  file(MAKE_DIRECTORY ${HEADER_DIR})
   include_directories(${HEADER_DIR})
   
   message(STATUS "Generated version header: ${HEADER_FILENAME}")

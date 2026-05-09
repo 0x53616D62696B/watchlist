@@ -13,6 +13,7 @@
 #include <iostream>
 #include <string_view>
 
+#include "src/Common/version.hpp"
 #include "src/Gui/Gui.hpp" //! How to make "Gui/Gui.hpp" work? 
 // #include "Gui/Gui.hpp"
 #include "src/Utils/Profiling/TracyProfiling.hpp"
@@ -51,6 +52,9 @@ int main(int argc, char** argv)
 try
 {
     WaitForTracyIfRequested(argc, argv);
+
+    LOG_INFO(std::format("Watchlist Version: {}", VERSION_FULL));
+
     PROFILE_THREAD("Watchlist main");
     PROFILE_FUNCTION;
     PROFILE_MESSAGE("[TRACY][MAIN] Watchlist application startup");
