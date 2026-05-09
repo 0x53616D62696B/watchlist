@@ -226,19 +226,19 @@ void example_thread_pool_manager() {
     PROFILE_FUNCTION;
     PROFILE_MESSAGE("[TRACY][THREAD_POOL_EXAMPLE] Start: create pool, enqueue two sleeping tasks, wait on futures");
 
-    PROFILE_SCOPE(ThreadPoolExampleCreatePool);
-    ThreadPoolManager threadPool(4); // Create a thread pool with 4 threads.
+    PROFILE_SCOPE(ThreadPoolExampleLifetime);
+    ThreadPoolManager threadPool(3); // Create a thread pool with 3 threads.
 
     // Example: Enqueue tasks
     auto future1 = threadPool.enqueue([] {
-        PROFILE_SCOPE(ThreadPoolExampleTaskOneWork);
+        PROFILE_SCOPE(ThreadPoolExampleTaskOneWait1s);
         PROFILE_MESSAGE("[TRACY][THREAD_POOL_EXAMPLE] Task 1 simulates work for 1 second");
         std::this_thread::sleep_for(std::chrono::seconds(1));
         return "Task 1 completed";
     });
 
     auto future2 = threadPool.enqueue([] {
-        PROFILE_SCOPE(ThreadPoolExampleTaskTwoWork);
+        PROFILE_SCOPE(ThreadPoolExampleTaskTwoWait2s);
         PROFILE_MESSAGE("[TRACY][THREAD_POOL_EXAMPLE] Task 2 simulates work for 2 seconds");
         std::this_thread::sleep_for(std::chrono::seconds(2));
         return "Task 2 completed";

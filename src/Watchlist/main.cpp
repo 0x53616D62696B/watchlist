@@ -83,10 +83,18 @@ try
     }
 
     PROFILE_MESSAGE("[TRACY][MAIN] Watchlist startup example finished");
-    //return EXIT_SUCCESS;
-    //TODO Thread Async MQTT
 
-    //TODO Thread MQTT processing
+    /**
+     * @brief TODO
+     * 1. Thread pool manager - Destroy previous.
+     * 2. Thread Pool Manager - Init new one
+     * 3. Thread Pool Manager - 1.st worker thread - ImGui
+     *  - Could be separated into multiple? For example separate: New Frame, WatchlistUI, RenderFrame into multiple threads?
+     * 4. Thread Pool Manager - 2.nd worker thread - AsyncIO thread for some quick awaitable calls, for example waiting 
+     * for response from MQTT.
+     * 5. Thread Pool Manager - 3.rd worker thread - For some long living future tasks.
+     */
+
 
     // Thread GUI
     ImGuiStart();
