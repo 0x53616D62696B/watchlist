@@ -11,22 +11,7 @@
 #include <GLFW/glfw3.h>
 
 #include "Utils/Logger/Logger.hpp"
-
-#ifdef ENABLE_PROFILING
-  #include <Tracy.hpp>
-  // use FrameMark for frames (at the end of each frame)
-  // use ZoneScoped once per scope (automatic name)
-  // use ZoneScopedN once per scope (user-supplied name)
-  // use ZoneNamedN for scopes inside ZoneScoped scope (user-supplied name)
-  // bool parameter of ZoneNamed can turn it on/off
-  #define PROFILE_FRAME FrameMark
-  #define PROFILE_FUNCTION ZoneScoped
-  #define PROFILE_SCOPE(name) ZoneNamedN(name, #name, true)
-#else
-  #define PROFILE_FRAME
-  #define PROFILE_FUNCTION
-  #define PROFILE_SCOPE(name)
-#endif
+#include "Utils/Profiling/TracyProfiling.hpp"
 
 /*
 using i8 = int8_t;

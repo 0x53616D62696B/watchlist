@@ -4,22 +4,24 @@ Watchlist of series and movies.
 
 ## Profiling with [Tracy](https://github.com/wolfpld/tracy)
 
-Go throught installation [Documentation](https://github.com/wolfpld/tracy/releases/latest/download/tracy.pdf)
+The Watchlist `Application` target includes a Tracy example when profiling is enabled:
+
+```powershell
+cmake --preset with-profiling
+cmake --build --preset with-profiling --target Application
+.\build\profiling\Application.exe
+```
+
+The startup example is short-lived. If you need time to connect Tracy from VS Code, build with CMake Tools and run the `launch.json` configuration named `CMake: Application target (wait for Tracy)`. It passes `--wait-for-tracy` to the same `Application.exe`, so no second build is needed.
+
+Start the Tracy profiler UI before or after launching the app, then connect to `127.0.0.1:8086`.
+See [docs/TracyWatchlistExample.md](docs/TracyWatchlistExample.md) for the instrumented zones and GUI notes.
+
+Full Tracy installation and usage details are in the upstream [Documentation](https://github.com/wolfpld/tracy/releases/latest/download/tracy.pdf).
 
 ## Setup
 
-Read setup tools in tools\
-
-### Compilers
-
-This project is trying to be cross-pltafrom. GCC Linux and MSVC Windows.
-
-#### MSVC
-
-In order the MSVC is running porperly in Visual Studio Code, you have to start VSCode \
-from Developer Command Prompt for VS (2022 currently).
-
-C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Visual Studio 2022\Visual Studio Tools
+See [docs/DevelopmentEnvironment.md](docs/DevelopmentEnvironment.md) for the required tool versions and CMake presets. Local builds require an ignored `CMakeUserPresets.json`; create it from `CMakeUserPresetsExample.json`.
 
 ## Versioning System
 
@@ -184,6 +186,8 @@ GitVersion will use that tag as the base for calculating versions.
    ```
 
 #### Pull Requests
+
+Use +semver: minor in PR title to bump minor version.
 
 If your PR branch is named in a supported format such as `pr/123`, GitVersion uses the `PullRequest123` label.
 

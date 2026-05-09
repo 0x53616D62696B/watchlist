@@ -43,6 +43,7 @@ static void MyApp::ShowAppMainMenuBar()
 */
 static void MyApp::ShowAppMenuBar(struct MyApp::WindowAppsFlags& sWindowAppsFlags)
 {
+    PROFILE_FUNCTION;
     if (ImGui::BeginMenuBar())
     {
         if (ImGui::BeginMenu("File"))
@@ -92,6 +93,7 @@ static void MyApp::ShowAppMenuBar(struct MyApp::WindowAppsFlags& sWindowAppsFlag
 
 static void MyApp::ShowMenuFile()
 {
+    PROFILE_FUNCTION;
     //IMGUI_DEMO_MARKER("Examples/Menu");
     ImGui::MenuItem("(demo menu)", NULL, false, false);
     if (ImGui::MenuItem("New")) {}
@@ -174,6 +176,7 @@ static void MyApp::ShowMenuFile()
 // TODO: create generic class from this function to reuse it with only few changes
 void MyApp::ShowWindow(bool* p_open)
 {
+    PROFILE_FUNCTION;
     // LOG_DEBUG("Running my app layout");
 
     IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing dear imgui context. Refer to examples app!");
@@ -334,6 +337,7 @@ struct MyApp::MyDocument
     // Display placeholder contents for the Document
     static void DisplayContents(MyApp::MyDocument* doc)
     {
+        PROFILE_FUNCTION;
         ImGui::PushID(doc);
         ImGui::Text("Document \"%s\"", doc->Name);
         ImGui::PushStyleColor(ImGuiCol_Text, doc->Color);
@@ -351,6 +355,7 @@ struct MyApp::MyDocument
     // Display context menu for the Document
     static void DisplayContextMenu(MyApp::MyDocument* doc)
     {
+        PROFILE_FUNCTION;
         if (!ImGui::BeginPopupContextItem())
             return;
 
@@ -381,6 +386,7 @@ struct MyApp::AppDocuments
 
 void MyApp::ShowAppDocuments(bool* p_open)
 {
+    PROFILE_FUNCTION;
     static MyApp::AppDocuments app;
 
     // Options
@@ -649,6 +655,7 @@ void MyApp::ShowAppDocuments(bool* p_open)
 // Note that this completely optional, and only affect tab bars with the ImGuiTabBarFlags_Reorderable flag.
 static void MyApp::NotifyOfDocumentsClosedElsewhere(MyApp::AppDocuments& app)
 {
+    PROFILE_FUNCTION;
     for (int doc_n = 0; doc_n < app.Documents.Size; doc_n++)
     {
         MyApp::MyDocument* doc = &app.Documents[doc_n];
@@ -661,6 +668,7 @@ static void MyApp::NotifyOfDocumentsClosedElsewhere(MyApp::AppDocuments& app)
 
 static void MyApp::ShowDockingDisabledMessage()
 {
+    PROFILE_FUNCTION;
     ImGuiIO& io = ImGui::GetIO();
     ImGui::Text("ERROR: Docking is not enabled! See Demo > Configuration.");
     ImGui::Text("Set io.ConfigFlags |= ImGuiConfigFlags_DockingEnable in your code, or ");

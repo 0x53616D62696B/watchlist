@@ -10,6 +10,7 @@ endif()
 
 # compiler flags
 if(MSVC)
+  add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:/EHsc>")
   # Don't want the compiler to suggest the secure versions of the library functions
   set(_CRT_SECURE_NO_WARNINGS ON)
   # Eliminates deprication warnings by changing e. g. the strcpy call to strcpy_s, which prevents buffer overruns.

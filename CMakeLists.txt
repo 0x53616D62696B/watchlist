@@ -1,4 +1,13 @@
-cmake_minimum_required(VERSION 3.7) # Can't use VERSION >= 4.0, it is not compatible with used glad.
+
+cmake_minimum_required(VERSION 3.21) # Can't use VERSION >= 4.0, it is not compatible with used glad.
+
+if(NOT EXISTS "${CMAKE_SOURCE_DIR}/CMakeUserPresets.json")
+  message(FATAL_ERROR
+    "Development Environment Error: CMakeUserPresets.json was not found. "
+    "Create it by copying CMakeUserPresetsExample.json "
+    "to CMakeUserPresets.json and update the paths for your machine.")
+endif()
+
 project(watchlist)
 
 # Include CMake modules
@@ -16,8 +25,31 @@ generate_version_resource()
 # Set general project variables
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(ENABLE_PROFILING OFF)
+# set(ENABLE_PROFILING OFF)
 set(ENABLE_PCH ON)
+
+
+# Args
+option(ENABLE_PROFILING "Enable profiling with Tracy" OFF)
+
+set(CMAKE_CXX_FLAGS_DEBUGTRACY "${CMAKE_CXX_FLAGS_DEBUG}" CACHE STRING "Flags for DebugTracy build type" FORCE)
+set(CMAKE_C_FLAGS_DEBUGTRACY "${CMAKE_C_FLAGS_DEBUG}" CACHE STRING "Flags for DebugTracy build type" FORCE)
+mark_as_advanced(CMAKE_CXX_FLAGS_DEBUGTRACY CMAKE_C_FLAGS_DEBUGTRACY)
+
+# Register DebugTracy without turning every default build into a Tracy build.
+get_property(IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(IS_MULTI_CONFIG)
+  set(CMAKE_CONFIGURATION_TYPES "Debug;Release;MinSizeRel;RelWithDebInfo;DebugTracy" CACHE STRING "Available configurations" FORCE)
+else()
+  set(CMAKE_BUILD_TYPE "${CMAKE_BUILD_TYPE}" CACHE STRING "Build type")
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo" "DebugTracy")
+endif()
+
+if(CMAKE_BUILD_TYPE STREQUAL "DebugTracy")
+  set(ENABLE_PROFILING ON CACHE BOOL "Enable profiling with Tracy" FORCE)
+endif()
+
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 # status messages
 message(STATUS "CMAKE_CXX_COMPILER: " ${CMAKE_CXX_COMPILER_ID} " " ${CMAKE_CXX_COMPILER_VERSION})
@@ -26,6 +58,8 @@ message(STATUS "CMAKE_CXX_FLAGS: " ${CMAKE_CXX_FLAGS})
 message(STATUS "CMAKE_CXX_FLAGS_DEBUG: " ${CMAKE_CXX_FLAGS_DEBUG})
 message(STATUS "CMAKE_CXX_FLAGS_RELEASE: " ${CMAKE_CXX_FLAGS_RELEASE})
 message(STATUS "CMAKE_CXX_COMPILER_LAUNCHER: " ${CMAKE_CXX_COMPILER_LAUNCHER})
+message(STATUS "ENABLE_PROFILING: " ${ENABLE_PROFILING})
+
 
 # targets
 add_executable(Application ${SRC_APPLICATION})
@@ -74,6 +108,15 @@ target_link_libraries(Application PRIVATE glfw)
 # glad
 add_subdirectory(libs/glad)
 target_link_libraries(Application PRIVATE glad)
+
+# tracy
+if(ENABLE_PROFILING)
+  add_compile_definitions(ENABLE_PROFILING) # for custom macros
+  set(TRACY_NO_EXIT ON CACHE BOOL "Keep Tracy client alive until a profiler connection is made" FORCE)
+  set(TRACY_NO_FRAME_IMAGE ON CACHE BOOL "Disable Tracy frame image support" FORCE)
+  add_subdirectory(libs/tracy)
+  target_link_libraries(Application PRIVATE Tracy::TracyClient)
+endif()
 
 # multithread_demo app sources
 file(GLOB_RECURSE SRC_MULTITHREAD_DEMO CONFIGURE_DEPENDS src/examples/multithread_demo/*.cpp)
