@@ -196,7 +196,6 @@ public:
         
         // Iterator-like interface
         bool next() {
-            PROFILE_FUNCTION;
             if (handle_ && !handle_.done()) {
                 handle_.resume();
                 return !handle_.done();
@@ -325,10 +324,22 @@ public:
 
     // Process and emit events from a generator
     Task process_events(Generator<Event>&& generator) {
-        while (generator.next()) {
-            PROFILE_SCOPE(ProcessGeneratedEvent);
-            std::cout << "Processing event: " << generator.value().name << std::endl;
-            emit_event(generator.value());
+        while (true) {
+            bool has_event = false;
+            {
+                PROFILE_SCOPE(GenerateNextEvent);
+                has_event = generator.next();
+            }
+
+            if (!has_event)
+                break;
+
+            {
+                PROFILE_SCOPE(ProcessGeneratedEvent);
+                std::cout << "Processing event: " << generator.value().name << std::endl;
+                emit_event(generator.value());
+            }
+
             co_await Delay(std::chrono::milliseconds(200)); //! why it is here? I guess only simulation
         }
     }
