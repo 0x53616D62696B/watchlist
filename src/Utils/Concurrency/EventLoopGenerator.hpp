@@ -51,7 +51,7 @@
 #include <coroutine>
 #include <format>
 
-namespace Threading {
+namespace Concurrency {
 
 /**
  * @brief A C++23 generator-based event loop implementation.
@@ -290,4 +290,4 @@ int example_eloop_gen() {
 }
 
 
-} // namespace Threading
+} // namespace Concurrency

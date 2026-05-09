@@ -12,7 +12,7 @@
 #include <memory>
 #include <optional>
 
-namespace Threading {
+namespace Concurrency {
 
 /**
  * @file EventLoopCoroutine.hpp
@@ -221,4 +221,4 @@ int example_eloop_coro() {
 }
 
 
-} // namespace Threading
+} // namespace Concurrency

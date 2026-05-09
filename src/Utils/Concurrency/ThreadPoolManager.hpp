@@ -12,7 +12,7 @@
 
 #include "src/Utils/Logger/Logger.hpp"
 
-namespace Threading {
+namespace Concurrency {
 
 /** @brief Thread pool manager for executing tasks in parallel.
  *
@@ -225,4 +225,4 @@ void example_thread_pool_manager() {
     std::cout << future1.get() << std::endl; // Output: Task 1 completed
     std::cout << future2.get() << std::endl; // Output: Task 2 completed
 }
-} // namespace Threading
+} // namespace Concurrency

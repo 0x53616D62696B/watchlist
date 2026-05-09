@@ -41,7 +41,7 @@ void WaitForTracyIfRequested(int argc, char** argv)
     if (!HasArgument(argc, argv, "--wait-for-tracy"))
         return;
 
-    PROFILE_MESSAGE("Watchlist waiting for Tracy");
+    PROFILE_MESSAGE("[TRACY][MAIN] Watchlist waiting for Tracy");
     std::cout << "Watchlist is waiting so Tracy can connect. Press Enter to exit..." << std::endl;
     std::cin.get();
 }
@@ -53,27 +53,32 @@ try
     WaitForTracyIfRequested(argc, argv);
     PROFILE_THREAD("Watchlist main");
     PROFILE_FUNCTION;
-    PROFILE_MESSAGE("Watchlist application startup");
+    PROFILE_MESSAGE("[TRACY][MAIN] Watchlist application startup");
 
     //* Concurrency Examples
     {
         PROFILE_SCOPE(ConcurrencyExamples);
+        
         std::cout << std::format("Starting Concurrency examples") << std::endl;
 
+        PROFILE_MESSAGE("[TRACY][CONCURRENCY] Thread Pool Manager example starting");
         Concurrency::example_thread_pool_manager();
         std::cout << std::format("thread_pool DONE") << std::endl;
 
+        PROFILE_MESSAGE("[TRACY][CONCURRENCY] ELoop Generator example starting");
         Concurrency::example_eloop_gen();
         std::cout << std::format("main_eloop_gen DONE\n") << std::endl;
 
+        PROFILE_MESSAGE("[TRACY][CONCURRENCY] ELoop Coroutine example starting");
         Concurrency::example_eloop_coro();
         std::cout << std::format("main_eloop_coro DONE\n") << std::endl;
 
+        PROFILE_MESSAGE("[TRACY][CONCURRENCY] Async ELoop example starting");
         Concurrency::example_async_eloop();
         std::cout << std::format("main_eloop_hybrid DONE\n") << std::endl;
     }
 
-    PROFILE_MESSAGE("Watchlist startup example finished");
+    PROFILE_MESSAGE("[TRACY][MAIN] Watchlist startup example finished");
     //return EXIT_SUCCESS;
     //TODO Thread Async MQTT
 
