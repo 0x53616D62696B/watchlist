@@ -56,27 +56,25 @@ try
     PROFILE_MESSAGE("Watchlist application startup");
 
     //* Concurrency Examples
-    std::cout << std::format("Starting Concurrency examples") << std::endl;
-
-    // Concurrency::example_thread_pool_manager();
-    // std::cout << std::format("thread_pool DONE") << std::endl;
-
-    // Concurrency::example_eloop_gen();
-    // std::cout << std::format("main_eloop_gen DONE\n") << std::endl;
-
-    // Concurrency::example_eloop_coro();
-    // std::cout << std::format("main_eloop_coro DONE\n") << std::endl;
-
     {
         PROFILE_SCOPE(ConcurrencyExamples);
-        Concurrency::example_async_eloop();
-    }
-    std::cout << std::format("main_eloop_hybrid DONE\n") << std::endl;
-    //* Concurrency Examples END
+        std::cout << std::format("Starting Concurrency examples") << std::endl;
 
-    //! Ending code here for Testing purpose
+        Concurrency::example_thread_pool_manager();
+        std::cout << std::format("thread_pool DONE") << std::endl;
+
+        Concurrency::example_eloop_gen();
+        std::cout << std::format("main_eloop_gen DONE\n") << std::endl;
+
+        Concurrency::example_eloop_coro();
+        std::cout << std::format("main_eloop_coro DONE\n") << std::endl;
+
+        Concurrency::example_async_eloop();
+        std::cout << std::format("main_eloop_hybrid DONE\n") << std::endl;
+    }
+
     PROFILE_MESSAGE("Watchlist startup example finished");
-    return EXIT_SUCCESS;
+    //return EXIT_SUCCESS;
     //TODO Thread Async MQTT
 
     //TODO Thread MQTT processing
