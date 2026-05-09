@@ -24,6 +24,7 @@ The preset uses:
 - `CMAKE_BUILD_TYPE=DebugTracy`
 - `ENABLE_PROFILING=ON`
 - `Tracy::TracyClient` linked into `Application`
+- `TRACY_NO_EXIT=ON`, so short-lived runs stay available until Tracy connects
 
 ## Run With Tracy
 
@@ -34,13 +35,14 @@ The preset uses:
    .\build\profiling\Application.exe
    ```
 
-   Or keep the short-lived example open while you connect Tracy:
+   Or keep the short-lived example open in the console while you connect Tracy:
 
    ```powershell
    .\build\profiling\Application.exe --wait-for-tracy
    ```
 
 3. In Tracy, connect to the running process.
+   The default data port is `127.0.0.1:8086`. If Tracy cannot connect, check that Windows Firewall or antivirus software is not blocking the application from opening a local TCP listener.
 4. Look for these zones:
 
    - `main`

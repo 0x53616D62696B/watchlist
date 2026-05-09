@@ -112,6 +112,7 @@ target_link_libraries(Application PRIVATE glad)
 # tracy
 if(ENABLE_PROFILING)
   add_compile_definitions(ENABLE_PROFILING) # for custom macros
+  set(TRACY_NO_EXIT ON CACHE BOOL "Keep Tracy client alive until a profiler connection is made" FORCE)
   set(TRACY_NO_FRAME_IMAGE ON CACHE BOOL "Disable Tracy frame image support" FORCE)
   add_subdirectory(libs/tracy)
   target_link_libraries(Application PRIVATE Tracy::TracyClient)
