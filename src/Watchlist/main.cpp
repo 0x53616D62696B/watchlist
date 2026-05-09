@@ -84,20 +84,57 @@ try
 
     PROFILE_MESSAGE("[TRACY][MAIN] Watchlist startup example finished");
 
-    /**
-     * @brief TODO
-     * 1. Thread pool manager - Destroy previous.
-     * 2. Thread Pool Manager - Init new one
-     * 3. Thread Pool Manager - 1.st worker thread - ImGui
-     *  - Could be separated into multiple? For example separate: New Frame, WatchlistUI, RenderFrame into multiple threads?
-     * 4. Thread Pool Manager - 2.nd worker thread - AsyncIO thread for some quick awaitable calls, for example waiting 
-     * for response from MQTT.
-     * 5. Thread Pool Manager - 3.rd worker thread - For some long living future tasks.
+    /** Thread Pool Manger
      */
+    PROFILE_SCOPE(ThreadPoolManagerLifetime);
+    Concurrency::ThreadPoolManager threadPool(3); // Create a thread pool with 3 threads.
+    
+    /** Thread Pool Manager - 1.st worker thread - ImGui
+     *  - Could be separated into multiple? For example separate: New Frame, WatchlistUI, RenderFrame 
+     * into multiple threads?
+     */
+    auto futureImGui = threadPool.enqueue([] {
+        PROFILE_SCOPE(ThreadPoolImGui);
+        PROFILE_MESSAGE("[TRACY][THREAD_POOL] ImGui thread starts");
+        ImGuiStart();
+        // No return needed
+    });
 
+    /** Thread Pool Manager - 2.nd worker thread - AsyncIO thread for some quick awaitable calls, for example waiting 
+    * for response from MQTT.
+    */
+    auto futureAsyncIOThread = threadPool.enqueue([] {
+        PROFILE_SCOPE(ThreadPoolAsyncIO);
+        PROFILE_MESSAGE("[TRACY][THREAD_POOL] AsyncIO thread starts");
+        Concurrency::AsyncEventLoop asyncLoop;
 
-    // Thread GUI
-    ImGuiStart();
+        // Wait for a quit AsyncLoop event
+        Concurrency::AsyncEventLoop::Task quitAsyncLoopEvent = asyncLoop.wait_for_event("async_loop_quit");
+
+        // How to emit this event.
+        //TODO: We should be able to emit this event anywhere, even outside this thread..??
+        asyncLoop.emit_event({"async_loop_quit", std::string("Async loop quit event")});
+
+        // TODO: I do not have any task yet. But I would like to be able to add tasks to this asyncLoop whener in code in future. How to make this loop to await anything?
+
+        // No return needed
+    });
+
+    /** Thread Pool Manager - 3.rd worker thread - For some long living future tasks.
+     */
+    auto futureTBDThread = threadPool.enqueue([] {
+        PROFILE_SCOPE(ThreadPoolTBD);
+        PROFILE_MESSAGE("[TRACY][THREAD_POOL] TBD thread starts");
+        return "No implemented yet.";
+    });
+
+    // Testing Threads futures results
+    // std::cout << futureImGui.get() << std::endl; // Output: Task 1 completed
+    // std::cout << futureAsyncIOThread.get() << std::endl; // Output: Task 2 completed
+    LOG_DEBUG(futureTBDThread.get());
+
+    PROFILE_MESSAGE("[TRACY][THREAD_POOL] Done: futures returned, pool destructor will stop workers");
+
     return EXIT_SUCCESS;
 }
 catch (const std::exception& e)

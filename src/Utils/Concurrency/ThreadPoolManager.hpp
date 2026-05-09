@@ -8,10 +8,7 @@
 #include <functional>
 #include <future>
 #include <atomic>
-//#include <iostream>
 
-#include "src/Utils/Logger/Logger.hpp"
-#include "src/Utils/Profiling/TracyProfiling.hpp"
 
 namespace Concurrency {
 
