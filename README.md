@@ -106,7 +106,7 @@ Our versioning is fully automated through GitVersion and follows these rules:
 This repository uses GitVersion's `GitHubFlow/v1` workflow, so the branch name matters. Use branch names that match the regular expressions defined in `GitVersion.yml`, especially `main`, `feature/...`, `release/...`, and `pr/...`.
 
 #### When Version Is Calculated
-
+Test
 Version calculation happens during the CMake configure step, not during C++ compilation itself.
 
 - `configure_version()` is called from `CMakeLists.txt`
