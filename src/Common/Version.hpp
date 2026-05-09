@@ -7,5 +7,5 @@
 #define VERSION_PRERELEASE ""
 #define VERSION_BUILD ""
 #define VERSION_BRANCH "feature-imgui_concurrency"
-#define VERSION_COMMIT "41054de"
-#define VERSION_FULL "0.0.3+feature-imgui_concurrency.41054de"
+#define VERSION_COMMIT "d52ab3a"
+#define VERSION_FULL "0.0.3+feature-imgui_concurrency.d52ab3a"

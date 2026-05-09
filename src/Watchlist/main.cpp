@@ -13,7 +13,7 @@
 #include <iostream>
 #include <string_view>
 
-#include "src/Common/version.hpp"
+#include "src/Common/Version.hpp"
 #include "src/Gui/Gui.hpp" //! How to make "Gui/Gui.hpp" work? 
 // #include "Gui/Gui.hpp"
 #include "src/Utils/Profiling/TracyProfiling.hpp"
