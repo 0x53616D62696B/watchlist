@@ -13,19 +13,16 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "CMake: Active launch target (TRACY_NO_EXIT env)",
+            "name": "CMake: Active launch target (wait for Tracy)",
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${command:cmake.launchTargetPath}",
-            "args": [],
+            "args": [
+                "--wait-for-tracy"
+            ],
             "stopAtEntry": false,
             "cwd": "${command:cmake.launchTargetDirectory}",
-            "environment": [
-                {
-                    "name": "TRACY_NO_EXIT",
-                    "value": "1"
-                }
-            ],
+            "environment": [],
             "console": "integratedTerminal"
         },
         {
@@ -40,19 +37,16 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "CMake: Application target (TRACY_NO_EXIT env)",
+            "name": "CMake: Application target (wait for Tracy)",
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${input:cmakeApplicationPath}",
-            "args": [],
+            "args": [
+                "--wait-for-tracy"
+            ],
             "stopAtEntry": false,
             "cwd": "${input:cmakeApplicationDirectory}",
-            "environment": [
-                {
-                    "name": "TRACY_NO_EXIT",
-                    "value": "1"
-                }
-            ],
+            "environment": [],
             "console": "integratedTerminal"
         }
     ],

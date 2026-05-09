@@ -10,6 +10,8 @@
  */
 
 #include <format>
+#include <iostream>
+#include <string_view>
 
 #include "src/Gui/Gui.hpp" //! How to make "Gui/Gui.hpp" work? 
 // #include "Gui/Gui.hpp"
@@ -18,6 +20,32 @@
 #include "src/Utils/Concurrency/EventLoopCoroutine.hpp"
 #include "src/Utils/Concurrency/EventLoopGenerator.hpp"
 #include "src/Utils/Concurrency/AsyncEventLoop.hpp"
+
+namespace
+{
+/** Returns true when the exact command-line argument is present. */
+bool HasArgument(int argc, char** argv, std::string_view argument)
+{
+    for (int index = 1; index < argc; ++index)
+    {
+        if (std::string_view(argv[index]) == argument)
+            return true;
+    }
+
+    return false;
+}
+
+/** Keeps short-lived profiling runs open when --wait-for-tracy is passed. */
+void WaitForTracyIfRequested(int argc, char** argv)
+{
+    if (!HasArgument(argc, argv, "--wait-for-tracy"))
+        return;
+
+    PROFILE_MESSAGE("Watchlist waiting for Tracy");
+    std::cout << "Watchlist is waiting so Tracy can connect. Press Enter to exit..." << std::endl;
+    std::cin.get();
+}
+}
 
 int main(int argc, char** argv)
 try
@@ -47,6 +75,7 @@ try
 
     //! Ending code here for Testing purpose
     PROFILE_MESSAGE("Watchlist startup example finished");
+    WaitForTracyIfRequested(argc, argv);
     return EXIT_SUCCESS;
     //TODO Thread Async MQTT
 

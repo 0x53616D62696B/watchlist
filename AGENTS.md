@@ -1,0 +1,1 @@
+Do not update version.hpp. It is updated automatically when cmake runs configuration. 

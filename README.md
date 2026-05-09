@@ -12,7 +12,9 @@ cmake --build --preset with-profiling --target Application
 .\build\profiling\Application.exe
 ```
 
-Start the Tracy profiler UI before or after launching the app, then connect to the running process.
+The startup example is short-lived. If you need time to connect Tracy from VS Code, build with CMake Tools and run the `launch.json` configuration named `CMake: Application target (wait for Tracy)`. It passes `--wait-for-tracy` to the same `Application.exe`, so no second build is needed.
+
+Start the Tracy profiler UI before or after launching the app, then connect to `127.0.0.1:8086`.
 See [docs/TracyWatchlistExample.md](docs/TracyWatchlistExample.md) for the instrumented zones and GUI notes.
 
 Full Tracy installation and usage details are in the upstream [Documentation](https://github.com/wolfpld/tracy/releases/latest/download/tracy.pdf).

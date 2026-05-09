@@ -19,20 +19,11 @@ cmake --preset with-profiling
 cmake --build --preset with-profiling --target Application
 ```
 
-For short-lived runs where you want the process to stay alive for Tracy, use:
-
-```powershell
-cmake --preset with-profiling-no-exit
-cmake --build --preset with-profiling-no-exit --target Application
-```
-
 The preset uses:
 
 - `CMAKE_BUILD_TYPE=DebugTracy`
 - `ENABLE_PROFILING=ON`
 - `Tracy::TracyClient` linked into `Application`
-
-The `with-profiling-no-exit` preset also sets `TRACY_NO_EXIT=ON` for Tracy.
 
 ## Run With Tracy
 
@@ -43,10 +34,10 @@ The `with-profiling-no-exit` preset also sets `TRACY_NO_EXIT=ON` for Tracy.
    .\build\profiling\Application.exe
    ```
 
-   Or, if you built the NO_EXIT preset:
+   Or keep the short-lived example open while you connect Tracy:
 
    ```powershell
-   .\build\profiling-no-exit\Application.exe
+   .\build\profiling\Application.exe --wait-for-tracy
    ```
 
 3. In Tracy, connect to the running process.
@@ -66,13 +57,15 @@ The current `main.cpp` returns after the concurrency startup example, so the GUI
 
 When using the CMake extension:
 
-1. Select configure preset `with-profiling-no-exit`.
-2. Select build preset `with-profiling-no-exit`.
+1. Select configure preset `with-profiling`.
+2. Select build preset `with-profiling`.
 3. Select launch target `Application`.
-4. Run the target from CMake Tools.
-5. Connect Tracy to `127.0.0.1:8086`.
+4. Build `Application` normally with CMake Tools.
+5. For a normal short run, use the CMake Tools run action.
+6. For a run that waits for Tracy to connect, use Run and Debug with `CMake: Application target (wait for Tracy)`.
+7. Connect Tracy to `127.0.0.1:8086`.
 
-The `.vscode/launch.json` configs also use CMake Tools target substitution, so the debugger launches either the active CMake launch target or the named `Application` target from the currently selected preset.
+The `.vscode/launch.json` configs use CMake Tools target substitution. The `wait for Tracy` debugger configs pass `--wait-for-tracy` to the same active or named `Application` target without creating a second build.
 
 ## Profiling The GUI Path
 

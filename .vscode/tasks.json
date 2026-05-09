@@ -67,44 +67,12 @@
         },
         {
             "type": "shell",
-            "label": "CMake: configure with Tracy NO_EXIT",
-            "command": "cmake",
-            "args": [
-                "--preset",
-                "with-profiling-no-exit"
-            ],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": []
-        },
-        {
-            "type": "shell",
             "label": "CMake: build Application with Tracy",
             "command": "cmake",
             "args": [
                 "--build",
                 "--preset",
                 "with-profiling",
-                "--target",
-                "Application"
-            ],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": [
-                "$msCompile"
-            ],
-            "group": "build"
-        },
-        {
-            "type": "shell",
-            "label": "CMake: build Application with Tracy NO_EXIT",
-            "command": "cmake",
-            "args": [
-                "--build",
-                "--preset",
-                "with-profiling-no-exit",
                 "--target",
                 "Application"
             ],
@@ -134,15 +102,6 @@
             "dependsOn": [
                 "CMake: configure with Tracy",
                 "CMake: build Application with Tracy"
-            ],
-            "problemMatcher": []
-        },
-        {
-            "label": "CMake: configure and build Application with Tracy NO_EXIT",
-            "dependsOrder": "sequence",
-            "dependsOn": [
-                "CMake: configure with Tracy NO_EXIT",
-                "CMake: build Application with Tracy NO_EXIT"
             ],
             "problemMatcher": []
         }
