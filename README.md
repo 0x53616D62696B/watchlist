@@ -124,12 +124,24 @@ Typical triggers for configure are:
 
 #### Commit Messages
 
-You can control version increments with commit messages:
+GitVersion calculates versions from the latest version source, usually a tag such as `v1.2.3`, plus the branch increment rules in `GitVersion.yml`.
+
+On `main`, the default increment is `Patch`. This means any new commit after a version tag automatically calculates the next patch version, even without a `+semver` hint:
+
+```text
+latest tag: v1.2.3
+new commit on main: Fix typo
+calculated version: 1.2.4
+```
+
+Use commit messages or PR merge messages when you need a larger increment than the branch default:
 
 - Bump MAJOR version: Include `+semver: major` or `+semver: breaking`
 - Bump MINOR version: Include `+semver: minor` or `+semver: feature`
-- Bump PATCH version: Include `+semver: patch` or `+semver: fix`
+- Keep/default PATCH version: Include `+semver: patch` or `+semver: fix`
 - Skip version increment: Include `+semver: none` or `+semver: skip`
+
+`+semver: patch` does not add another patch bump when the branch already increments by patch. It only requests the patch increment, which is already the default on `main`.
 
 #### Version Tagging
 
@@ -139,6 +151,18 @@ git tag v1.2.3
 ```
 
 GitVersion will use that tag as the base for calculating versions.
+
+Create tags for released versions. Without a tag, GitVersion has no explicit stable baseline for patch/minor/major calculations.
+
+Current branch increment behavior:
+
+- `main` / `master`: patch by default.
+- `feature/...`: inherits the source branch increment.
+- `pr/...`, `pull/...`, `pull-request/...`: inherits the source branch increment and uses a pull request prerelease label.
+- `release/...`: patch by default with the `beta` prerelease label.
+- Other branches: inherit from the source branch.
+
+No branch name currently bumps minor or major automatically. Use `+semver: minor` or `+semver: major` when you want those increments.
 
 ### Usage Examples
 
@@ -187,9 +211,11 @@ GitVersion will use that tag as the base for calculating versions.
 
 #### Pull Requests
 
-Use +semver: minor in PR title to bump minor version.
+Use `+semver: minor` in the PR title, squash commit, or merge commit to bump the minor version for feature work. Use `+semver: major` for breaking changes.
 
 If your PR branch is named in a supported format such as `pr/123`, GitVersion uses the `PullRequest123` label.
+
+Branch names such as `feature/...` do not automatically bump minor in the current configuration. They inherit the normal increment behavior unless a semver hint requests a larger bump.
 
 #### CMake Build Integration
 
