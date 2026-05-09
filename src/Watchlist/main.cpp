@@ -50,6 +50,7 @@ void WaitForTracyIfRequested(int argc, char** argv)
 int main(int argc, char** argv)
 try
 {
+    WaitForTracyIfRequested(argc, argv);
     PROFILE_THREAD("Watchlist main");
     PROFILE_FUNCTION;
     PROFILE_MESSAGE("Watchlist application startup");
@@ -75,7 +76,6 @@ try
 
     //! Ending code here for Testing purpose
     PROFILE_MESSAGE("Watchlist startup example finished");
-    WaitForTracyIfRequested(argc, argv);
     return EXIT_SUCCESS;
     //TODO Thread Async MQTT
 
