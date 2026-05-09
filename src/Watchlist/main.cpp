@@ -16,7 +16,6 @@
 #include "src/Common/Version.hpp"
 #include "src/Gui/Gui.hpp" //! How to make "Gui/Gui.hpp" work? 
 // #include "Gui/Gui.hpp"
-// #include "src/Utils/Profiling/TracyProfiling.hpp"
 #include "src/Utils/Concurrency/ThreadPoolManager.hpp"
 #include "src/Utils/Concurrency/AsyncEventLoop.hpp"
 
@@ -41,7 +40,7 @@ void WaitForTracyIfRequested(int argc, char** argv)
         return;
 
     PROFILE_MESSAGE("[TRACY][MAIN] Watchlist waiting for Tracy");
-    std::cout << "Watchlist is waiting so Tracy can connect. Press Enter to exit..." << std::endl;
+    LOG_INFO("Watchlist is waiting so Tracy can connect. Press Enter to exit...");
     std::cin.get();
 }
 }
@@ -102,8 +101,8 @@ try
     });
 
     // Testing Threads futures results
-    // std::cout << futureImGui.get() << std::endl; // Output: Task 1 completed
-    // std::cout << futureAsyncIOThread.get() << std::endl; // Output: Task 2 completed
+    // LOG_INFO(futureImGui.get()); // Output: Task 1 completed
+    // LOG_INFO(futureAsyncIOThread.get()); // Output: Task 2 completed
     LOG_DEBUG(futureTBDThread.get());
 
     PROFILE_MESSAGE("[TRACY][THREAD_POOL] Done: futures returned, pool destructor will stop workers");

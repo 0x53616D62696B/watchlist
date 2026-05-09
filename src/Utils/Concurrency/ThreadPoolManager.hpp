@@ -45,7 +45,7 @@ namespace Concurrency {
  * @example Usage:
  * ThreadPoolManager pool(4); // Create a thread pool with 4 threads.
  * auto future = pool.enqueue([](int a, int b) { return a + b; }, 5, 3); // Enqueue a task and get its result.
- * std::cout << "Result: " << future.get() << std::endl; // Output: Result: 8
+ * LOG_INFO(std::format("Result: {}", future.get())); // Output: Result: 8
  * 
  * @todo Be able to specify which thread is endless, long living and short living.
  * - when thread is endless, do not count with it in maxThreads
@@ -245,12 +245,12 @@ void example_thread_pool_manager() {
     {
         PROFILE_SCOPE(ThreadPoolExampleWaitTaskOneFuture);
         PROFILE_MESSAGE("[TRACY][THREAD_POOL_EXAMPLE] Main thread waits for task 1 result");
-        std::cout << future1.get() << std::endl; // Output: Task 1 completed
+        LOG_INFO(future1.get()); // Output: Task 1 completed
     }
     {
         PROFILE_SCOPE(ThreadPoolExampleWaitTaskTwoFuture);
         PROFILE_MESSAGE("[TRACY][THREAD_POOL_EXAMPLE] Main thread waits for task 2 result");
-        std::cout << future2.get() << std::endl; // Output: Task 2 completed
+        LOG_INFO(future2.get()); // Output: Task 2 completed
     }
 
     PROFILE_MESSAGE("[TRACY][THREAD_POOL_EXAMPLE] Done: futures returned, pool destructor will stop workers");

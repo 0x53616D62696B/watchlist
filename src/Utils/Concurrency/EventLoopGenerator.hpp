@@ -23,7 +23,7 @@
  * 
  * // Process events from the generator
  * loop.process(timeEvents, [](const Event& event) {
- *     std::cout << "Processing event at " << event.timestamp << "\n";
+ *     LOG_INFO(std::format("Processing event at {}", event.timestamp));
  * });
  * 
  * // Run the event loop
@@ -51,6 +51,7 @@
 #include <coroutine>
 #include <format>
 
+#include "src/Utils/Logger/Logger.hpp"
 #include "src/Utils/Profiling/TracyProfiling.hpp"
 
 namespace Concurrency {
@@ -281,10 +282,10 @@ private:
                 
                 try {
                     PROFILE_SCOPE(EventLoopGeneratorWorkerExecuteEvent);
-                    std::cout << "Processing event: " << event.name << " (ID: " << event.id << ")\n";
+                    LOG_INFO(std::format("Processing event: {} (ID: {})", event.name, event.id));
                     event.action();
                 } catch (const std::exception& e) {
-                    std::cerr << "Error processing event: " << e.what() << '\n';
+                    LOG_EXCEPTION(e);
                 }
             }
         }
@@ -313,17 +314,17 @@ int example_eloop_gen() {
     event_loop.schedule_event("Single Task", []() {
         PROFILE_SCOPE(EventLoopGeneratorExampleSingleTask);
         PROFILE_MESSAGE("[TRACY][ELOOP_GEN_EXAMPLE] Single queued task executes on the event-loop worker");
-        std::cout << "Executing single task\n";
+        LOG_INFO("Executing single task");
     });
     
     // Generate and process a sequence of events
     auto event_gen = event_loop.event_generator(5, "Sequential Task", [](int i) {
         PROFILE_SCOPE(EventLoopGeneratorExampleSequentialTask);
         PROFILE_MESSAGE("[TRACY][ELOOP_GEN_EXAMPLE] Generated task body executes after producer schedules it");
-        std::cout << "Executing sequential task step " << i << std::endl;
+        LOG_INFO(std::format("Executing sequential task step {}", i));
     });
     
-    std::cout << "Events initiated." << std::endl;
+    LOG_INFO("Events initiated.");
     event_loop.process_event_sequence(std::move(event_gen));
     
     // Keep the event loop running

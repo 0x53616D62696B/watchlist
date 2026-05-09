@@ -123,10 +123,12 @@ endif()
 # concurrency examples app sources
 file(GLOB_RECURSE SRC_CONCURRENCY_EXAMPLES CONFIGURE_DEPENDS src/Examples/Concurrency/*.hpp src/Examples/Concurrency/*.cpp)
 target_sources(ConcurrencyExamples PRIVATE ${SRC_CONCURRENCY_EXAMPLES})
+target_sources(ConcurrencyExamples PRIVATE src/Utils/Logger/Logger.cpp)
 
 # multithread_demo app sources
 file(GLOB_RECURSE SRC_MULTITHREAD_DEMO CONFIGURE_DEPENDS src/Examples/multithread_demo/*.cpp)
 target_sources(MultithreadDemo PRIVATE ${SRC_MULTITHREAD_DEMO})
+target_sources(MultithreadDemo PRIVATE src/Utils/Logger/Logger.cpp)
 
 # watchlist app sources
 file(GLOB_RECURSE SRC_APPLICATION_APP CONFIGURE_DEPENDS src/Watchlist/*.cpp)

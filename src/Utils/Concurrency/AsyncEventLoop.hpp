@@ -15,6 +15,7 @@
 #include <variant>
 #include <map>
 
+#include "src/Utils/Logger/Logger.hpp"
 #include "src/Utils/Profiling/TracyProfiling.hpp"
 
 /**
@@ -44,9 +45,9 @@
  * 
  * // Create a task that waits for a specific event
  * loop.schedule([](AsyncEventLoop& loop) -> AsyncEventLoop::Task {
- *     std::cout << "Waiting for event 'update'\n";
+ *     LOG_INFO("Waiting for event 'update'");
  *     auto event = co_await loop.waitForEvent("update");
- *     std::cout << "Received update event with data: " << event.data << "\n";
+ *     LOG_INFO(std::format("Received update event with data: {}", event.data));
  * });
  * 
  * // Generate a sequence of events
@@ -319,7 +320,7 @@ public:
     // Wait for a specific event
     Task wait_for_event(const std::string& event_name) {
         Event event = co_await EventAwaiter(event_name);
-        std::cout << "Event received: " << event.name << std::endl;
+        LOG_INFO(std::format("Event received: {}", event.name));
     }
 
     // Process and emit events from a generator
@@ -336,7 +337,7 @@ public:
 
             {
                 PROFILE_SCOPE(ProcessGeneratedEvent);
-                std::cout << "Processing event: " << generator.value().name << std::endl;
+                LOG_INFO(std::format("Processing event: {}", generator.value().name));
                 emit_event(generator.value());
             }
 
@@ -360,8 +361,7 @@ public:
             // Remove the waiters from the map to prevent duplicate processing
             event_waiters_.erase(it);
             
-            // Debug output
-            std::cout << "Emitted event: " << event.name << std::endl;
+            LOG_DEBUG(std::format("Emitted event: {}", event.name));
         }
         
         condition_.notify_one();
@@ -478,12 +478,12 @@ main_eloop_hybrid DONE
 
 void task_to_be_executed_immediately() {
     PROFILE_FUNCTION;
-    std::cout << "Task executed immediately!" << std::endl;
+    LOG_INFO("Task executed immediately!");
 }
 
 void task_to_be_executed() {
     PROFILE_FUNCTION;
-    std::cout << "Delayed task body executed" << std::endl;
+    LOG_INFO("Delayed task body executed");
 }
 
 int example_async_eloop() {
@@ -498,7 +498,7 @@ int example_async_eloop() {
     
     // Schedule a delayed task
     AsyncEventLoop::Task scheduled_task = loop.schedule_after(std::chrono::seconds(1), []() {
-        std::cout << "Delayed task executed!" << std::endl;
+        LOG_INFO("Delayed task executed!");
     });
 
     // Schedule a delayed task

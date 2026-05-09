@@ -12,6 +12,7 @@
 #include <memory>
 #include <optional>
 
+#include "src/Utils/Logger/Logger.hpp"
 #include "src/Utils/Profiling/TracyProfiling.hpp"
 
 namespace Concurrency {
@@ -38,9 +39,9 @@ namespace Concurrency {
  * 
  * // Schedule a task with a delay
  * loop.schedule([](EventLoopCoroutine& loop) -> EventLoopCoroutine::Task {
- *     std::cout << "Starting task\n";
+ *     LOG_INFO("Starting task");
  *     co_await loop.delay(100ms);
- *     std::cout << "Task completed after delay\n";
+ *     LOG_INFO("Task completed after delay");
  * });
  * 
  * // Run the event loop
@@ -237,13 +238,13 @@ int example_eloop_coro() {
     event_loop.schedule_after(std::chrono::milliseconds(1000), []() {
         PROFILE_SCOPE(EventLoopCoroutineExampleOneSecondTask);
         PROFILE_MESSAGE("[TRACY][ELOOP_CORO_EXAMPLE] One-second coroutine resumed and task body executes");
-        std::cout << "Task executed after 1 second\n";
+        LOG_INFO("Task executed after 1 second");
     });
     
     event_loop.schedule_after(std::chrono::milliseconds(500), []() {
         PROFILE_SCOPE(EventLoopCoroutineExampleHalfSecondTask);
         PROFILE_MESSAGE("[TRACY][ELOOP_CORO_EXAMPLE] Half-second coroutine resumed and task body executes");
-        std::cout << "Task executed after 500ms\n";
+        LOG_INFO("Task executed after 500ms");
     });
     
     // Keep the event loop running
