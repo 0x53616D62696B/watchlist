@@ -152,6 +152,7 @@ ImGuiIO& ImGuiInitialize(GLFWwindow* window, float scale)
 
 void ImGuiNewFrame()
 {
+    PROFILE_FUNCTION;
     glfwPollEvents();
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
@@ -165,6 +166,7 @@ void GLFWCloseWindow(GLFWwindow* window)
 
 void ImGuiRender(GLFWwindow* window, ImGuiIO& io)
 {
+    PROFILE_FUNCTION;
     ImGui::Render();
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
@@ -185,6 +187,7 @@ void ImGuiRender(GLFWwindow* window, ImGuiIO& io)
         GLFWCloseWindow(window);
 
     glfwSwapBuffers(window);
+    PROFILE_FRAME;
 }
 
 void ImGuiShutdown()
@@ -212,6 +215,8 @@ int ImGuiStart()
 {
     try
     {
+        PROFILE_THREAD("Watchlist GUI");
+        PROFILE_FUNCTION;
         GLFWInitialize();
         auto window = GLFWCreateWindow(1920, 1080, false); // set this to false if you want background window
         GLFWInitializeGL(window);
@@ -221,13 +226,23 @@ int ImGuiStart()
 
         while (!glfwWindowShouldClose(window))
         {
-            ImGuiNewFrame();
-            // Place user code here
-            // ImGui::ShowDemoWindow();
-            bool p_open = true;
-            MyApp::ShowWindow(&p_open);
+            PROFILE_SCOPE(WatchlistGuiFrame);
+            {
+                PROFILE_SCOPE(NewFrame);
+                ImGuiNewFrame();
+            }
+            {
+                PROFILE_SCOPE(WatchlistUi);
+                // Place user code here
+                // ImGui::ShowDemoWindow();
+                bool p_open = true;
+                MyApp::ShowWindow(&p_open);
+            }
 
-            ImGuiRender(window, io);
+            {
+                PROFILE_SCOPE(RenderFrame);
+                ImGuiRender(window, io);
+            }
         }
 
         ImGuiShutdown();

@@ -15,6 +15,8 @@
 #include <variant>
 #include <map>
 
+#include "src/Utils/Profiling/TracyProfiling.hpp"
+
 /**
  * @file AsyncEventLoop.hpp
  * @brief Implementation of a hybrid event loop using both coroutines and generators
@@ -194,6 +196,7 @@ public:
         
         // Iterator-like interface
         bool next() {
+            PROFILE_FUNCTION;
             if (handle_ && !handle_.done()) {
                 handle_.resume();
                 return !handle_.done();
@@ -219,6 +222,7 @@ public:
         }
 
         void await_suspend(std::coroutine_handle<> handle) {
+            PROFILE_FUNCTION;
             auto wakeup_time = std::chrono::steady_clock::now() + duration_;
             
             std::lock_guard<std::mutex> lock(event_loop_->mutex_);
@@ -247,6 +251,7 @@ public:
         }
     
         void await_suspend(std::coroutine_handle<> handle) {
+            PROFILE_FUNCTION;
             std::lock_guard<std::mutex> lock(event_loop_->mutex_);
             event_loop_->event_waiters_[event_name_].push_back({handle, &event_});
         }
@@ -266,12 +271,17 @@ public:
     };
 
     AsyncEventLoop() : running_(true) {
+        PROFILE_FUNCTION;
         Delay::set_event_loop(this);
         EventAwaiter::set_event_loop(this);
-        worker_thread_ = std::thread([this] { run(); });
+        worker_thread_ = std::thread([this] {
+            PROFILE_THREAD("Async event loop");
+            run();
+        });
     }
 
     ~AsyncEventLoop() {
+        PROFILE_FUNCTION;
         {
             std::lock_guard<std::mutex> lock(mutex_);
             running_ = false;
@@ -316,6 +326,7 @@ public:
     // Process and emit events from a generator
     Task process_events(Generator<Event>&& generator) {
         while (generator.next()) {
+            PROFILE_SCOPE(ProcessGeneratedEvent);
             std::cout << "Processing event: " << generator.value().name << std::endl;
             emit_event(generator.value());
             co_await Delay(std::chrono::milliseconds(200)); //! why it is here? I guess only simulation
@@ -324,6 +335,7 @@ public:
 
     // Emit an event into the event loop
     void emit_event(const Event& event) {
+        PROFILE_FUNCTION;
         std::lock_guard<std::mutex> lock(mutex_);
         
         // Wake up any coroutines waiting for this event
@@ -346,6 +358,7 @@ public:
 
 private:
     void run() {
+        PROFILE_FUNCTION;
         while (true) {
             std::unique_lock<std::mutex> lock(mutex_);
             
@@ -453,14 +466,17 @@ main_eloop_hybrid DONE
 */
 
 void task_to_be_executed_immediately() {
+    PROFILE_FUNCTION;
     std::cout << "Task executed immediately!" << std::endl;
 }
 
 void task_to_be_executed() {
+    PROFILE_FUNCTION;
     std::cout << "Delayed task body executed" << std::endl;
 }
 
 int example_async_eloop() {
+    PROFILE_FUNCTION;
     AsyncEventLoop loop;
     
     // Wait for a specific event

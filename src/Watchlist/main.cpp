@@ -13,6 +13,7 @@
 
 #include "src/Gui/Gui.hpp" //! How to make "Gui/Gui.hpp" work? 
 // #include "Gui/Gui.hpp"
+#include "src/Utils/Profiling/TracyProfiling.hpp"
 #include "src/Utils/Concurrency/ThreadPoolManager.hpp"
 #include "src/Utils/Concurrency/EventLoopCoroutine.hpp"
 #include "src/Utils/Concurrency/EventLoopGenerator.hpp"
@@ -21,6 +22,10 @@
 int main(int argc, char** argv)
 try
 {
+    PROFILE_THREAD("Watchlist main");
+    PROFILE_FUNCTION;
+    PROFILE_MESSAGE("Watchlist application startup");
+
     //* Concurrency Examples
     std::cout << std::format("Starting Concurrency examples") << std::endl;
 
@@ -33,11 +38,15 @@ try
     // Concurrency::example_eloop_coro();
     // std::cout << std::format("main_eloop_coro DONE\n") << std::endl;
 
-    Concurrency::example_async_eloop();
+    {
+        PROFILE_SCOPE(ConcurrencyExamples);
+        Concurrency::example_async_eloop();
+    }
     std::cout << std::format("main_eloop_hybrid DONE\n") << std::endl;
     //* Concurrency Examples END
 
     //! Ending code here for Testing purpose
+    PROFILE_MESSAGE("Watchlist startup example finished");
     return EXIT_SUCCESS;
     //TODO Thread Async MQTT
 

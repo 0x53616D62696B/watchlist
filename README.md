@@ -4,7 +4,18 @@ Watchlist of series and movies.
 
 ## Profiling with [Tracy](https://github.com/wolfpld/tracy)
 
-Go throught installation [Documentation](https://github.com/wolfpld/tracy/releases/latest/download/tracy.pdf)
+The Watchlist `Application` target includes a Tracy example when profiling is enabled:
+
+```powershell
+cmake --preset with-profiling
+cmake --build --preset with-profiling --target Application
+.\build\profiling\Application.exe
+```
+
+Start the Tracy profiler UI before or after launching the app, then connect to the running process.
+See [docs/TracyWatchlistExample.md](docs/TracyWatchlistExample.md) for the instrumented zones and GUI notes.
+
+Full Tracy installation and usage details are in the upstream [Documentation](https://github.com/wolfpld/tracy/releases/latest/download/tracy.pdf).
 
 ## Setup
 

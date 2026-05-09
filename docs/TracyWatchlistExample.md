@@ -1,0 +1,85 @@
+# Tracy Watchlist Example
+
+This project has a Tracy-enabled Watchlist example in the normal `Application` target.
+When profiling is enabled, the app emits zones from:
+
+- `src/Watchlist/main.cpp`: application startup and the current concurrency example.
+- `src/Utils/Concurrency/AsyncEventLoop.hpp`: event loop setup, worker thread, generated events, event emission, and scheduled task bodies.
+- `src/Gui/Gui.cpp`: GLFW/ImGui setup, per-frame UI work, rendering, and `FrameMark`.
+- `src/Gui/MyApp.cpp`: Watchlist/CookBook windows, menu code, document tabs, and document contents.
+
+The same source files still compile without Tracy. The profiling macros become empty unless `ENABLE_PROFILING` is enabled.
+
+## Build The Example
+
+Configure and build with the profiling preset:
+
+```powershell
+cmake --preset with-profiling
+cmake --build --preset with-profiling --target Application
+```
+
+The preset uses:
+
+- `CMAKE_BUILD_TYPE=DebugTracy`
+- `ENABLE_PROFILING=ON`
+- `Tracy::TracyClient` linked into `Application`
+
+## Run With Tracy
+
+1. Start the Tracy profiler UI. If you already have a downloaded Tracy release, run its `Tracy.exe`.
+2. Start the Watchlist app:
+
+   ```powershell
+   .\build\profiling\Application.exe
+   ```
+
+3. In Tracy, connect to the running process.
+4. Look for these zones:
+
+   - `main`
+   - `ConcurrencyExamples`
+   - `example_async_eloop`
+   - `Async event loop` thread
+   - `emit_event`
+   - `process_events`
+   - `ProcessGeneratedEvent`
+
+The current `main.cpp` returns after the concurrency startup example, so the GUI zones are compiled in but are only visible after the early testing return is removed or the app is changed to call `ImGuiStart()`.
+
+## Profiling The GUI Path
+
+To profile the GUI frame loop, remove or comment the early return in `src/Watchlist/main.cpp`:
+
+```cpp
+//! Ending code here for Testing purpose
+return EXIT_SUCCESS;
+```
+
+Then rebuild and run `Application` again. Tracy will show:
+
+- `Watchlist GUI` thread name
+- `ImGuiStart`
+- `WatchlistGuiFrame`
+- `NewFrame`
+- `WatchlistUi`
+- `RenderFrame`
+- frame marks from `PROFILE_FRAME`
+
+Each frame mark appears on Tracy's frame timeline and makes it easier to inspect frame-to-frame cost.
+
+## Adding More Zones
+
+Use the wrapper macros from `src/Utils/Profiling/TracyProfiling.hpp`:
+
+```cpp
+PROFILE_FUNCTION;              // Whole current function
+PROFILE_SCOPE(MyWork);         // A named C++ scope identifier
+PROFILE_SCOPE_TEXT("My work"); // A named string zone
+PROFILE_MESSAGE("Loaded data");
+PROFILE_THREAD("Worker name");
+PROFILE_FRAME;                 // End of a rendered frame
+```
+
+Prefer `PROFILE_FUNCTION` at function entry and `PROFILE_SCOPE(...)` around expensive inner blocks.
+Keep zones coarse enough that the timeline stays readable.
