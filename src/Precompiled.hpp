@@ -10,6 +10,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+//-------------------------------------- Util includes
 #include "Utils/Logger/Logger.hpp"
 #include "Utils/Profiling/TracyProfiling.hpp"
 

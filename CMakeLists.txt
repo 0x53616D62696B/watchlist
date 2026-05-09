@@ -19,7 +19,7 @@ include(CompilerSettings)
 # Include version handling
 include(GitVersionConfig)
 configure_version()
-generate_version_header("version.hpp")
+generate_version_header("${CMAKE_SOURCE_DIR}/src/Common/Version.hpp")
 generate_version_resource()
 
 # Set general project variables
@@ -64,6 +64,7 @@ message(STATUS "ENABLE_PROFILING: " ${ENABLE_PROFILING})
 # targets
 add_executable(Application ${SRC_APPLICATION})
 add_executable(MultithreadDemo ${SRC_MULTITHREAD_DEMO})
+add_executable(ConcurrencyExamples)
 add_executable(Logger ${SRC_LOGGER})
 add_executable(Development ${SRC_DEVELOPMENT})
 
@@ -116,11 +117,18 @@ if(ENABLE_PROFILING)
   set(TRACY_NO_FRAME_IMAGE ON CACHE BOOL "Disable Tracy frame image support" FORCE)
   add_subdirectory(libs/tracy)
   target_link_libraries(Application PRIVATE Tracy::TracyClient)
+  target_link_libraries(ConcurrencyExamples PRIVATE Tracy::TracyClient)
 endif()
 
+# concurrency examples app sources
+file(GLOB_RECURSE SRC_CONCURRENCY_EXAMPLES CONFIGURE_DEPENDS src/Examples/Concurrency/*.hpp src/Examples/Concurrency/*.cpp)
+target_sources(ConcurrencyExamples PRIVATE ${SRC_CONCURRENCY_EXAMPLES})
+target_sources(ConcurrencyExamples PRIVATE src/Utils/Logger/Logger.cpp)
+
 # multithread_demo app sources
-file(GLOB_RECURSE SRC_MULTITHREAD_DEMO CONFIGURE_DEPENDS src/examples/multithread_demo/*.cpp)
+file(GLOB_RECURSE SRC_MULTITHREAD_DEMO CONFIGURE_DEPENDS src/Examples/multithread_demo/*.cpp)
 target_sources(MultithreadDemo PRIVATE ${SRC_MULTITHREAD_DEMO})
+target_sources(MultithreadDemo PRIVATE src/Utils/Logger/Logger.cpp)
 
 # watchlist app sources
 file(GLOB_RECURSE SRC_APPLICATION_APP CONFIGURE_DEPENDS src/Watchlist/*.cpp)

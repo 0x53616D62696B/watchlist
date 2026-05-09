@@ -112,7 +112,7 @@ This repository uses GitVersion's `GitHubFlow/v1` workflow, so the branch name m
 Version calculation happens during the CMake configure step, not during C++ compilation itself.
 
 - `configure_version()` is called from `CMakeLists.txt`
-- `generate_version_header("version.hpp")` writes the generated header during configure
+- `generate_version_header("${CMAKE_SOURCE_DIR}/src/Common/Version.hpp")` writes the generated header during configure
 - if GitVersion is not installed or not found on `PATH`, CMake falls back to version `0.1.0`
 
 Typical triggers for configure are:
@@ -183,7 +183,7 @@ No branch name currently bumps minor or major automatically. Use `+semver: minor
    gitversion -output json
    ```
 
-4. Re-run CMake configure so `version.hpp` is refreshed for the build:
+4. Re-run CMake configure so `src/Common/Version.hpp` is refreshed for the build:
    ```sh
    cmake -S . -B build
    ```
@@ -226,7 +226,7 @@ cmake -S . -B build
 cmake --build build
 ```
 
-During configure, CMake runs GitVersion and generates `version.hpp` with the resolved values.
+During configure, CMake runs GitVersion and generates `src/Common/Version.hpp` with the resolved values.
 
 If you already have a configured build directory and only run:
 
@@ -276,10 +276,10 @@ dotnet-gitversion /output json
 
 ### Accessing Version Information in Code
 
-The build system generates `version.hpp` during CMake configure with all version components:
+The build system generates `src/Common/Version.hpp` during CMake configure with all version components:
 
 ```cpp
-#include "version.hpp"
+#include "Common/Version.hpp"
 
 // Basic version: 1.2.3
 std::cout << "Version: " << VERSION_STRING << std::endl;

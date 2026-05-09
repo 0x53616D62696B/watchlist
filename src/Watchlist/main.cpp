@@ -13,12 +13,10 @@
 #include <iostream>
 #include <string_view>
 
+#include "src/Common/Version.hpp"
 #include "src/Gui/Gui.hpp" //! How to make "Gui/Gui.hpp" work? 
 // #include "Gui/Gui.hpp"
-#include "src/Utils/Profiling/TracyProfiling.hpp"
 #include "src/Utils/Concurrency/ThreadPoolManager.hpp"
-#include "src/Utils/Concurrency/EventLoopCoroutine.hpp"
-#include "src/Utils/Concurrency/EventLoopGenerator.hpp"
 #include "src/Utils/Concurrency/AsyncEventLoop.hpp"
 
 namespace
@@ -41,8 +39,8 @@ void WaitForTracyIfRequested(int argc, char** argv)
     if (!HasArgument(argc, argv, "--wait-for-tracy"))
         return;
 
-    PROFILE_MESSAGE("Watchlist waiting for Tracy");
-    std::cout << "Watchlist is waiting so Tracy can connect. Press Enter to exit..." << std::endl;
+    PROFILE_MESSAGE("[TRACY][MAIN] Watchlist waiting for Tracy");
+    LOG_INFO("Watchlist is waiting so Tracy can connect. Press Enter to exit...");
     std::cin.get();
 }
 }
@@ -51,38 +49,64 @@ int main(int argc, char** argv)
 try
 {
     WaitForTracyIfRequested(argc, argv);
+
+    LOG_INFO(std::format("Watchlist Version: {}", VERSION_FULL));
+
     PROFILE_THREAD("Watchlist main");
     PROFILE_FUNCTION;
-    PROFILE_MESSAGE("Watchlist application startup");
+    PROFILE_MESSAGE("[TRACY][MAIN] Watchlist application startup");
 
-    //* Concurrency Examples
-    std::cout << std::format("Starting Concurrency examples") << std::endl;
+    /** Thread Pool Manger
+     */
+    PROFILE_SCOPE(ThreadPoolManagerLifetime);
+    Concurrency::ThreadPoolManager threadPool(3); // Create a thread pool with 3 threads.
+    
+    /** Thread Pool Manager - 1.st worker thread - ImGui
+     *  - Could be separated into multiple? For example separate: New Frame, WatchlistUI, RenderFrame 
+     * into multiple threads?
+     */
+    auto futureImGui = threadPool.enqueue([] {
+        PROFILE_SCOPE(ThreadPoolImGui);
+        PROFILE_MESSAGE("[TRACY][THREAD_POOL] ImGui thread starts");
+        ImGuiStart();
+        // No return needed
+    });
 
-    // Concurrency::example_thread_pool_manager();
-    // std::cout << std::format("thread_pool DONE") << std::endl;
+    /** Thread Pool Manager - 2.nd worker thread - AsyncIO thread for some quick awaitable calls, for example waiting 
+    * for response from MQTT.
+    */
+    auto futureAsyncIOThread = threadPool.enqueue([] {
+        PROFILE_SCOPE(ThreadPoolAsyncIO);
+        PROFILE_MESSAGE("[TRACY][THREAD_POOL] AsyncIO thread starts");
+        Concurrency::AsyncEventLoop asyncLoop;
 
-    // Concurrency::example_eloop_gen();
-    // std::cout << std::format("main_eloop_gen DONE\n") << std::endl;
+        // Wait for a quit AsyncLoop event
+        Concurrency::AsyncEventLoop::Task quitAsyncLoopEvent = asyncLoop.wait_for_event("async_loop_quit");
 
-    // Concurrency::example_eloop_coro();
-    // std::cout << std::format("main_eloop_coro DONE\n") << std::endl;
+        // How to emit this event.
+        //TODO: We should be able to emit this event anywhere, even outside this thread..??
+        asyncLoop.emit_event({"async_loop_quit", std::string("Async loop quit event")});
 
-    {
-        PROFILE_SCOPE(ConcurrencyExamples);
-        Concurrency::example_async_eloop();
-    }
-    std::cout << std::format("main_eloop_hybrid DONE\n") << std::endl;
-    //* Concurrency Examples END
+        // TODO: I do not have any task yet. But I would like to be able to add tasks to this asyncLoop whener in code in future. How to make this loop to await anything?
 
-    //! Ending code here for Testing purpose
-    PROFILE_MESSAGE("Watchlist startup example finished");
-    return EXIT_SUCCESS;
-    //TODO Thread Async MQTT
+        // No return needed
+    });
 
-    //TODO Thread MQTT processing
+    /** Thread Pool Manager - 3.rd worker thread - For some long living future tasks.
+     */
+    auto futureTBDThread = threadPool.enqueue([] {
+        PROFILE_SCOPE(ThreadPoolTBD);
+        PROFILE_MESSAGE("[TRACY][THREAD_POOL] TBD thread starts");
+        return "No implemented yet.";
+    });
 
-    // Thread GUI
-    ImGuiStart();
+    // Testing Threads futures results
+    // LOG_INFO(futureImGui.get()); // Output: Task 1 completed
+    // LOG_INFO(futureAsyncIOThread.get()); // Output: Task 2 completed
+    LOG_DEBUG(futureTBDThread.get());
+
+    PROFILE_MESSAGE("[TRACY][THREAD_POOL] Done: futures returned, pool destructor will stop workers");
+
     return EXIT_SUCCESS;
 }
 catch (const std::exception& e)

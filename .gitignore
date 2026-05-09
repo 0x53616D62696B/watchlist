@@ -1,6 +1,9 @@
 build
 __pycache__
+
+# Development environment files
 CMakeUserPresets.json
+src/Common/Version.hpp
 
 # Temporary files
 docs/*/*.drawio.bkp
