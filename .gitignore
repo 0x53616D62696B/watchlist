@@ -1,5 +1,6 @@
 build
 __pycache__
+CMakeUserPresets.json
 
 # Temporary files
 docs/*/*.drawio.bkp

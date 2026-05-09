@@ -1,5 +1,13 @@
 
 cmake_minimum_required(VERSION 3.21) # Can't use VERSION >= 4.0, it is not compatible with used glad.
+
+if(NOT EXISTS "${CMAKE_SOURCE_DIR}/CMakeUserPresets.json")
+  message(FATAL_ERROR
+    "Development Environment Error: CMakeUserPresets.json was not found. "
+    "Create it by copying CMakeUserPresetsExample.json "
+    "to CMakeUserPresets.json and update the paths for your machine.")
+endif()
+
 project(watchlist)
 
 # Include CMake modules

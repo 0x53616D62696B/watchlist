@@ -21,18 +21,7 @@ Full Tracy installation and usage details are in the upstream [Documentation](ht
 
 ## Setup
 
-Read setup tools in tools\
-
-### Compilers
-
-This project is trying to be cross-pltafrom. GCC Linux and MSVC Windows.
-
-#### MSVC
-
-In order the MSVC is running porperly in Visual Studio Code, you have to start VSCode \
-from Developer Command Prompt for VS (2022 currently).
-
-C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Visual Studio 2022\Visual Studio Tools
+See [docs/DevelopmentEnvironment.md](docs/DevelopmentEnvironment.md) for the required tool versions and CMake presets. Local builds require an ignored `CMakeUserPresets.json`; create it from `CMakeUserPresetsExample.json`.
 
 ## Versioning System
 
