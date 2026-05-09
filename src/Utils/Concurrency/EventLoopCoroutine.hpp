@@ -165,11 +165,12 @@ public:
 
     // Schedule a task to run after a delay
     static Task schedule_after(std::chrono::milliseconds delay, std::function<void()> task) {
-        PROFILE_FUNCTION;
         PROFILE_MESSAGE("[TRACY][ELOOP_CORO] schedule_after starts, awaits delay, then runs task body");
         co_await Delay(delay);
-        PROFILE_SCOPE(EventLoopCoroutineRunDelayedTaskBody);
-        task();
+        {
+            PROFILE_SCOPE(EventLoopCoroutineRunDelayedTaskBody);
+            task();
+        }
     }
 
 private:
@@ -193,11 +194,11 @@ private:
             
             auto now = std::chrono::steady_clock::now();
             if (delayed_tasks_.top().time <= now) {
-                PROFILE_SCOPE(EventLoopCoroutineWorkerResumeReadyTask);
                 auto task = delayed_tasks_.top();
                 delayed_tasks_.pop();
                 lock.unlock();
-                
+
+                PROFILE_MESSAGE("[TRACY][ELOOP_CORO] Worker resumes one ready coroutine handle");
                 task.handle.resume();
             } else {
                 PROFILE_SCOPE(EventLoopCoroutineWorkerWaitUntilNextTask);

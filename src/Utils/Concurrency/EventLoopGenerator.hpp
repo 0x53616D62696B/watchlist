@@ -219,11 +219,13 @@ public:
     // Generate events based on a pattern
     generator<Event> event_generator(int count, const std::string& pattern_name, 
                                     std::function<void(int)> pattern_action) {
-        PROFILE_FUNCTION;
         PROFILE_MESSAGE("[TRACY][ELOOP_GEN] Generator coroutine starts yielding events lazily");
         for (int i = 0; i < count; ++i) {
-            PROFILE_SCOPE(EventLoopGeneratorYieldEvent);
-            auto name = std::format("{} #{}", pattern_name, i + 1);
+            auto name = std::string{};
+            {
+                PROFILE_SCOPE(EventLoopGeneratorPrepareYieldEvent);
+                name = std::format("{} #{}", pattern_name, i + 1);
+            }
             auto action = [i, pattern_action]() {
                 PROFILE_SCOPE(EventLoopGeneratorGeneratedAction);
                 pattern_action(i);
