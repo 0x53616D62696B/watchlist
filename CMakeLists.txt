@@ -31,6 +31,7 @@ set(ENABLE_PCH ON)
 
 # Args
 option(ENABLE_PROFILING "Enable profiling with Tracy" OFF)
+option(BUILD_TESTING "Build unit tests" ON)
 
 set(CMAKE_CXX_FLAGS_DEBUGTRACY "${CMAKE_CXX_FLAGS_DEBUG}" CACHE STRING "Flags for DebugTracy build type" FORCE)
 set(CMAKE_C_FLAGS_DEBUGTRACY "${CMAKE_C_FLAGS_DEBUG}" CACHE STRING "Flags for DebugTracy build type" FORCE)
@@ -76,6 +77,16 @@ else()
   FetchContent_MakeAvailable(SQLiteCpp)
 endif()
 
+if(BUILD_TESTING)
+  include(CTest)
+  if(EXISTS "${CMAKE_SOURCE_DIR}/libs/googletest/CMakeLists.txt")
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    add_subdirectory(libs/googletest)
+  else()
+    find_package(GTest CONFIG QUIET)
+  endif()
+endif()
+
 # targets
 add_executable(Application ${SRC_APPLICATION})
 add_executable(MultithreadDemo ${SRC_MULTITHREAD_DEMO})
@@ -101,6 +112,7 @@ endif()
 file(GLOB_RECURSE SRC_UTILS CONFIGURE_DEPENDS src/Utils/*.hpp src/Utils/*.cpp)
 target_sources(Application PRIVATE ${SRC_UTILS})
 target_sources(Development PRIVATE ${SRC_UTILS})
+target_link_libraries(Development PRIVATE SQLiteCpp sqlite3)
 
 # gui
 file(GLOB_RECURSE SRC_GUI CONFIGURE_DEPENDS src/Gui/*.hpp src/Gui/*.cpp)
@@ -169,3 +181,21 @@ list(REMOVE_ITEM SRC_DEVELOPMENT
   #${CMAKE_CURRENT_SOURCE_DIR}/development/another_excluded_file.cpp
 )
 target_sources(Development PRIVATE ${SRC_DEVELOPMENT})
+
+if(BUILD_TESTING AND TARGET GTest::gtest_main)
+  add_executable(DatabaseUnitTests
+    tests/UnitTests/Storage/SQLiteDatabaseTests.cpp
+    src/Utils/Storage/SQLiteDatabase.cpp
+  )
+
+  target_link_libraries(DatabaseUnitTests PRIVATE
+    GTest::gtest_main
+    SQLiteCpp
+    sqlite3
+  )
+
+  include(GoogleTest)
+  gtest_discover_tests(DatabaseUnitTests)
+elseif(BUILD_TESTING)
+  message(STATUS "GoogleTest was not found. Add it to libs/googletest or install a GTest package to build DatabaseUnitTests.")
+endif()
