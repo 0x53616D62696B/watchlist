@@ -28,6 +28,8 @@ void run_sqlitecpp_thread_worker_example()
     {
         PROFILE_SCOPE(SQLiteWorkerInsertTransaction);
         database.ReplaceAll(items);
+        database.UpsertItem({"theme", "light"});
+        database.AddItem({"last_opened_view", "overview"});
     }
 
     {
@@ -35,6 +37,12 @@ void run_sqlitecpp_thread_worker_example()
         for (const auto& item : database.GetAllSortedByKey()) {
             LOG_INFO(std::format("Thread worker 3 database row: {} - {}", item.key, item.value));
         }
+
+        if (const auto theme = database.GetItem("theme")) {
+            LOG_INFO(std::format("Thread worker 3 theme setting: {}", theme->value));
+        }
+
+        LOG_INFO(std::format("Thread worker 3 database row count: {}", database.CountItems()));
     }
 }
 

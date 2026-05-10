@@ -1,20 +1,26 @@
 #pragma once
 
 #include <cstdint>
-#include <filesystem>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <vector>
-
-#include <SQLiteCpp/SQLiteCpp.h>
 
 #include "src/Utils/Storage/IDatabase.hpp"
 
 namespace Utils::Storage {
 
-class SQLiteDatabase final : public IDatabase {
+struct MySQLConnectionSettings {
+    std::string host;
+    std::string database;
+    std::string user;
+    std::string password;
+    std::uint16_t port{3306};
+};
+
+class MySQLDatabase final : public IDatabase {
 public:
-    explicit SQLiteDatabase(const std::filesystem::path& databasePath);
+    explicit MySQLDatabase(MySQLConnectionSettings settings);
 
     void Initialize() override;
     void AddItem(const DatabaseItem& item) override;
@@ -29,7 +35,9 @@ public:
     void Clear() override;
 
 private:
-    SQLite::Database database_;
+    [[noreturn]] static void ThrowMissingClient();
+
+    MySQLConnectionSettings settings_;
 };
 
 } // namespace Utils::Storage
