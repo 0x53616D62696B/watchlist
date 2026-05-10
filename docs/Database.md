@@ -31,6 +31,33 @@ if (const auto item = database.GetItem("theme")) {
 - `ReplaceAll` clears existing data and inserts the supplied collection in one transaction.
 - `Clear` removes all items but leaves the database table ready for reuse.
 
+## Typed Data Examples
+
+`IDatabase` stores `DatabaseItem`, but application code can map richer objects to that generic key/value shape. For example, a device can be represented as:
+
+```cpp
+struct Device {
+    std::string id;
+    std::string name;
+    std::string ipAddress;
+    std::uint16_t port{};
+    bool alive{};
+};
+```
+
+One simple approach is to use the item key as the object identifier and the item value as serialized data:
+
+```cpp
+DatabaseItem item{
+    "device:router",
+    "Main router|192.168.1.1|80|1",
+};
+```
+
+The example helpers in `src/Utils/Storage/Examples/DeviceDatabaseItemExample.hpp` show this pattern with `ToDatabaseItem` and `ToDevice` conversion functions.
+
+This works well for small app settings, caches, and simple local storage. If the app needs real SQL queries like `WHERE alive = true` or `ORDER BY port`, create a typed database implementation with real columns instead of packing the whole object into `DatabaseItem::value`.
+
 ## SQLite Behavior
 
 `SQLiteDatabase` stores items in a table named `items` with a unique `item_key` column. It uses SQLite transactions for `ReplaceAll`, so the replacement is committed as one logical operation.

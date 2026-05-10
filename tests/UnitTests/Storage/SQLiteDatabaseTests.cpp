@@ -4,6 +4,7 @@
 
 #include <gtest/gtest.h>
 
+#include "src/Utils/Storage/Examples/DeviceDatabaseItemExample.hpp"
 #include "src/Utils/Storage/SQLiteDatabase.hpp"
 
 namespace {
@@ -111,4 +112,28 @@ TEST_F(SQLiteDatabaseTest, ClearRemovesAllItems)
 
     EXPECT_EQ(database_->CountItems(), 0);
     EXPECT_TRUE(database_->GetAllItems().empty());
+}
+
+TEST_F(SQLiteDatabaseTest, CanStoreTypedDeviceThroughDatabaseItemMapping)
+{
+    const Utils::Storage::Examples::Device device{
+        "router",
+        "Main router",
+        "192.168.1.1",
+        80,
+        true,
+    };
+
+    database_->AddItem(Utils::Storage::Examples::ToDatabaseItem(device));
+
+    const auto item = database_->GetItem("device:router");
+    ASSERT_TRUE(item.has_value());
+
+    const auto loadedDevice = Utils::Storage::Examples::ToDevice(*item);
+    ASSERT_TRUE(loadedDevice.has_value());
+    EXPECT_EQ(loadedDevice->id, "router");
+    EXPECT_EQ(loadedDevice->name, "Main router");
+    EXPECT_EQ(loadedDevice->ipAddress, "192.168.1.1");
+    EXPECT_EQ(loadedDevice->port, 80);
+    EXPECT_TRUE(loadedDevice->alive);
 }
