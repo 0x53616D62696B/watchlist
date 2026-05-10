@@ -185,7 +185,6 @@ target_sources(Development PRIVATE ${SRC_DEVELOPMENT})
 if(BUILD_TESTING AND TARGET GTest::gtest_main)
   add_executable(DatabaseUnitTests
     tests/UnitTests/Storage/SQLiteDatabaseTests.cpp
-    src/Utils/Storage/Examples/DeviceDatabaseItemExample.cpp
     src/Utils/Storage/SQLiteDatabase.cpp
   )
 

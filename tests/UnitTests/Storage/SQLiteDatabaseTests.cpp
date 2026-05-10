@@ -4,7 +4,6 @@
 
 #include <gtest/gtest.h>
 
-#include "src/Utils/Storage/Examples/DeviceDatabaseItemExample.hpp"
 #include "src/Utils/Storage/SQLiteDatabase.hpp"
 
 namespace {
@@ -31,109 +30,98 @@ protected:
     std::unique_ptr<Utils::Storage::SQLiteDatabase> database_;
 };
 
-} // namespace
-
-TEST_F(SQLiteDatabaseTest, AddItemStoresNewItem)
+Utils::Storage::DatabaseItem Router()
 {
-    database_->AddItem({"theme", "dark"});
-
-    const auto item = database_->GetItem("theme");
-
-    ASSERT_TRUE(item.has_value());
-    EXPECT_EQ(item->key, "theme");
-    EXPECT_EQ(item->value, "dark");
+    return {"router", "Main router", "192.168.1.1", 80, true};
 }
 
-TEST_F(SQLiteDatabaseTest, GetItemReturnsEmptyOptionalForMissingKey)
+Utils::Storage::DatabaseItem Printer(bool alive = false)
+{
+    return {"printer-office", "Office printer", "192.168.1.75", 9100, alive};
+}
+
+} // namespace
+
+TEST_F(SQLiteDatabaseTest, AddItemStoresNewDevice)
+{
+    database_->AddItem(Router());
+
+    const auto item = database_->GetItem("router");
+
+    ASSERT_TRUE(item.has_value());
+    EXPECT_EQ(item->id, "router");
+    EXPECT_EQ(item->name, "Main router");
+    EXPECT_EQ(item->ipAddress, "192.168.1.1");
+    EXPECT_EQ(item->port, 80);
+    EXPECT_TRUE(item->alive);
+}
+
+TEST_F(SQLiteDatabaseTest, GetItemReturnsEmptyOptionalForMissingId)
 {
     EXPECT_FALSE(database_->GetItem("missing").has_value());
 }
 
-TEST_F(SQLiteDatabaseTest, UpsertItemAddsAndUpdatesItem)
+TEST_F(SQLiteDatabaseTest, UpsertItemAddsAndUpdatesDevice)
 {
-    database_->UpsertItem({"theme", "dark"});
-    database_->UpsertItem({"theme", "light"});
+    database_->UpsertItem(Printer(false));
+    database_->UpsertItem(Printer(true));
 
-    const auto item = database_->GetItem("theme");
+    const auto item = database_->GetItem("printer-office");
 
     ASSERT_TRUE(item.has_value());
-    EXPECT_EQ(item->value, "light");
+    EXPECT_TRUE(item->alive);
     EXPECT_EQ(database_->CountItems(), 1);
 }
 
-TEST_F(SQLiteDatabaseTest, ReplaceAllClearsOldItemsAndAddsNewItems)
+TEST_F(SQLiteDatabaseTest, ReplaceAllClearsOldDevicesAndAddsNewDevices)
 {
-    database_->AddItem({"old", "value"});
+    database_->AddItem({"old-device", "Old device", "10.0.0.10", 1234, false});
 
     database_->ReplaceAll({
-        {"theme", "dark"},
-        {"layout", "default"},
+        Router(),
+        Printer(),
     });
 
-    EXPECT_FALSE(database_->ContainsItem("old"));
-    EXPECT_TRUE(database_->ContainsItem("theme"));
-    EXPECT_TRUE(database_->ContainsItem("layout"));
+    EXPECT_FALSE(database_->ContainsItem("old-device"));
+    EXPECT_TRUE(database_->ContainsItem("router"));
+    EXPECT_TRUE(database_->ContainsItem("printer-office"));
     EXPECT_EQ(database_->CountItems(), 2);
 }
 
-TEST_F(SQLiteDatabaseTest, GetAllSortedByKeyReturnsAscendingKeys)
+TEST_F(SQLiteDatabaseTest, GetAllSortedByIdReturnsAscendingIds)
 {
     database_->ReplaceAll({
-        {"theme", "dark"},
-        {"layout", "default"},
-        {"refresh_interval_seconds", "60"},
+        Router(),
+        {"camera-front-door", "Front door camera", "192.168.1.42", 554, true},
+        Printer(),
     });
 
-    const auto items = database_->GetAllSortedByKey();
+    const auto items = database_->GetAllSortedById();
 
     ASSERT_EQ(items.size(), 3);
-    EXPECT_EQ(items[0].key, "layout");
-    EXPECT_EQ(items[1].key, "refresh_interval_seconds");
-    EXPECT_EQ(items[2].key, "theme");
+    EXPECT_EQ(items[0].id, "camera-front-door");
+    EXPECT_EQ(items[1].id, "printer-office");
+    EXPECT_EQ(items[2].id, "router");
 }
 
-TEST_F(SQLiteDatabaseTest, RemoveItemDeletesExistingItem)
+TEST_F(SQLiteDatabaseTest, RemoveItemDeletesExistingDevice)
 {
-    database_->AddItem({"theme", "dark"});
+    database_->AddItem(Router());
 
-    EXPECT_TRUE(database_->RemoveItem("theme"));
-    EXPECT_FALSE(database_->ContainsItem("theme"));
-    EXPECT_FALSE(database_->RemoveItem("theme"));
+    EXPECT_TRUE(database_->RemoveItem("router"));
+    EXPECT_FALSE(database_->ContainsItem("router"));
+    EXPECT_FALSE(database_->RemoveItem("router"));
 }
 
-TEST_F(SQLiteDatabaseTest, ClearRemovesAllItems)
+TEST_F(SQLiteDatabaseTest, ClearRemovesAllDevices)
 {
     database_->ReplaceAll({
-        {"theme", "dark"},
-        {"layout", "default"},
+        Router(),
+        Printer(),
     });
 
     database_->Clear();
 
     EXPECT_EQ(database_->CountItems(), 0);
     EXPECT_TRUE(database_->GetAllItems().empty());
-}
-
-TEST_F(SQLiteDatabaseTest, CanStoreTypedDeviceThroughDatabaseItemMapping)
-{
-    const Utils::Storage::Examples::Device device{
-        "router",
-        "Main router",
-        "192.168.1.1",
-        80,
-        true,
-    };
-
-    database_->AddItem(Utils::Storage::Examples::ToDatabaseItem(device));
-
-    const auto item = database_->GetItem("device:router");
-    ASSERT_TRUE(item.has_value());
-
-    const auto loadedDevice = Utils::Storage::Examples::ToDevice(*item);
-    ASSERT_TRUE(loadedDevice.has_value());
-    EXPECT_EQ(loadedDevice->id, "router");
-    EXPECT_EQ(loadedDevice->name, "Main router");
-    EXPECT_EQ(loadedDevice->ipAddress, "192.168.1.1");
-    EXPECT_EQ(loadedDevice->port, 80);
-    EXPECT_TRUE(loadedDevice->alive);
 }

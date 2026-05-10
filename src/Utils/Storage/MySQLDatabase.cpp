@@ -26,9 +26,9 @@ void MySQLDatabase::UpsertItem(const DatabaseItem& item)
     ThrowMissingClient();
 }
 
-std::optional<DatabaseItem> MySQLDatabase::GetItem(const std::string& key)
+std::optional<DatabaseItem> MySQLDatabase::GetItem(const std::string& id)
 {
-    (void)key;
+    (void)id;
     ThrowMissingClient();
 }
 
@@ -43,14 +43,14 @@ void MySQLDatabase::ReplaceAll(const std::vector<DatabaseItem>& items)
     ThrowMissingClient();
 }
 
-std::vector<DatabaseItem> MySQLDatabase::GetAllSortedByKey()
+std::vector<DatabaseItem> MySQLDatabase::GetAllSortedById()
 {
     ThrowMissingClient();
 }
 
-bool MySQLDatabase::ContainsItem(const std::string& key)
+bool MySQLDatabase::ContainsItem(const std::string& id)
 {
-    (void)key;
+    (void)id;
     ThrowMissingClient();
 }
 
@@ -59,9 +59,9 @@ std::int64_t MySQLDatabase::CountItems()
     ThrowMissingClient();
 }
 
-bool MySQLDatabase::RemoveItem(const std::string& key)
+bool MySQLDatabase::RemoveItem(const std::string& id)
 {
-    (void)key;
+    (void)id;
     ThrowMissingClient();
 }
 

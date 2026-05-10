@@ -1,42 +1,18 @@
-# Database Storage
+# Device Database Storage
 
-The database storage facade is a small key/value API for code that needs persistence without depending directly on a specific database engine. Application code can use `IDatabase`, while concrete implementations such as `SQLiteDatabase` hide the SQL and connection details.
+The database storage facade provides a small API for storing network devices without depending directly on a specific database engine. Application code can use `IDatabase`, while concrete implementations such as `SQLiteDatabase` hide SQL and connection details.
 
 ## Files
 
-- `src/Utils/Storage/DatabaseItem.hpp`: generic key/value item stored by the facade.
+- `src/Utils/Storage/DatabaseItem.hpp`: item stored by the facade.
 - `src/Utils/Storage/IDatabase.hpp`: virtual database API used by application code.
 - `src/Utils/Storage/SQLiteDatabase.hpp/.cpp`: working SQLite implementation.
 - `src/Utils/Storage/MySQLDatabase.hpp/.cpp`: example MySQL-shaped implementation placeholder.
 
-## Basic Usage
+## Stored Item
 
 ```cpp
-Utils::Storage::SQLiteDatabase database("settings.sqlite");
-database.Initialize();
-
-database.AddItem({"theme", "dark"});
-database.UpsertItem({"theme", "light"});
-
-if (const auto item = database.GetItem("theme")) {
-    // item->value == "light"
-}
-```
-
-## API Notes
-
-- `AddItem` inserts a new item and fails if the key already exists.
-- `UpsertItem` means update-or-insert: it inserts a missing key or updates the value for an existing key.
-- `GetItem` returns `std::optional<DatabaseItem>` so missing keys can be handled without exceptions.
-- `ReplaceAll` clears existing data and inserts the supplied collection in one transaction.
-- `Clear` removes all items but leaves the database table ready for reuse.
-
-## Typed Data Examples
-
-`IDatabase` stores `DatabaseItem`, but application code can map richer objects to that generic key/value shape. For example, a device can be represented as:
-
-```cpp
-struct Device {
+struct DatabaseItem {
     std::string id;
     std::string name;
     std::string ipAddress;
@@ -45,22 +21,42 @@ struct Device {
 };
 ```
 
-One simple approach is to use the item key as the object identifier and the item value as serialized data:
+`id` is the unique identifier used by methods such as `GetItem`, `ContainsItem`, and `RemoveItem`.
+
+## Basic Usage
 
 ```cpp
-DatabaseItem item{
-    "device:router",
-    "Main router|192.168.1.1|80|1",
-};
+Utils::Storage::SQLiteDatabase database("devices.sqlite");
+database.Initialize();
+
+database.AddItem({"router", "Main router", "192.168.1.1", 80, true});
+database.UpsertItem({"printer-office", "Office printer", "192.168.1.75", 9100, false});
+
+if (const auto router = database.GetItem("router")) {
+    // router->ipAddress == "192.168.1.1"
+}
 ```
 
-The example helpers in `src/Utils/Storage/Examples/DeviceDatabaseItemExample.hpp` show this pattern with `ToDatabaseItem` and `ToDevice` conversion functions.
+## API Notes
 
-This works well for small app settings, caches, and simple local storage. If the app needs real SQL queries like `WHERE alive = true` or `ORDER BY port`, create a typed database implementation with real columns instead of packing the whole object into `DatabaseItem::value`.
+- `AddItem` inserts a new device and fails if the id already exists.
+- `UpsertItem` means update-or-insert: it inserts a missing id or updates the fields for an existing id.
+- `GetItem` returns `std::optional<DatabaseItem>` so missing ids can be handled without exceptions.
+- `ReplaceAll` clears existing data and inserts the supplied collection in one transaction.
+- `GetAllSortedById` returns devices ordered by id.
+- `Clear` removes all devices but leaves the database table ready for reuse.
 
 ## SQLite Behavior
 
-`SQLiteDatabase` stores items in a table named `items` with a unique `item_key` column. It uses SQLite transactions for `ReplaceAll`, so the replacement is committed as one logical operation.
+`SQLiteDatabase` stores devices in a table named `items` with these columns:
+
+- `device_id`
+- `name`
+- `ip_address`
+- `port`
+- `alive`
+
+It uses SQLite transactions for `ReplaceAll`, so replacement is committed as one logical operation.
 
 SQLite is a good local embedded database. Multiple processes can read from the same database file, but this facade is currently intended for simple local application storage rather than multi-device synchronization.
 

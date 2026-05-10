@@ -16,7 +16,7 @@
 #include "src/Common/Version.hpp"
 #include "src/Gui/Gui.hpp" //! How to make "Gui/Gui.hpp" work? 
 // #include "Gui/Gui.hpp"
-#include "src/Watchlist/SQLiteThreadWorkerExample.hpp"
+#include "src/Watchlist/SQLiteThreadWorker.hpp"
 #include "src/Utils/Concurrency/ThreadPoolManager.hpp"
 #include "src/Utils/Concurrency/AsyncEventLoop.hpp"
 
@@ -100,7 +100,7 @@ try
     auto SQLiteCppThread = threadPool.enqueue([] {
         PROFILE_SCOPE(ThreadPoolSQLiteCpp);
         PROFILE_MESSAGE("[TRACY][THREAD_POOL] SQLiteCpp thread starts");
-        run_sqlitecpp_thread_worker_example();
+        run_sqlitecpp_thread_worker();
         return "SQLiteCpp thread completed.";
     });
 
