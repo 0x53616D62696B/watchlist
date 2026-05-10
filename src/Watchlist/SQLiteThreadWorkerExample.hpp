@@ -1,7 +1,7 @@
 #pragma once
 
-namespace Concurrency {
+namespace Watchlist {
 
 void run_sqlitecpp_thread_worker_example();
 
-} // namespace Concurrency
+} // namespace Watchlist

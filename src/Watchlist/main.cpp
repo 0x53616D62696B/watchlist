@@ -20,8 +20,9 @@
 #include "src/Utils/Concurrency/ThreadPoolManager.hpp"
 #include "src/Utils/Concurrency/AsyncEventLoop.hpp"
 
-namespace
-{
+namespace Watchlist {
+namespace {
+
 /** Returns true when the exact command-line argument is present. */
 bool HasArgument(int argc, char** argv, std::string_view argument)
 {
@@ -44,9 +45,10 @@ void WaitForTracyIfRequested(int argc, char** argv)
     LOG_INFO("Watchlist is waiting so Tracy can connect. Press Enter to exit...");
     std::cin.get();
 }
-}
 
-int main(int argc, char** argv)
+} // namespace
+
+int RunApplication(int argc, char** argv)
 try
 {
     WaitForTracyIfRequested(argc, argv);
@@ -98,7 +100,7 @@ try
     auto SQLiteCppThread = threadPool.enqueue([] {
         PROFILE_SCOPE(ThreadPoolSQLiteCpp);
         PROFILE_MESSAGE("[TRACY][THREAD_POOL] SQLiteCpp thread starts");
-        Concurrency::run_sqlitecpp_thread_worker_example();
+        run_sqlitecpp_thread_worker_example();
         return "SQLiteCpp thread completed.";
     });
 
@@ -120,4 +122,11 @@ catch (...)
 {
     LOG_ERROR("Unknown error in main.");
     return EXIT_FAILURE;
+}
+
+} // namespace Watchlist
+
+int main(int argc, char** argv)
+{
+    return Watchlist::RunApplication(argc, argv);
 }

@@ -7,7 +7,7 @@
 #include "src/Utils/Profiling/TracyProfiling.hpp"
 #include "src/Utils/Storage/SQLiteDatabase.hpp"
 
-namespace Concurrency {
+namespace Watchlist {
 
 void run_sqlitecpp_thread_worker_example()
 {
@@ -46,4 +46,4 @@ void run_sqlitecpp_thread_worker_example()
     }
 }
 
-} // namespace Concurrency
+} // namespace Watchlist
