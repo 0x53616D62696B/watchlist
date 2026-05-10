@@ -16,6 +16,7 @@
 #include "src/Common/Version.hpp"
 #include "src/Gui/Gui.hpp" //! How to make "Gui/Gui.hpp" work? 
 // #include "Gui/Gui.hpp"
+#include "src/Watchlist/SQLiteThreadWorkerExample.hpp"
 #include "src/Utils/Concurrency/ThreadPoolManager.hpp"
 #include "src/Utils/Concurrency/AsyncEventLoop.hpp"
 
@@ -92,18 +93,19 @@ try
         // No return needed
     });
 
-    /** Thread Pool Manager - 3.rd worker thread - For some long living future tasks.
+    /** Thread Pool Manager - 3.rd worker thread - SQLiteCpp database example.
      */
-    auto futureTBDThread = threadPool.enqueue([] {
-        PROFILE_SCOPE(ThreadPoolTBD);
-        PROFILE_MESSAGE("[TRACY][THREAD_POOL] TBD thread starts");
-        return "No implemented yet.";
+    auto SQLiteCppThread = threadPool.enqueue([] {
+        PROFILE_SCOPE(ThreadPoolSQLiteCpp);
+        PROFILE_MESSAGE("[TRACY][THREAD_POOL] SQLiteCpp thread starts");
+        Concurrency::run_sqlitecpp_thread_worker_example();
+        return "SQLiteCpp thread completed.";
     });
 
     // Testing Threads futures results
     // LOG_INFO(futureImGui.get()); // Output: Task 1 completed
     // LOG_INFO(futureAsyncIOThread.get()); // Output: Task 2 completed
-    LOG_DEBUG(futureTBDThread.get());
+    LOG_DEBUG(SQLiteCppThread.get());
 
     PROFILE_MESSAGE("[TRACY][THREAD_POOL] Done: futures returned, pool destructor will stop workers");
 

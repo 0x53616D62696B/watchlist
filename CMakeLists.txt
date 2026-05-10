@@ -60,6 +60,21 @@ message(STATUS "CMAKE_CXX_FLAGS_RELEASE: " ${CMAKE_CXX_FLAGS_RELEASE})
 message(STATUS "CMAKE_CXX_COMPILER_LAUNCHER: " ${CMAKE_CXX_COMPILER_LAUNCHER})
 message(STATUS "ENABLE_PROFILING: " ${ENABLE_PROFILING})
 
+# sqlite
+set(SQLITECPP_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(SQLITECPP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(SQLITECPP_INTERNAL_SQLITE ON CACHE BOOL "" FORCE)
+if(EXISTS "${CMAKE_SOURCE_DIR}/libs/SQLiteCpp/CMakeLists.txt")
+  add_subdirectory(libs/SQLiteCpp)
+else()
+  include(FetchContent)
+  FetchContent_Declare(
+    SQLiteCpp
+    GIT_REPOSITORY https://github.com/SRombauts/SQLiteCpp.git
+    GIT_TAG 3.3.3
+  )
+  FetchContent_MakeAvailable(SQLiteCpp)
+endif()
 
 # targets
 add_executable(Application ${SRC_APPLICATION})
@@ -124,6 +139,7 @@ endif()
 file(GLOB_RECURSE SRC_CONCURRENCY_EXAMPLES CONFIGURE_DEPENDS src/Examples/Concurrency/*.hpp src/Examples/Concurrency/*.cpp)
 target_sources(ConcurrencyExamples PRIVATE ${SRC_CONCURRENCY_EXAMPLES})
 target_sources(ConcurrencyExamples PRIVATE src/Utils/Logger/Logger.cpp)
+target_link_libraries(Application PRIVATE SQLiteCpp sqlite3)
 
 # multithread_demo app sources
 file(GLOB_RECURSE SRC_MULTITHREAD_DEMO CONFIGURE_DEPENDS src/Examples/multithread_demo/*.cpp)
