@@ -183,19 +183,19 @@ list(REMOVE_ITEM SRC_DEVELOPMENT
 target_sources(Development PRIVATE ${SRC_DEVELOPMENT})
 
 if(BUILD_TESTING AND TARGET GTest::gtest_main)
-  add_executable(DatabaseUnitTests
+  add_executable(UnitTests
     tests/UnitTests/Storage/SQLiteDatabaseTests.cpp
     src/Utils/Storage/SQLiteDatabase.cpp
   )
 
-  target_link_libraries(DatabaseUnitTests PRIVATE
+  target_link_libraries(UnitTests PRIVATE
     GTest::gtest_main
     SQLiteCpp
     sqlite3
   )
 
   include(GoogleTest)
-  gtest_discover_tests(DatabaseUnitTests)
+  gtest_discover_tests(UnitTests)
 elseif(BUILD_TESTING)
-  message(STATUS "GoogleTest was not found. Add it to libs/googletest or install a GTest package to build DatabaseUnitTests.")
+  message(STATUS "GoogleTest was not found. Add it to libs/googletest or install a GTest package to build UnitTests.")
 endif()

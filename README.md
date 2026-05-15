@@ -53,20 +53,20 @@ Default configuration:
 
 ```powershell
 cmake --preset default
-cmake --build --preset database-unit-tests
+cmake --build --preset unit-tests
 ```
 
-With Tracy profiling configuration:
+Tracy configuration:
 
 ```powershell
 cmake --preset with-profiling
-cmake --build --preset database-unit-tests-with-profiling
+cmake --build --preset unit-tests-with-profiling
 ```
 
-Both unit-test build presets build the `DatabaseUnitTests` target. If GoogleTest is missing, CMake will configure successfully but print:
+Both unit-test build presets build the `UnitTests` target. If GoogleTest is missing, CMake will configure successfully but print:
 
 ```text
-GoogleTest was not found. Add it to libs/googletest or install a GTest package to build DatabaseUnitTests.
+GoogleTest was not found. Add it to libs/googletest or install a GTest package to build UnitTests.
 ```
 
 ### Run Unit Tests with CTest
