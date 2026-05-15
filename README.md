@@ -23,6 +23,73 @@ Full Tracy installation and usage details are in the upstream [Documentation](ht
 
 See [docs/DevelopmentEnvironment.md](docs/DevelopmentEnvironment.md) for the required tool versions and CMake presets. Local builds require an ignored `CMakeUserPresets.json`; create it from `CMakeUserPresetsExample.json`.
 
+## Testing with GoogleTest and CTest
+
+This project uses GoogleTest for C++ unit-test assertions and CTest as the CMake test runner.
+
+- GoogleTest: the test framework used in files such as `tests/UnitTests/Storage/SQLiteDatabaseTests.cpp`.
+- CTest: the runner that executes built test binaries from a CMake build directory.
+
+### Install GoogleTest
+
+Add GoogleTest to:
+
+```text
+libs/googletest
+```
+
+Recommended setup from the repository root:
+
+```powershell
+git submodule add https://github.com/google/googletest.git libs/googletest
+git submodule update --init --recursive
+```
+
+Alternatively, install a system/package-manager version that provides the CMake target `GTest::gtest_main`.
+
+### Configure and Build Unit Tests
+
+Default configuration:
+
+```powershell
+cmake --preset default
+cmake --build --preset database-unit-tests
+```
+
+With Tracy profiling configuration:
+
+```powershell
+cmake --preset with-profiling
+cmake --build --preset database-unit-tests-with-profiling
+```
+
+Both unit-test build presets build the `DatabaseUnitTests` target. If GoogleTest is missing, CMake will configure successfully but print:
+
+```text
+GoogleTest was not found. Add it to libs/googletest or install a GTest package to build DatabaseUnitTests.
+```
+
+### Run Unit Tests with CTest
+
+Run tests from the default build directory:
+
+```powershell
+ctest --test-dir build/default --output-on-failure
+```
+
+Run tests from the profiling build directory:
+
+```powershell
+ctest --test-dir build/profiling --output-on-failure
+```
+
+You can also use the CMake test presets:
+
+```powershell
+ctest --preset default
+ctest --preset with-profiling
+```
+
 ## Versioning System
 
 This project uses [GitVersion](https://gitversion.net/) for automatic semantic versioning based on Git history and commits.
@@ -362,7 +429,6 @@ At the moment, documenting this file is informational only. To actually use it, 
 - project dependancies
   - integrate with Conan (or vcpkg, but Conan is more customizable. You may create recipe for any code.
                            You cant do that with vcpkg.)
-- testing v ctest
 - packaging with cpack
 - cmake workflow
 - update version with pre-commit hooks
