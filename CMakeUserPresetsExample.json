@@ -84,7 +84,7 @@
         },
         {
             "name": "with-profiling",
-            "displayName": "CTest With Tracy Profiling",
+            "displayName": "CTest Tracy",
             "configurePreset": "with-profiling",
             "output": {
                 "outputOnFailure": true
