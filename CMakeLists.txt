@@ -31,6 +31,7 @@ set(ENABLE_PCH ON)
 
 # Args
 option(ENABLE_PROFILING "Enable profiling with Tracy" OFF)
+option(BUILD_TESTING "Build unit tests" ON)
 
 set(CMAKE_CXX_FLAGS_DEBUGTRACY "${CMAKE_CXX_FLAGS_DEBUG}" CACHE STRING "Flags for DebugTracy build type" FORCE)
 set(CMAKE_C_FLAGS_DEBUGTRACY "${CMAKE_C_FLAGS_DEBUG}" CACHE STRING "Flags for DebugTracy build type" FORCE)
@@ -60,6 +61,31 @@ message(STATUS "CMAKE_CXX_FLAGS_RELEASE: " ${CMAKE_CXX_FLAGS_RELEASE})
 message(STATUS "CMAKE_CXX_COMPILER_LAUNCHER: " ${CMAKE_CXX_COMPILER_LAUNCHER})
 message(STATUS "ENABLE_PROFILING: " ${ENABLE_PROFILING})
 
+# sqlite
+set(SQLITECPP_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(SQLITECPP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(SQLITECPP_INTERNAL_SQLITE ON CACHE BOOL "" FORCE)
+if(EXISTS "${CMAKE_SOURCE_DIR}/libs/SQLiteCpp/CMakeLists.txt")
+  add_subdirectory(libs/SQLiteCpp)
+else()
+  include(FetchContent)
+  FetchContent_Declare(
+    SQLiteCpp
+    GIT_REPOSITORY https://github.com/SRombauts/SQLiteCpp.git
+    GIT_TAG 3.3.3
+  )
+  FetchContent_MakeAvailable(SQLiteCpp)
+endif()
+
+if(BUILD_TESTING)
+  include(CTest)
+  if(EXISTS "${CMAKE_SOURCE_DIR}/libs/googletest/CMakeLists.txt")
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    add_subdirectory(libs/googletest)
+  else()
+    find_package(GTest CONFIG QUIET)
+  endif()
+endif()
 
 # targets
 add_executable(Application ${SRC_APPLICATION})
@@ -86,6 +112,7 @@ endif()
 file(GLOB_RECURSE SRC_UTILS CONFIGURE_DEPENDS src/Utils/*.hpp src/Utils/*.cpp)
 target_sources(Application PRIVATE ${SRC_UTILS})
 target_sources(Development PRIVATE ${SRC_UTILS})
+target_link_libraries(Development PRIVATE SQLiteCpp sqlite3)
 
 # gui
 file(GLOB_RECURSE SRC_GUI CONFIGURE_DEPENDS src/Gui/*.hpp src/Gui/*.cpp)
@@ -124,6 +151,7 @@ endif()
 file(GLOB_RECURSE SRC_CONCURRENCY_EXAMPLES CONFIGURE_DEPENDS src/Examples/Concurrency/*.hpp src/Examples/Concurrency/*.cpp)
 target_sources(ConcurrencyExamples PRIVATE ${SRC_CONCURRENCY_EXAMPLES})
 target_sources(ConcurrencyExamples PRIVATE src/Utils/Logger/Logger.cpp)
+target_link_libraries(Application PRIVATE SQLiteCpp sqlite3)
 
 # multithread_demo app sources
 file(GLOB_RECURSE SRC_MULTITHREAD_DEMO CONFIGURE_DEPENDS src/Examples/multithread_demo/*.cpp)
@@ -153,3 +181,21 @@ list(REMOVE_ITEM SRC_DEVELOPMENT
   #${CMAKE_CURRENT_SOURCE_DIR}/development/another_excluded_file.cpp
 )
 target_sources(Development PRIVATE ${SRC_DEVELOPMENT})
+
+if(BUILD_TESTING AND TARGET GTest::gtest_main)
+  add_executable(UnitTests
+    tests/UnitTests/Storage/SQLiteDatabaseTests.cpp
+    src/Utils/Storage/SQLiteDatabase.cpp
+  )
+
+  target_link_libraries(UnitTests PRIVATE
+    GTest::gtest_main
+    SQLiteCpp
+    sqlite3
+  )
+
+  include(GoogleTest)
+  gtest_discover_tests(UnitTests)
+elseif(BUILD_TESTING)
+  message(STATUS "GoogleTest was not found. Add it to libs/googletest or install a GTest package to build UnitTests.")
+endif()

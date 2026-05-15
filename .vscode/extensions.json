@@ -10,7 +10,7 @@
         "jeff-hykin.better-cpp-syntax",
         "matepek.vscode-catch2-test-adapter",// Unit test
         "mcu-debug.memory-view", // Memory view
-        
+
         // Python
         "ms-python.python",
         "ms-python.vscode-pylance",
@@ -24,6 +24,7 @@
         "eamodio.gitlens",
         "shd101wyy.markdown-preview-enhanced",
         "hediet.vscode-drawio",
+        "qwtel.sqlite-viewer", // SQLite viewer
 
         // From Jixxy
         "editorconfig.editorconfig",
@@ -33,7 +34,8 @@
         "shd101wyy.markdown-preview-enhanced",
         "ms-python.vscode-pylance",
         "ms-vscode-remote.vscode-remote-extensionpack",
-        "hediet.vscode-drawio"
+        "hediet.vscode-drawio",
+
     ]
 }
 

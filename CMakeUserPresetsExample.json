@@ -14,7 +14,7 @@
     "configurePresets": [
         {
             "name": "default",
-            "displayName": "Default Config",
+            "displayName": "Default",
             "description": "Default build configuration using your local MSVC, Windows SDK, and Ninja paths.",
             "inherits": "base-default",
             "environment": {
@@ -37,7 +37,7 @@
         },
         {
             "name": "with-profiling",
-            "displayName": "With Tracy Profiling",
+            "displayName": "Tracy",
             "description": "Enable Tracy profiling using your local MSVC, Windows SDK, and Ninja paths.",
             "inherits": [
                 "base-with-profiling",
@@ -48,11 +48,47 @@
     "buildPresets": [
         {
             "name": "default",
+            "displayName": "Default",
             "configurePreset": "default"
         },
         {
             "name": "with-profiling",
+            "displayName": "Tracy",
             "configurePreset": "with-profiling"
+        },
+        {
+            "name": "unit-tests",
+            "displayName": "Unit Tests",
+            "configurePreset": "default",
+            "targets": [
+                "UnitTests"
+            ]
+        },
+        {
+            "name": "unit-tests-with-profiling",
+            "displayName": "Tracy + Unit Tests",
+            "configurePreset": "with-profiling",
+            "targets": [
+                "UnitTests"
+            ]
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "default",
+            "displayName": "CTest Default",
+            "configurePreset": "default",
+            "output": {
+                "outputOnFailure": true
+            }
+        },
+        {
+            "name": "with-profiling",
+            "displayName": "CTest Tracy",
+            "configurePreset": "with-profiling",
+            "output": {
+                "outputOnFailure": true
+            }
         }
     ]
 }

@@ -16,11 +16,13 @@
 #include "src/Common/Version.hpp"
 #include "src/Gui/Gui.hpp" //! How to make "Gui/Gui.hpp" work? 
 // #include "Gui/Gui.hpp"
+#include "src/Watchlist/SQLiteThreadWorker.hpp"
 #include "src/Utils/Concurrency/ThreadPoolManager.hpp"
 #include "src/Utils/Concurrency/AsyncEventLoop.hpp"
 
-namespace
-{
+namespace Watchlist {
+namespace {
+
 /** Returns true when the exact command-line argument is present. */
 bool HasArgument(int argc, char** argv, std::string_view argument)
 {
@@ -43,9 +45,10 @@ void WaitForTracyIfRequested(int argc, char** argv)
     LOG_INFO("Watchlist is waiting so Tracy can connect. Press Enter to exit...");
     std::cin.get();
 }
-}
 
-int main(int argc, char** argv)
+} // namespace
+
+int RunApplication(int argc, char** argv)
 try
 {
     WaitForTracyIfRequested(argc, argv);
@@ -92,18 +95,19 @@ try
         // No return needed
     });
 
-    /** Thread Pool Manager - 3.rd worker thread - For some long living future tasks.
+    /** Thread Pool Manager - 3.rd worker thread - SQLiteCpp database example.
      */
-    auto futureTBDThread = threadPool.enqueue([] {
-        PROFILE_SCOPE(ThreadPoolTBD);
-        PROFILE_MESSAGE("[TRACY][THREAD_POOL] TBD thread starts");
-        return "No implemented yet.";
+    auto SQLiteCppThread = threadPool.enqueue([] {
+        PROFILE_SCOPE(ThreadPoolSQLiteCpp);
+        PROFILE_MESSAGE("[TRACY][THREAD_POOL] SQLiteCpp thread starts");
+        run_sqlitecpp_thread_worker();
+        return "SQLiteCpp thread completed.";
     });
 
     // Testing Threads futures results
     // LOG_INFO(futureImGui.get()); // Output: Task 1 completed
     // LOG_INFO(futureAsyncIOThread.get()); // Output: Task 2 completed
-    LOG_DEBUG(futureTBDThread.get());
+    LOG_DEBUG(SQLiteCppThread.get());
 
     PROFILE_MESSAGE("[TRACY][THREAD_POOL] Done: futures returned, pool destructor will stop workers");
 
@@ -118,4 +122,11 @@ catch (...)
 {
     LOG_ERROR("Unknown error in main.");
     return EXIT_FAILURE;
+}
+
+} // namespace Watchlist
+
+int main(int argc, char** argv)
+{
+    return Watchlist::RunApplication(argc, argv);
 }
