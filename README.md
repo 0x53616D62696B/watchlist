@@ -431,8 +431,7 @@ At the moment, documenting this file is informational only. To actually use it, 
                            You cant do that with vcpkg.)
 - packaging with cpack
 - cmake workflow
-- update version with pre-commit hooks
-- Test databases and add google test library. Also test created unittests
+- Test databases
 - Populate newly created database. Is it easy to save data like this?
 
 ## Authors
