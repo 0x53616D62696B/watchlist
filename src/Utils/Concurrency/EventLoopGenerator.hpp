@@ -57,12 +57,14 @@
 namespace Concurrency {
 
 /**
- * @brief A C++23 generator-based event loop implementation.
+ * @brief A C++23 like generator-based event loop implementation.
  * 
  * This example demonstrates:
- * - Using std::generator to create an event processing pipeline
+ * - Using a C++23 like generator to create an event processing pipeline
  * - Asynchronous task scheduling with generators
  * - Event-driven programming patterns
+ * 
+ * TODO: Implement std::generator instead of custom generator for better integration with C++23 features.
  */
 class EventLoopGenerator {
 public:
@@ -73,7 +75,7 @@ public:
         std::function<void()> action;
     };
     
-    // C++23 generator for processing events
+    // C++23 like generator for processing events
     template<typename T>
     class generator {
     public:

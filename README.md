@@ -358,16 +358,7 @@ At the moment, documenting this file is informational only. To actually use it, 
 
 ## TODO
 
-- revive project
-  - add cpp 23
-- asynchronous loop within single thread for lightweight messaging
-  - client (windows) server (linux)
-  - simple messages
-  - LIBRARIES:
-    - asyncio - Boost.Asio; iNTEL tbb, hpx
-    - thread pools? or hardcoded?
-- structure for data
-- persistent server data storage - databaze?
+- add cpp 23
 - project dependancies
   - integrate with Conan (or vcpkg, but Conan is more customizable. You may create recipe for any code.
                            You cant do that with vcpkg.)
@@ -375,20 +366,8 @@ At the moment, documenting this file is informational only. To actually use it, 
 - packaging with cpack
 - cmake workflow
 - update version with pre-commit hooks
-
-### revival progress
-
-Testing with compiler MSVC (Visual Studio Build Tools) 2022 Release amd64 - compiler version 17.11.5 (_MSVC_VER 1941)
-
-- **Logger example** buildable, runable
-  - Move to apropriate place!
-  - one file is in logger_testing.cpp - not sure why it is outside
-- **Multithreading exmaple** buildable, runable
-  - move to apropriate place!
-- **Development** runable
-- **Main App**
-  - gui moved outside of utils
-  - compiler errors
+- Test databases and add google test library. Also test created unittests
+- Populate newly created database. Is it easy to save data like this?
 
 ## Authors
 
