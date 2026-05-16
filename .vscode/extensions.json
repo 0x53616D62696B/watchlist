@@ -22,20 +22,17 @@
         "aaron-bond.better-comments",
         "mhutchie.git-graph",
         "eamodio.gitlens",
-        "shd101wyy.markdown-preview-enhanced",
+        // "shd101wyy.markdown-preview-enhanced", // MD Preview - replaced by bachtv
+        "bachtv.mdx-exporter-lite", // MD Preview + PDF
+        "yzhang.markdown-all-in-one", // MD
+        "davidanson.vscode-markdownlint", // MD lint
         "hediet.vscode-drawio",
         "qwtel.sqlite-viewer", // SQLite viewer
 
         // From Jixxy
         "editorconfig.editorconfig",
         "gruntfuggly.format-modified",
-        "mhutchie.git-graph",
-        "eamodio.gitlens",
-        "shd101wyy.markdown-preview-enhanced",
-        "ms-python.vscode-pylance",
         "ms-vscode-remote.vscode-remote-extensionpack",
-        "hediet.vscode-drawio",
-
     ]
 }
 

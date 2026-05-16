@@ -434,6 +434,10 @@ At the moment, documenting this file is informational only. To actually use it, 
 - Test databases
 - Populate newly created database. Is it easy to save data like this?
 
+## Next
+
+Create server (NAS Linux) and client side (Windows)
+
 ## Authors
 
 Patrik Maraczek
