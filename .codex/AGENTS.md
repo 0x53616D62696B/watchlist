@@ -1,6 +1,7 @@
-1. When updating CmakeUserPresets.json update CmakeUserPresetsExample.json the same way. This file is being tracked by git.
+# Initial steps for Agents
 
-2. Do not update Version.hpp. It is updated automatically when cmake runs configuration.
-You may rebuild, no problem that Version.hpp is changed during any build.
-
-3. After each code change update .codex/PR_description_CURRENT_BRANCH.md with description of what have been done in current branch for Pull Request. Also create suitable title for PR. The CURRENT_BRANCH in file name will correspond to branch where changes has been made, so that changes are not mixed.
+1. Initialize submodules after swapping to new worktree.
+2. When updating CmakeUserPresets.json update CmakeUserPresetsExample.json the same way. This file is being tracked by git.
+3. Do not update Version.hpp. It is updated automatically when cmake runs configuration.
+   - You may rebuild, no problem that Version.hpp is changed during any build.
+4. After each code change update .codex/PR_description_CURRENT_BRANCH.md with description of what have been done in current branch for Pull Request. Also create suitable title for PR. The CURRENT_BRANCH in file name will correspond to branch where changes has been made, so that changes are not mixed.

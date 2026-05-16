@@ -11,9 +11,10 @@ std::string ToString(std::source_location const source)
 {
     // return std::format("{:%F %T %Z}", tp.first, tp.second, tp.third);
     //? -------------------------------------------------- test tp.first etc
-    return std::format("{}:{}:{}",
+    return std::format("{}:{}",
         // source.file_name(),
-        std::filesystem::path(source.file_name()).filename().string(), source.function_name(), source.line());
+        // std::filesystem::path(source.file_name()).filename().string(), source.function_name(), source.line());
+        std::filesystem::path(source.file_name()).filename().string(), source.line());
 
     // * format types here: https://en.cppreference.com/w/cpp/chrono/system_clock/formatter#Format_specification
 }

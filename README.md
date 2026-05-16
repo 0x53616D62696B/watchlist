@@ -197,18 +197,21 @@ See `GitVersion.yml` in the root directory for the complete configuration.
 
 ## TODO
 
-- add cpp 23
 - project dependancies
   - integrate with Conan (or vcpkg, but Conan is more customizable. You may create recipe for any code.
                            You cant do that with vcpkg.)
 - packaging with cpack
 - cmake workflow
-- Test databases
 - Populate newly created database. Is it easy to save data like this?
 
 ## Next
 
-Create server (NAS Linux) and client side (Windows)
+Create server (NAS Linux) and client side (Windows) using new concurrency.
+
+- Use generator to shoot zmq msqs to server/client.
+- await shooted events via coroutines (wait_for_event) on server/client side.
+- Perhaps mqtt library does this by default?
+- Get rid of thread which is created during Async Loop
 
 ## Authors
 
