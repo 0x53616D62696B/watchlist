@@ -2,7 +2,7 @@
     "version": 3,
     "vendor": {
         "watchlist.dev/requirements/1.0": {
-            "cmake": ">= 3.21",
+            "cmake": "3.30.9",
             "generator": "Ninja",
             "visualStudioBuildTools": "2026",
             "msvcToolset": "14.51.36231",
@@ -17,6 +17,7 @@
             "displayName": "Default Config",
             "description": "Default build configuration using VS 2026 Build Tools, Windows SDK, and Ninja paths.",
             "inherits": "base-default",
+            "cmakeExecutable": "C:/Users/patrik.maraczek/DevTools/CMake-3.30.9/bin/cmake.exe",
             "environment": {
                 "VCToolsInstallDir": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/",
                 "VCINSTALLDIR": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/",

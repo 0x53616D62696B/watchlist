@@ -3,15 +3,12 @@
     "C_Cpp.default.cppStandard": "c++23",
     "C_Cpp.default.cStandard": "c11",
     "C_Cpp.autoAddFileAssociations": false,
-    "cmake.cmakePath": "C:\\Users\\patrik.maraczek\\DevTools\\CMake-3.30.9\\bin\\cmake.exe",
-    // "cmake.generator": "Ninja", // This is duplicite and overrides presets
     "cmake.parallelJobs": 0,
     "cmake.configureOnOpen": true,
     "makefile.configureOnOpen": false,
     "[cpp]": {
         "editor.defaultFormatter": "xaver.clang-format"
     },
-    //"clang-format.executable": "c:\\LLVM\\bin\\clang-format.exe",
     "clang-format.assumeFilename": ".clang-format",
     "c-cpp-flylint.cppcheck.inconclusive": true,
     "c-cpp-flylint.flawfinder.enable": false,
@@ -33,7 +30,6 @@
         "misc-implicitlyVirtual"
     ],
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
-    "cmake.buildDirectory": "${workspaceFolder}/build/${buildType}",
     "cmake.useCMakePresets": "always",
     "cmake.buildBeforeRun": true,
 }
