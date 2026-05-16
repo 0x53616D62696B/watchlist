@@ -4,8 +4,8 @@
         "watchlist.dev/requirements/1.0": {
             "cmake": ">= 3.21",
             "generator": "Ninja",
-            "visualStudioBuildTools": "2022",
-            "msvcToolset": "14.41.34120",
+            "visualStudioBuildTools": "2026",
+            "msvcToolset": "14.51.36231",
             "windowsSdk": "10.0.26100.0",
             "tracy": "0.13.1",
             "gitVersion": "6.5.1"
@@ -15,30 +15,30 @@
         {
             "name": "default",
             "displayName": "Default Config",
-            "description": "Default build configuration using your local MSVC, Windows SDK, and Ninja paths.",
+            "description": "Default build configuration using VS 2026 Build Tools, Windows SDK, and Ninja paths.",
             "inherits": "base-default",
             "environment": {
-                "VCToolsInstallDir": "C:/Users/patrik.maraczek/DevTools/Microsoft Visual Studio/BuildTools/VC/Tools/MSVC/14.41.34120/",
-                "VCINSTALLDIR": "C:/Users/patrik.maraczek/DevTools/Microsoft Visual Studio/BuildTools/VC/",
+                "VCToolsInstallDir": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/",
+                "VCINSTALLDIR": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/",
                 "WindowsSdkDir": "C:/Program Files (x86)/Windows Kits/10/",
                 "WindowsSDKVersion": "10.0.26100.0/",
-                "PATH": "C:/Users/patrik.maraczek/DevTools/Microsoft Visual Studio/BuildTools/VC/Tools/MSVC/14.41.34120/bin/HostX64/x64;C:/Users/patrik.maraczek/DevTools/Microsoft Visual Studio/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja;C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64;$penv{PATH}",
-                "INCLUDE": "C:/Users/patrik.maraczek/DevTools/Microsoft Visual Studio/BuildTools/VC/Tools/MSVC/14.41.34120/include;C:/Users/patrik.maraczek/DevTools/Microsoft Visual Studio/BuildTools/VC/Auxiliary/VS/include;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/ucrt;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/um;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/shared;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/winrt;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/cppwinrt",
-                "LIB": "C:/Users/patrik.maraczek/DevTools/Microsoft Visual Studio/BuildTools/VC/Tools/MSVC/14.41.34120/lib/x64;C:/Program Files (x86)/Windows Kits/10/lib/10.0.26100.0/ucrt/x64;C:/Program Files (x86)/Windows Kits/10/lib/10.0.26100.0/um/x64",
-                "LIBPATH": "C:/Users/patrik.maraczek/DevTools/Microsoft Visual Studio/BuildTools/VC/Tools/MSVC/14.41.34120/lib/x64;C:/Users/patrik.maraczek/DevTools/Microsoft Visual Studio/BuildTools/VC/Tools/MSVC/14.41.34120/lib/x86/store/references;C:/Program Files (x86)/Windows Kits/10/UnionMetadata/10.0.26100.0;C:/Program Files (x86)/Windows Kits/10/References/10.0.26100.0;C:/Windows/Microsoft.NET/Framework64/v4.0.30319"
+                "PATH": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/HostX64/x64;C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja;C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64;$penv{PATH}",
+                "INCLUDE": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/include;C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Auxiliary/VS/include;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/ucrt;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/um;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/shared;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/winrt;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/cppwinrt",
+                "LIB": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/lib/x64;C:/Program Files (x86)/Windows Kits/10/lib/10.0.26100.0/ucrt/x64;C:/Program Files (x86)/Windows Kits/10/lib/10.0.26100.0/um/x64",
+                "LIBPATH": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/lib/x64;C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/lib/x86/store/references;C:/Program Files (x86)/Windows Kits/10/UnionMetadata/10.0.26100.0;C:/Program Files (x86)/Windows Kits/10/References/10.0.26100.0;C:/Windows/Microsoft.NET/Framework64/v4.0.30319"
             },
             "cacheVariables": {
-                "CMAKE_MAKE_PROGRAM": "C:/Users/patrik.maraczek/DevTools/Microsoft Visual Studio/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe",
-                "CMAKE_C_COMPILER": "C:/Users/patrik.maraczek/DevTools/Microsoft Visual Studio/BuildTools/VC/Tools/MSVC/14.41.34120/bin/HostX64/x64/cl.exe",
-                "CMAKE_CXX_COMPILER": "C:/Users/patrik.maraczek/DevTools/Microsoft Visual Studio/BuildTools/VC/Tools/MSVC/14.41.34120/bin/HostX64/x64/cl.exe",
+                "CMAKE_MAKE_PROGRAM": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe",
+                "CMAKE_C_COMPILER": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/HostX64/x64/cl.exe",
+                "CMAKE_CXX_COMPILER": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/HostX64/x64/cl.exe",
                 "CMAKE_RC_COMPILER": "C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/rc.exe",
                 "CMAKE_MT": "C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/mt.exe"
             }
         },
         {
             "name": "with-profiling",
-            "displayName": "With Tracy Profiling",
-            "description": "Enable Tracy profiling using your local MSVC, Windows SDK, and Ninja paths.",
+            "displayName": "Tracy Profiling",
+            "description": "Enable Tracy profiling using VS 2026 Build Tools, Windows SDK, and Ninja paths.",
             "inherits": [
                 "base-with-profiling",
                 "default"

@@ -1,6 +1,26 @@
 # Set C++ standard
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED OFF)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# include(CheckCXXSourceCompiles)
+# check_cxx_source_compiles("
+# #include <generator>
+
+# std::generator<int> values()
+# {
+#   co_yield 1;
+# }
+
+# int main()
+# {
+#   auto generated = values();
+#   return *generated.begin();
+# }
+# " WATCHLIST_HAS_STD_GENERATOR)
+
+# if(NOT WATCHLIST_HAS_STD_GENERATOR)
+#   message(FATAL_ERROR "This project requires C++23 std::generator support. Update the compiler/STL toolchain or use one that provides <generator>.")
+# endif()
 
 # ccache
 find_program(CCACHE_FOUND ccache)

@@ -1,6 +1,6 @@
 {
     //* C++
-    "C_Cpp.default.cppStandard": "c++20",
+    "C_Cpp.default.cppStandard": "c++23",
     "C_Cpp.default.cStandard": "c11",
     "C_Cpp.autoAddFileAssociations": false,
     "cmake.cmakePath": "C:\\Users\\patrik.maraczek\\DevTools\\CMake-3.30.9\\bin\\cmake.exe",
