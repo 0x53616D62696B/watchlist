@@ -219,40 +219,4 @@ inline void ThreadPoolManager::workerThread() {
     }
 }
 
-void example_thread_pool_manager() {
-    PROFILE_FUNCTION;
-    PROFILE_MESSAGE("[TRACY][THREAD_POOL_EXAMPLE] Start: create pool, enqueue two sleeping tasks, wait on futures");
-
-    PROFILE_SCOPE(ThreadPoolExampleLifetime);
-    ThreadPoolManager threadPool(3); // Create a thread pool with 3 threads.
-
-    // Example: Enqueue tasks
-    auto future1 = threadPool.enqueue([] {
-        PROFILE_SCOPE(ThreadPoolExampleTaskOneWait1s);
-        PROFILE_MESSAGE("[TRACY][THREAD_POOL_EXAMPLE] Task 1 simulates work for 1 second");
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        return "Task 1 completed";
-    });
-
-    auto future2 = threadPool.enqueue([] {
-        PROFILE_SCOPE(ThreadPoolExampleTaskTwoWait2s);
-        PROFILE_MESSAGE("[TRACY][THREAD_POOL_EXAMPLE] Task 2 simulates work for 2 seconds");
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-        return "Task 2 completed";
-    });
-
-    // Retrieve results
-    {
-        PROFILE_SCOPE(ThreadPoolExampleWaitTaskOneFuture);
-        PROFILE_MESSAGE("[TRACY][THREAD_POOL_EXAMPLE] Main thread waits for task 1 result");
-        LOG_INFO(future1.get()); // Output: Task 1 completed
-    }
-    {
-        PROFILE_SCOPE(ThreadPoolExampleWaitTaskTwoFuture);
-        PROFILE_MESSAGE("[TRACY][THREAD_POOL_EXAMPLE] Main thread waits for task 2 result");
-        LOG_INFO(future2.get()); // Output: Task 2 completed
-    }
-
-    PROFILE_MESSAGE("[TRACY][THREAD_POOL_EXAMPLE] Done: futures returned, pool destructor will stop workers");
-}
 } // namespace Concurrency

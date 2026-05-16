@@ -189,44 +189,4 @@ private:
 };
 
 
-/* Example usage:
-
-
-*/
-int example_eloop_gen() {
-    PROFILE_FUNCTION;
-    PROFILE_MESSAGE("[TRACY][ELOOP_GEN_EXAMPLE] Start: schedule one event, create lazy event generator, process generated events");
-
-    PROFILE_SCOPE(EventLoopGeneratorExampleLifetime);
-    EventLoopGenerator event_loop;
-    
-    // Schedule individual events
-    event_loop.schedule_event("Single Task", []() {
-        PROFILE_SCOPE(EventLoopGeneratorExampleSingleTask);
-        PROFILE_MESSAGE("[TRACY][ELOOP_GEN_EXAMPLE] Single queued task executes on the event-loop worker");
-        LOG_INFO("Executing single task");
-    });
-    
-    // Generate and process a sequence of events
-    auto event_gen = event_loop.event_generator(5, "Sequential Task", [](int i) {
-        PROFILE_SCOPE(EventLoopGeneratorExampleSequentialTask);
-        PROFILE_MESSAGE("[TRACY][ELOOP_GEN_EXAMPLE] Generated task body executes after producer schedules it");
-        LOG_INFO(std::format("Executing sequential task step {}", i));
-    });
-    
-    LOG_INFO("Events initiated.");
-    event_loop.process_event_sequence(std::move(event_gen));
-    
-    // Keep the event loop running
-    {
-        PROFILE_SCOPE(EventLoopGeneratorExampleObserveAsyncWork);
-        PROFILE_MESSAGE("[TRACY][ELOOP_GEN_EXAMPLE] Main thread sleeps while producer and worker threads run");
-        std::this_thread::sleep_for(std::chrono::seconds(3));
-    }
-
-    PROFILE_MESSAGE("[TRACY][ELOOP_GEN_EXAMPLE] Done: event loop destructor will stop the worker");
-    return 0;
-}
-
-
 } // namespace Concurrency

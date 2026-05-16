@@ -225,38 +225,4 @@ private:
     bool running_;
 };
 
-// Example usage:
-
-int example_eloop_coro() {
-    PROFILE_FUNCTION;
-    PROFILE_MESSAGE("[TRACY][ELOOP_CORO_EXAMPLE] Start: create loop, schedule two delayed coroutines, wait while worker resumes them");
-
-    PROFILE_SCOPE(EventLoopCoroutineExampleLifetime);
-    EventLoopCoroutine event_loop;
-    
-    // Schedule tasks with different delays
-    event_loop.schedule_after(std::chrono::milliseconds(1000), []() {
-        PROFILE_SCOPE(EventLoopCoroutineExampleOneSecondTask);
-        PROFILE_MESSAGE("[TRACY][ELOOP_CORO_EXAMPLE] One-second coroutine resumed and task body executes");
-        LOG_INFO("Task executed after 1 second");
-    });
-    
-    event_loop.schedule_after(std::chrono::milliseconds(500), []() {
-        PROFILE_SCOPE(EventLoopCoroutineExampleHalfSecondTask);
-        PROFILE_MESSAGE("[TRACY][ELOOP_CORO_EXAMPLE] Half-second coroutine resumed and task body executes");
-        LOG_INFO("Task executed after 500ms");
-    });
-    
-    // Keep the event loop running
-    {
-        PROFILE_SCOPE(EventLoopCoroutineExampleObserveDelayedTasks);
-        PROFILE_MESSAGE("[TRACY][ELOOP_CORO_EXAMPLE] Main thread sleeps while the event-loop worker resumes delayed coroutines");
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-    }
-
-    PROFILE_MESSAGE("[TRACY][ELOOP_CORO_EXAMPLE] Done: event loop destructor will stop the worker");
-    return 0;
-}
-
-
 } // namespace Concurrency
