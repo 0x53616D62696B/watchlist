@@ -45,10 +45,10 @@
 #include <mutex>
 #include <condition_variable>
 #include <chrono>
+#include <generator>
 #include <memory>
 #include <ranges>
 #include <optional>
-#include <coroutine>
 #include <format>
 
 #include "src/Utils/Logger/Logger.hpp"
@@ -71,115 +71,6 @@ public:
         int id;
         std::string name;
         std::function<void()> action;
-    };
-    
-    // C++23 generator for processing events
-    template<typename T>
-    class generator {
-    public:
-        struct promise_type {
-            T current_value;
-            
-            generator get_return_object() {
-                return generator{std::coroutine_handle<promise_type>::from_promise(*this)};
-            }
-            
-            std::suspend_always initial_suspend() noexcept { return {}; }
-            std::suspend_always final_suspend() noexcept { return {}; }
-            
-            std::suspend_always yield_value(T value) {
-                current_value = std::move(value);
-                return {};
-            }
-            
-            void return_void() {}
-            
-            void unhandled_exception() {
-                std::terminate();
-            }
-        };
-        
-        generator(std::coroutine_handle<promise_type> handle) : handle_(handle) {}
-        
-        ~generator() {
-            if (handle_) handle_.destroy();
-        }
-        
-        // Non-copyable
-        generator(const generator&) = delete;
-        generator& operator=(const generator&) = delete;
-        
-        // Movable
-        generator(generator&& other) noexcept : handle_(other.handle_) {
-            other.handle_ = {};
-        }
-        
-        generator& operator=(generator&& other) noexcept {
-            if (this != &other) {
-                if (handle_) handle_.destroy();
-                handle_ = other.handle_;
-                other.handle_ = {};
-            }
-            return *this;
-        }
-        
-        class iterator {
-        public:
-            using iterator_category = std::input_iterator_tag;
-            using value_type = T;
-            using difference_type = std::ptrdiff_t;
-            using pointer = T*;
-            using reference = T&;
-            
-            iterator() = default;
-            explicit iterator(std::coroutine_handle<promise_type> handle) : handle_(handle) {
-                if (handle_ && !handle_.done()) {
-                    handle_.resume();
-                }
-            }
-            
-            reference operator*() const {
-                return handle_.promise().current_value;
-            }
-            
-            iterator& operator++() {
-                if (handle_ && !handle_.done()) {
-                    handle_.resume();
-                }
-                return *this;
-            }
-            
-            iterator operator++(int) {
-                iterator tmp = *this;
-                ++(*this);
-                return tmp;
-            }
-            
-            bool operator==(const iterator& other) const {
-                if (handle_.done() && (!other.handle_ || other.handle_.done())) {
-                    return true;
-                }
-                return handle_.address() == other.handle_.address();
-            }
-            
-            bool operator!=(const iterator& other) const {
-                return !(*this == other);
-            }
-            
-        private:
-            std::coroutine_handle<promise_type> handle_{};
-        };
-        
-        iterator begin() {
-            return iterator{handle_};
-        }
-        
-        iterator end() {
-            return {};
-        }
-        
-    private:
-        std::coroutine_handle<promise_type> handle_;
     };
     
     EventLoopGenerator() : running_(true) {
@@ -218,7 +109,7 @@ public:
     }
     
     // Generate events based on a pattern
-    generator<Event> event_generator(int count, const std::string& pattern_name, 
+    std::generator<Event> event_generator(int count, const std::string& pattern_name, 
                                     std::function<void(int)> pattern_action) {
         PROFILE_MESSAGE("[TRACY][ELOOP_GEN] Generator coroutine starts yielding events lazily");
         for (int i = 0; i < count; ++i) {
@@ -242,7 +133,7 @@ public:
     }
     
     // Process events from the generator
-    void process_event_sequence(generator<Event>&& gen) {
+    void process_event_sequence(std::generator<Event>&& gen) {
         PROFILE_FUNCTION;
         PROFILE_MESSAGE("[TRACY][ELOOP_GEN] Start producer thread: pull generator values and schedule them");
         std::thread([this, gen = std::move(gen)]() mutable {
