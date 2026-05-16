@@ -15,9 +15,9 @@ The project follows [Semantic Versioning 2.0.0](https://semver.org/) with prerel
 Examples:
 
 ```text
-1.2.4-1
+1.2.4
+1.2.4-beta.1
 1.2.4-search.1
-1.2.4-PullRequest123.1
 1.2.4-random-random-name.1
 ```
 
@@ -37,27 +37,46 @@ workflow: TrunkBased/preview1
 
 In GitVersion 6 this enables the `Mainline` strategy. Mainline walks the commits on the main branch and applies version increments from merge commits and commit messages.
 
-The main branch is also configured as `ContinuousDelivery`:
+The main branch uses the trunk-based workflow default, which is `ContinuousDeployment`:
 
 ```yaml
 branches:
   main:
-    mode: ContinuousDelivery
     label: ''
     increment: Patch
 ```
 
-This means untagged commits on `main` keep a numeric prerelease suffix, for example `1.2.4-1`. A tag marks the stable released version, for example `v1.2.4`.
+This means `main` shows the inferred mainline version without a prerelease suffix, for example `1.2.4`. A tag still marks the stable released version explicitly, for example `v1.2.4`.
+
+Release branches use `ContinuousDelivery` with a `beta` label and no automatic increment:
+
+```yaml
+branches:
+  release:
+    mode: ContinuousDelivery
+    label: beta
+    increment: None
+```
+
+This is where prerelease numbers are useful. A release branch keeps the target version stable while each commit produces the next beta build, for example `1.2.4-beta.1`, `1.2.4-beta.2`, and `1.2.4-beta.3`.
+
+For example, this repository's `release/0.2.3_versioning` branch currently resolves to:
+
+```text
+0.2.3-beta.3
+```
+
+That means the branch is stabilizing version `0.2.3`, and the current commit is the third beta build since the version source.
 
 ## Branch Strategy
 
-- `main` / `master`: trunk-based mainline branch, patch by default, numeric prerelease suffix while untagged.
-- `feature/...`: continuous delivery branch with the branch name as the prerelease label.
-- `release/...`: manual deployment branch with the `beta` prerelease label.
-- `pr/...`, `pull/...`, `pull-request/...`: continuous delivery branch with a `PullRequest{Number}` label.
+- `main` / `master`: trunk-based mainline branch, patch by default, no prerelease suffix.
+- `feature/...`: continuous delivery branch with the branch name as the prerelease label and no automatic increment.
+- `bugfix/...`: continuous delivery branch with the branch name as the prerelease label and no automatic increment.
+- `release/...`: continuous delivery branch with the `beta` prerelease label and no automatic version increment.
 - Any other branch name: handled by the `unknown` fallback rule.
 
-Branch names matter because they select the branch rule in `GitVersion.yml`.
+Branch names matter because they select the branch rule in `GitVersion.yml`. Some rules, such as `pull-request` and `hotfix`, may also appear in `dotnet-gitversion /showconfig` because they come from the built-in `TrunkBased/preview1` workflow defaults.
 
 ## Version Increments
 
@@ -86,13 +105,13 @@ On the tagged commit, GitVersion reports the stable version:
 1.2.4
 ```
 
-The next untagged main commit then starts a new prerelease candidate:
+The next main commit then starts the next inferred mainline version:
 
 ```text
-1.2.5-1
+1.2.5
 ```
 
-Without a tag, GitVersion continues to calculate prerelease versions from the latest version source.
+Without a tag, GitVersion continues to infer mainline versions from the latest version source and mainline history.
 
 ## Example Version Flow
 
@@ -102,19 +121,33 @@ Commits or merge commits on `main`:
 
 ```text
 main commit: Fix typo
-version: 1.2.4-1
+version: 1.2.4
 
 main commit: Add cache +semver: minor
-version: 1.3.0-1
+version: 1.3.0
 
 main commit: Fix cache invalidation
-version: 1.3.1-1
+version: 1.3.1
 
 tag: v1.3.1
 version on tagged commit: 1.3.1
 
 next main commit: Update docs
-version: 1.3.2-1
+version: 1.3.2
+```
+
+Commits on `release/*` branches:
+
+```text
+branch: release/1.3.1
+commit: Prepare release notes
+version: 1.3.1-beta.1
+
+commit: Fix package metadata
+version: 1.3.1-beta.2
+
+tag: v1.3.1
+version on tagged commit: 1.3.1
 ```
 
 Commits on `feature/*` branches:
@@ -128,7 +161,18 @@ commit: Add fuzzy matching +semver: minor
 version: 1.3.0-search.2
 ```
 
-The feature branch label comes from the part after `feature/`. The prerelease number increases automatically as more commits are added to that branch.
+The feature branch label comes from the part after `feature/`. The prerelease number increases automatically as more commits are added to that branch. The branch itself uses `increment: None`; use `+semver: minor` or `+semver: major` when the feature branch should preview a larger version line.
+
+Commits on `bugfix/*` branches:
+
+```text
+branch: bugfix/startup-crash
+commit: Reproduce startup crash
+version: 1.2.4-startup-crash.1
+
+commit: Fix startup crash
+version: 1.2.4-startup-crash.2
+```
 
 Commits on branches that do not match a named branch rule, such as `random/random_name`:
 
@@ -143,7 +187,7 @@ version: 1.2.4-random-random-name.1
 
 These branches use the `unknown` rule, which is `ManualDeployment`. The full informational version still includes branch and commit metadata, but the prerelease number is not meant to behave like a normal feature-branch build counter.
 
-Prefer `feature/...`, `release/...`, or `pr/...` names when the branch is intended for normal project work.
+Prefer `feature/...`, `release/...`, or `bugfix/...` names when the branch is intended for normal project work.
 
 ## Unknown Branch Rule
 
@@ -153,11 +197,11 @@ The `unknown` rule is the fallback for branch names that do not match any earlie
 unknown:
   mode: ManualDeployment
   label: '{BranchName}'
-  increment: Inherit
+  increment: None
   regex: (?<BranchName>.+)
 ```
 
-For example, `random/random_name` does not match `main`, `feature/...`, `release/...`, or `pr/...`, so GitVersion handles it as `unknown`.
+For example, `random/random_name` does not match `main`, `feature/...`, `bugfix/...` or `release/...`, so GitVersion handles it as `unknown`.
 
 The regular expression captures the whole branch name as `BranchName`. GitVersion sanitizes it for SemVer output:
 
@@ -175,21 +219,17 @@ For `unknown`:
 
 ```yaml
 unknown:
-  increment: Inherit
+  increment: None
   source-branches:
   - main
   - release
   - feature
-  - pull-request
+  - bugfix
 ```
 
-Because `unknown` uses `increment: Inherit`, GitVersion needs to answer:
+`source-branches` still matters even though `unknown` uses `increment: None`. GitVersion uses it while finding the branch point and choosing the best version source for the unmatched branch.
 
-```text
-Inherit from what?
-```
-
-`source-branches` narrows the possible answers. It tells GitVersion that an unmatched branch may have been branched from `main`, `release`, `feature`, or `pull-request`.
+It tells GitVersion that an unmatched branch may have been branched from `main`, `release`, `feature`, or `bugfix`.
 
 Example:
 

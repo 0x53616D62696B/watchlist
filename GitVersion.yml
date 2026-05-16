@@ -1,7 +1,6 @@
 workflow: TrunkBased/preview1
 branches:
   main:
-    mode: ContinuousDelivery
     label: ''
     increment: Patch
     prevent-increment:
@@ -16,9 +15,9 @@ branches:
     is-main-branch: true
     pre-release-weight: 55000
   release:
-    mode: ManualDeployment
+    mode: ContinuousDelivery
     label: beta
-    increment: Patch
+    increment: None
     prevent-increment:
       of-merged-branch: true
       when-branch-merged: false
@@ -36,7 +35,7 @@ branches:
   feature:
     mode: ContinuousDelivery
     label: '{BranchName}'
-    increment: Inherit
+    increment: None
     prevent-increment:
       when-current-commit-tagged: false
     track-merge-message: true
@@ -47,25 +46,25 @@ branches:
     is-source-branch-for: []
     is-main-branch: false
     pre-release-weight: 30000
-  pull-request:
+  bugfix:
     mode: ContinuousDelivery
-    label: PullRequest{Number}
-    increment: Inherit
+    label: '{BranchName}'
+    increment: None
     prevent-increment:
-      of-merged-branch: true
       when-current-commit-tagged: false
     track-merge-message: true
-    regex: ^(pull-requests|pull|pr)[\/-](?<Number>\d*)
+    regex: ^bugfix[\/-](?<BranchName>.+)
     source-branches:
     - main
     - release
     - feature
     is-source-branch-for: []
+    is-main-branch: false
     pre-release-weight: 30000
   unknown:
     mode: ManualDeployment
     label: '{BranchName}'
-    increment: Inherit
+    increment: None
     prevent-increment:
       when-current-commit-tagged: false
     track-merge-message: false
@@ -74,6 +73,6 @@ branches:
     - main
     - release
     - feature
-    - pull-request
+    - bugfix
     is-source-branch-for: []
     is-main-branch: false
