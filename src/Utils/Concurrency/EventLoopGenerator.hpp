@@ -1,38 +1,34 @@
 /**
  * @file EventLoopGenerator.hpp
- * @brief Implementation of an event loop using C++23 generators
+ * @brief Implementation of an event loop using C++23 std::generator.
  * 
- * This file provides a generator-based event loop implementation that allows for:
- * - Creating streams of events that can be processed sequentially
- * - Lazy evaluation of event sequences
- * - Compositional event processing pipelines
+ * This file provides a generator-based event loop example that:
+ * - Creates a lazy stream of events with std::generator<Event>
+ * - Pulls generated events from a producer thread
+ * - Schedules pulled events onto a worker-thread event queue
  * 
- * The implementation leverages C++23 generators to create an elegant and
- * efficient event processing system. Key components include:
+ * The implementation relies on the C++23 standard library generator instead of
+ * maintaining custom coroutine promise/iterator machinery in this project.
+ * Key components include:
  * 
  * - EventLoopGenerator: Main class that processes event streams
  * - Event: Represents a discrete occurrence to be processed
- * - Generator adapters: Functions that transform, filter, or combine event streams
+ * - event_generator(): Lazily yields a sequence of generated events
+ * - process_event_sequence(): Consumes a generator and schedules its events
  * 
  * Usage example:
  * ```cpp
  * EventLoopGenerator loop;
  * 
- * // Create an event generator
- * auto timeEvents = loop.createTimerEvents(100ms);
- * 
- * // Process events from the generator
- * loop.process(timeEvents, [](const Event& event) {
- *     LOG_INFO(std::format("Processing event at {}", event.timestamp));
+ * auto events = loop.event_generator(5, "Sequential Task", [](int i) {
+ *     LOG_INFO(std::format("Executing sequential task step {}", i));
  * });
  * 
- * // Run the event loop
- * loop.run();
+ * loop.process_event_sequence(std::move(events));
  * ```
  * 
- * The generator approach allows for elegant composition of event sources and
- * provides a pull-based model for event processing that can be more efficient
- * for certain types of applications.
+ * std::generator is single-pass and lazy: events are produced only as the
+ * producer thread iterates the sequence.
  */
 
 #pragma once
@@ -45,10 +41,10 @@
 #include <mutex>
 #include <condition_variable>
 #include <chrono>
+#include <generator>
 #include <memory>
 #include <ranges>
 #include <optional>
-#include <coroutine>
 #include <format>
 
 #include "src/Utils/Logger/Logger.hpp"
@@ -57,11 +53,12 @@
 namespace Concurrency {
 
 /**
- * @brief A C++23 like generator-based event loop implementation.
+ * @brief A C++23 std::generator-based event loop implementation.
  * 
  * This example demonstrates:
- * - Using a C++23 like generator to create an event processing pipeline
- * - Asynchronous task scheduling with generators
+ * - Using std::generator to create an event processing pipeline
+ * - Lazy event production on a producer thread
+ * - Asynchronous task scheduling on a worker thread
  * - Event-driven programming patterns
  * 
  * TODO: Implement std::generator instead of custom generator for better integration with C++23 features.
@@ -73,115 +70,6 @@ public:
         int id;
         std::string name;
         std::function<void()> action;
-    };
-    
-    // C++23 like generator for processing events
-    template<typename T>
-    class generator {
-    public:
-        struct promise_type {
-            T current_value;
-            
-            generator get_return_object() {
-                return generator{std::coroutine_handle<promise_type>::from_promise(*this)};
-            }
-            
-            std::suspend_always initial_suspend() noexcept { return {}; }
-            std::suspend_always final_suspend() noexcept { return {}; }
-            
-            std::suspend_always yield_value(T value) {
-                current_value = std::move(value);
-                return {};
-            }
-            
-            void return_void() {}
-            
-            void unhandled_exception() {
-                std::terminate();
-            }
-        };
-        
-        generator(std::coroutine_handle<promise_type> handle) : handle_(handle) {}
-        
-        ~generator() {
-            if (handle_) handle_.destroy();
-        }
-        
-        // Non-copyable
-        generator(const generator&) = delete;
-        generator& operator=(const generator&) = delete;
-        
-        // Movable
-        generator(generator&& other) noexcept : handle_(other.handle_) {
-            other.handle_ = {};
-        }
-        
-        generator& operator=(generator&& other) noexcept {
-            if (this != &other) {
-                if (handle_) handle_.destroy();
-                handle_ = other.handle_;
-                other.handle_ = {};
-            }
-            return *this;
-        }
-        
-        class iterator {
-        public:
-            using iterator_category = std::input_iterator_tag;
-            using value_type = T;
-            using difference_type = std::ptrdiff_t;
-            using pointer = T*;
-            using reference = T&;
-            
-            iterator() = default;
-            explicit iterator(std::coroutine_handle<promise_type> handle) : handle_(handle) {
-                if (handle_ && !handle_.done()) {
-                    handle_.resume();
-                }
-            }
-            
-            reference operator*() const {
-                return handle_.promise().current_value;
-            }
-            
-            iterator& operator++() {
-                if (handle_ && !handle_.done()) {
-                    handle_.resume();
-                }
-                return *this;
-            }
-            
-            iterator operator++(int) {
-                iterator tmp = *this;
-                ++(*this);
-                return tmp;
-            }
-            
-            bool operator==(const iterator& other) const {
-                if (handle_.done() && (!other.handle_ || other.handle_.done())) {
-                    return true;
-                }
-                return handle_.address() == other.handle_.address();
-            }
-            
-            bool operator!=(const iterator& other) const {
-                return !(*this == other);
-            }
-            
-        private:
-            std::coroutine_handle<promise_type> handle_{};
-        };
-        
-        iterator begin() {
-            return iterator{handle_};
-        }
-        
-        iterator end() {
-            return {};
-        }
-        
-    private:
-        std::coroutine_handle<promise_type> handle_;
     };
     
     EventLoopGenerator() : running_(true) {
@@ -220,7 +108,7 @@ public:
     }
     
     // Generate events based on a pattern
-    generator<Event> event_generator(int count, const std::string& pattern_name, 
+    std::generator<Event> event_generator(int count, const std::string& pattern_name, 
                                     std::function<void(int)> pattern_action) {
         PROFILE_MESSAGE("[TRACY][ELOOP_GEN] Generator coroutine starts yielding events lazily");
         for (int i = 0; i < count; ++i) {
@@ -244,7 +132,7 @@ public:
     }
     
     // Process events from the generator
-    void process_event_sequence(generator<Event>&& gen) {
+    void process_event_sequence(std::generator<Event>&& gen) {
         PROFILE_FUNCTION;
         PROFILE_MESSAGE("[TRACY][ELOOP_GEN] Start producer thread: pull generator values and schedule them");
         std::thread([this, gen = std::move(gen)]() mutable {
