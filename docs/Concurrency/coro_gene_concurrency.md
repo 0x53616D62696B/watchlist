@@ -180,7 +180,7 @@ std::vector<int> numbers() {
 A generator yields one value at a time:
 
 ```cpp
-Generator<int> numbers() {
+std::generator<int> numbers() {
     co_yield 1;
     co_yield 2;
     co_yield 3;
@@ -245,7 +245,7 @@ Worker thread executes actions
 A small conceptual example:
 
 ```cpp
-Generator<int> ticks() {
+std::generator<int> ticks() {
     for (int i = 0; i < 3; ++i) {
         co_yield i;
     }
@@ -274,10 +274,10 @@ EventLoopCoroutine
   -> timer-based coroutine scheduler
 
 EventLoopGenerator
-  -> generator produces events, event loop processes queued actions
+  -> std::generator produces events, event loop processes queued actions
 
 AsyncEventLoop
-  -> hybrid: timers + event waiters + generated event streams
+  -> hybrid: timers + event waiters + local generator-based event streams
 ```
 
 ## ThreadPoolManager
@@ -556,7 +556,9 @@ Holding or destroying handles after that point needs great care.
 
 File: `src/Utils/Concurrency/EventLoopGenerator.hpp`
 
-This is a generator plus event queue example.
+This is a `std::generator` plus event queue example. The current implementation
+uses the C++23 standard library generator instead of maintaining a custom
+`promise_type`, coroutine handle, and iterator inside this class.
 
 It has an event type:
 
@@ -568,33 +570,37 @@ struct Event {
 };
 ```
 
-The custom `generator<T>` starts suspended:
+The event stream type is now:
 
 ```cpp
-std::suspend_always initial_suspend()
+std::generator<Event>
 ```
 
-That means creating the generator does not immediately run its body.
+`std::generator` is lazy and single-pass. Creating the generator object does not
+produce all events immediately. Events are produced only when the consumer
+iterates the generator.
 
 ```cpp
 auto gen = event_loop.event_generator(...);
 ```
 
-At this point, no events have been produced yet.
+At this point, no generated events have been pulled yet.
 
-The iterator resumes the coroutine:
-
-```cpp
-handle_.resume();
-```
-
-`co_yield` stores the current event:
+The coroutine body resumes as the producer thread iterates:
 
 ```cpp
-current_value = std::move(value);
+for (const auto& event : gen) {
+    schedule_event(event.name, event.action);
+}
 ```
 
-and suspends.
+Inside `event_generator()`, each `co_yield` hands one `Event` to the
+`std::generator` machinery and suspends until the next iteration step.
+
+```cpp
+Event event{i, name, action};
+co_yield event;
+```
 
 ```text
 producer thread:
@@ -651,8 +657,9 @@ the worker thread.
 action.
 
 This manager is not really coroutine async in the `co_await timer` sense. Its
-generator is coroutine-powered, but actual asynchronous execution comes from
-`std::thread`, `std::mutex`, `std::condition_variable`, and the event queue.
+event stream is coroutine-powered through `std::generator`, but actual
+asynchronous execution comes from `std::thread`, `std::mutex`,
+`std::condition_variable`, and the event queue.
 
 One important note: `process_event_sequence()` uses a detached thread. Detached
 threads are easy for examples, but dangerous in production because the object can
@@ -669,7 +676,7 @@ It combines:
 ```text
 Delay awaitable       -> resume after time
 EventAwaiter          -> resume when named event is emitted
-Generator<Event>      -> produce event stream lazily
+Generator<Event>      -> local custom generator type that produces event streams lazily
 pending_handles_      -> coroutines ready to resume
 worker_thread_        -> central scheduler
 ```
@@ -906,10 +913,22 @@ handle.resume();
 Means "do not suspend here." Used in the `Task` promise for immediate start and
 automatic final continuation.
 
+`std::generator`
+
+Used by `EventLoopGenerator` for lazy, single-pass event streams. It removes the
+need for this class to define custom generator coroutine machinery such as
+`promise_type`, iterator handling, and direct `std::coroutine_handle` ownership.
+
+```cpp
+std::generator<Event> event_generator(...);
+```
+
 `std::suspend_always`
 
-Means "always suspend here." Used in generators so they start lazily and pause
-after yielding.
+Means "always suspend here." The repository still uses this directly in the
+local `AsyncEventLoop::Generator` implementation. `EventLoopGenerator` now gets
+this kind of behavior from `std::generator` instead of spelling out the
+coroutine machinery itself.
 
 `std::variant`
 
@@ -944,11 +963,11 @@ EventLoopCoroutine
 
 EventLoopGenerator
   lazy streams:
-  generator produces events one at a time, producer schedules them
+  std::generator produces events one at a time, producer schedules them
 
 AsyncEventLoop
   reactive async:
-  coroutines wait for time or named events; generator emits event streams
+  coroutines wait for time or named events; its local generator emits event streams
 ```
 
 The most important conceptual distinction:
