@@ -60,6 +60,8 @@ namespace Concurrency {
  * - Lazy event production on a producer thread
  * - Asynchronous task scheduling on a worker thread
  * - Event-driven programming patterns
+ * 
+ * TODO: Implement std::generator instead of custom generator for better integration with C++23 features.
  */
 class EventLoopGenerator {
 public:

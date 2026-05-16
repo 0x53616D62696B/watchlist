@@ -23,6 +23,73 @@ Full Tracy installation and usage details are in the upstream [Documentation](ht
 
 See [docs/DevelopmentEnvironment.md](docs/DevelopmentEnvironment.md) for the required tool versions and CMake presets. Local builds require an ignored `CMakeUserPresets.json`; create it from `CMakeUserPresetsExample.json`.
 
+## Testing with GoogleTest and CTest
+
+This project uses GoogleTest for C++ unit-test assertions and CTest as the CMake test runner.
+
+- GoogleTest: the test framework used in files such as `tests/UnitTests/Storage/SQLiteDatabaseTests.cpp`.
+- CTest: the runner that executes built test binaries from a CMake build directory.
+
+### Install GoogleTest
+
+Add GoogleTest to:
+
+```text
+libs/googletest
+```
+
+Recommended setup from the repository root:
+
+```powershell
+git submodule add https://github.com/google/googletest.git libs/googletest
+git submodule update --init --recursive
+```
+
+Alternatively, install a system/package-manager version that provides the CMake target `GTest::gtest_main`.
+
+### Configure and Build Unit Tests
+
+Default configuration:
+
+```powershell
+cmake --preset default
+cmake --build --preset unit-tests
+```
+
+Tracy configuration:
+
+```powershell
+cmake --preset with-profiling
+cmake --build --preset unit-tests-with-profiling
+```
+
+Both unit-test build presets build the `UnitTests` target. If GoogleTest is missing, CMake will configure successfully but print:
+
+```text
+GoogleTest was not found. Add it to libs/googletest or install a GTest package to build UnitTests.
+```
+
+### Run Unit Tests with CTest
+
+Run tests from the default build directory:
+
+```powershell
+ctest --test-dir build/default --output-on-failure
+```
+
+Run tests from the profiling build directory:
+
+```powershell
+ctest --test-dir build/profiling --output-on-failure
+```
+
+You can also use the CMake test presets:
+
+```powershell
+ctest --preset default
+ctest --preset with-profiling
+```
+
 ## Versioning System
 
 This project uses [GitVersion](https://gitversion.net/) for automatic semantic versioning based on Git history and commits.
@@ -358,37 +425,14 @@ At the moment, documenting this file is informational only. To actually use it, 
 
 ## TODO
 
-- revive project
-  - add cpp 23
-- asynchronous loop within single thread for lightweight messaging
-  - client (windows) server (linux)
-  - simple messages
-  - LIBRARIES:
-    - asyncio - Boost.Asio; iNTEL tbb, hpx
-    - thread pools? or hardcoded?
-- structure for data
-- persistent server data storage - databaze?
+- add cpp 23
 - project dependancies
   - integrate with Conan (or vcpkg, but Conan is more customizable. You may create recipe for any code.
                            You cant do that with vcpkg.)
-- testing v ctest
 - packaging with cpack
 - cmake workflow
-- update version with pre-commit hooks
-
-### revival progress
-
-Testing with compiler MSVC (Visual Studio Build Tools) 2022 Release amd64 - compiler version 17.11.5 (_MSVC_VER 1941)
-
-- **Logger example** buildable, runable
-  - Move to apropriate place!
-  - one file is in logger_testing.cpp - not sure why it is outside
-- **Multithreading exmaple** buildable, runable
-  - move to apropriate place!
-- **Development** runable
-- **Main App**
-  - gui moved outside of utils
-  - compiler errors
+- Test databases
+- Populate newly created database. Is it easy to save data like this?
 
 ## Authors
 
