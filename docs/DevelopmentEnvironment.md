@@ -14,16 +14,19 @@ If `CMakeUserPresets.json` is missing, CMake stops with a development environmen
 
 | Tool | Version | Notes |
 | --- | --- | --- |
-| CMake | 3.21 or newer; last known working version 3.30.9 | Required by `CMakeLists.txt`. |
+| CMake | 3.30.9 | Selected by `cmakeExecutable` in the user presets. |
 | Ninja | bundled with Visual Studio Build Tools | Used by the CMake presets. |
-| Visual Studio Build Tools | 2022 | Required for the documented Windows MSVC build. |
-| Visual Studio Developer Command Prompt | 2022 v17.11.5 | Last known working command prompt version. |
-| MSVC compiler | 19.41.34123 for x64 | Last known working compiler version. |
-| MSVC toolset path | 14.41.34120 | Used in the preset path example. |
+| Visual Studio Build Tools | 2026 | Required for the documented Windows MSVC build. |
+| Visual Studio Developer Command Prompt | 2026 | Recommended when launching VS Code outside of the preset environment. |
+| MSVC compiler | 19.51.36243 for x64 | Required for C++23 standard library support used by the concurrency examples. |
+| MSVC toolset path | 14.51.36231 | Used in the preset path example. |
 | Windows SDK | 10.0.26100.0 | Used in the preset path example. |
 | Tracy | 0.13.1 | Vendored under `libs/tracy`. |
 | .NET SDK | compatible with GitVersion.Tool 6.5.1 | Required to install GitVersion as a .NET global tool. |
 | GitVersion | 6.5.1 | Required for automatic version metadata. |
+
+The project requests C++23. `EventLoopGenerator` uses `std::generator`, so older MSVC/STL installs that
+accept C++23 mode but do not ship the generator header are not sufficient.
 
 ## CMake Presets
 
@@ -84,6 +87,22 @@ Install Visual Studio Build Tools from:
 <https://aka.ms/vs/stable/vs_BuildTools.exe>
 
 During installation, include the C++ build tools, MSVC compiler, Windows SDK, CMake tools, and Ninja.
+
+The preset examples currently assume this installation layout:
+
+```text
+C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools
+C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231
+```
+
+Although Visual Studio Build Tools also bundles CMake, the user presets select:
+
+```text
+C:/Users/patrik.maraczek/DevTools/CMake-3.30.9/bin/cmake.exe
+```
+
+This keeps the build on the tested CMake version while still using the VS 2026
+MSVC compiler, bundled Ninja, and Windows SDK tools.
 
 To use the MSVC compiler from VS Code, start VS Code from "Developer Command Prompt for Visual Studio". You also need an appropriate Visual Studio license for the MSVC compiler.
 
