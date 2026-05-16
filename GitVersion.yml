@@ -1,7 +1,6 @@
 workflow: TrunkBased/preview1
 branches:
   main:
-    mode: ContinuousDelivery
     label: ''
     increment: Patch
     prevent-increment:
@@ -16,9 +15,9 @@ branches:
     is-main-branch: true
     pre-release-weight: 55000
   release:
-    mode: ManualDeployment
+    mode: ContinuousDelivery
     label: beta
-    increment: Patch
+    increment: None
     prevent-increment:
       of-merged-branch: true
       when-branch-merged: false
