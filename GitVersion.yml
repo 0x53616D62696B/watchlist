@@ -1,6 +1,7 @@
-workflow: 'GitHubFlow/v1'
+workflow: TrunkBased/preview1
 branches:
   main:
+    mode: ContinuousDelivery
     label: ''
     increment: Patch
     prevent-increment:
@@ -33,7 +34,7 @@ branches:
     is-main-branch: false
     pre-release-weight: 30000
   feature:
-    mode: ContinuousDeployment
+    mode: ContinuousDelivery
     label: '{BranchName}'
     increment: Inherit
     prevent-increment:
