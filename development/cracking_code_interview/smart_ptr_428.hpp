@@ -3,6 +3,7 @@
 template<class T>
 class SmartPointer{
     public:
+        /* We want to set the value of T * obj, and set the reference counter to 1. */
         SmartPointer(T* ptr){
             ref = ptr;
             ref_count = (unsigned*)malloc(sizeof(unsigned));
@@ -12,14 +13,24 @@ class SmartPointer{
         //     ref_count = (unsigned*)malloc(sizeof(unsigned));
         //     *ref_count = 1;
         // }
+
+        /** This constructor creates a new smart pointer that points to an existing
+        * object. We will need to first set obj and ref_count to pointer to sptr's obj
+        * and ref_count. Then, because we created a new reference to obj, we need to
+        * increment ref_count. */
         SmartPointer(SmartPointer<T>& sptr){
             ref = sptr.ref;
             ref_count = sptr.ref_count;
             (*ref_count)++;
         }
 
+        /** Override the equal operator, so that when you set one smart pointer equal to
+        * another the old smart pointer has its reference count decremented and the new
+        * smart pointer has its reference count incrememented. */
         SmartPointer<T>& operator=(SmartPointer<T>& sptr){
             if (this != &sptr) return *this;
+            
+            /* If already assigned to an object, remove one reference. */
             if (*ref_count > 0) {
                 remove(); // Remove current reference
             }
@@ -30,6 +41,9 @@ class SmartPointer{
             return *this;
         }
 
+        /** We are destroying a reference to the object. Decrement ref_count. If
+         * ref count is 0, then free the memory created by the integer and destroy the
+         * object. */
         ~SmartPointer() {
             remove(); // Remove reference to object.
         }
@@ -37,6 +51,18 @@ class SmartPointer{
         T getValue() {
             return *ref;
         }
+
+        /**
+         * There's one additional way that references can be created: by setting one SmartPointer equal to another. We'll want to override the equal operator to handle this, but for now, let's sketch the code like this.
+         * 
+         * 
+         *
+        * pointers to obj and ref_count over. Finally, since we created a new
+        * reference, we need to increment ref_count. */
+        // onSetEquals(SmartPoint<T> ptrl, SmartPoint<T> ptr2) {
+
+
+        // }
 
     protected:
         void remove () {
