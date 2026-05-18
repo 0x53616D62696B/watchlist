@@ -25,29 +25,65 @@ generate_version_resource()
 # Set general project variables
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-# set(ENABLE_PROFILING OFF)
 set(ENABLE_PCH ON)
 
 
 # Args
-option(ENABLE_PROFILING "Enable profiling with Tracy" OFF)
 option(BUILD_TESTING "Build unit tests" ON)
 
-set(CMAKE_CXX_FLAGS_DEBUGTRACY "${CMAKE_CXX_FLAGS_DEBUG}" CACHE STRING "Flags for DebugTracy build type" FORCE)
-set(CMAKE_C_FLAGS_DEBUGTRACY "${CMAKE_C_FLAGS_DEBUG}" CACHE STRING "Flags for DebugTracy build type" FORCE)
-mark_as_advanced(CMAKE_CXX_FLAGS_DEBUGTRACY CMAKE_C_FLAGS_DEBUGTRACY)
+# Tracy configuration.
+# Adds a switch that can enable Tracy independently of the build type.
+option(ENABLE_PROFILING "Enable profiling with Tracy" OFF)
 
-# Register DebugTracy without turning every default build into a Tracy build.
+# Reuse the normal Debug C++ compiler flags for DebugTracy, including MSVC /Zi and /Od.
+set(CMAKE_CXX_FLAGS_DEBUGTRACY "${CMAKE_CXX_FLAGS_DEBUG}" CACHE STRING "Flags for DebugTracy build type" FORCE)
+# Reuse the normal Debug C compiler flags for DebugTracy.
+set(CMAKE_C_FLAGS_DEBUGTRACY "${CMAKE_C_FLAGS_DEBUG}" CACHE STRING "Flags for DebugTracy build type" FORCE)
+# Reuse the normal Debug executable linker flags so MSVC writes executable PDB files.
+set(CMAKE_EXE_LINKER_FLAGS_DEBUGTRACY "${CMAKE_EXE_LINKER_FLAGS_DEBUG}" CACHE STRING "Executable linker flags for DebugTracy build type" FORCE)
+# Reuse the normal Debug shared-library linker flags for any shared targets built as DebugTracy.
+set(CMAKE_SHARED_LINKER_FLAGS_DEBUGTRACY "${CMAKE_SHARED_LINKER_FLAGS_DEBUG}" CACHE STRING "Shared library linker flags for DebugTracy build type" FORCE)
+# Reuse the normal Debug module linker flags for any module targets built as DebugTracy.
+set(CMAKE_MODULE_LINKER_FLAGS_DEBUGTRACY "${CMAKE_MODULE_LINKER_FLAGS_DEBUG}" CACHE STRING "Module linker flags for DebugTracy build type" FORCE)
+# Hide the custom DebugTracy cache variables from the regular CMake cache UI.
+mark_as_advanced(
+  # Internal C++ compiler flags for the custom Tracy debug build type.
+  CMAKE_CXX_FLAGS_DEBUGTRACY
+  # Internal C compiler flags for the custom Tracy debug build type.
+  CMAKE_C_FLAGS_DEBUGTRACY
+  # Internal executable linker flags for the custom Tracy debug build type.
+  CMAKE_EXE_LINKER_FLAGS_DEBUGTRACY
+  # Internal shared-library linker flags for the custom Tracy debug build type.
+  CMAKE_SHARED_LINKER_FLAGS_DEBUGTRACY
+  # Internal module linker flags for the custom Tracy debug build type.
+  CMAKE_MODULE_LINKER_FLAGS_DEBUGTRACY
+)
+
+# Detect whether the selected generator supports multiple configurations in one build tree.
 get_property(IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(IS_MULTI_CONFIG)
+  # Add DebugTracy to multi-config generators such as Visual Studio without removing standard configs.
   set(CMAKE_CONFIGURATION_TYPES "Debug;Release;MinSizeRel;RelWithDebInfo;DebugTracy" CACHE STRING "Available configurations" FORCE)
 else()
+  # Keep the current single-config build type value in the cache.
   set(CMAKE_BUILD_TYPE "${CMAKE_BUILD_TYPE}" CACHE STRING "Build type")
+  # Offer DebugTracy as a selectable value for single-config generators such as Ninja.
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo" "DebugTracy")
 endif()
 
+# Selecting the DebugTracy build type automatically turns on Tracy instrumentation.
 if(CMAKE_BUILD_TYPE STREQUAL "DebugTracy")
   set(ENABLE_PROFILING ON CACHE BOOL "Enable profiling with Tracy" FORCE)
+endif()
+
+# Apply Tracy-specific compile definitions and Tracy cache options only for profiling builds.
+if(ENABLE_PROFILING)
+  # Enables project wrapper macros in src/Utils/Profiling/TracyProfiling.hpp.
+  add_compile_definitions(ENABLE_PROFILING) # for custom macros
+  # Keeps short-lived processes alive long enough for the Tracy UI to connect.
+  set(TRACY_NO_EXIT ON CACHE BOOL "Keep Tracy client alive until a profiler connection is made" FORCE)
+  # Disables frame image capture to avoid extra dependencies and overhead in this project.
+  set(TRACY_NO_FRAME_IMAGE ON CACHE BOOL "Disable Tracy frame image support" FORCE)
 endif()
 
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
@@ -137,11 +173,7 @@ target_link_libraries(Application PRIVATE glfw)
 add_subdirectory(libs/glad)
 target_link_libraries(Application PRIVATE glad)
 
-# tracy
 if(ENABLE_PROFILING)
-  add_compile_definitions(ENABLE_PROFILING) # for custom macros
-  set(TRACY_NO_EXIT ON CACHE BOOL "Keep Tracy client alive until a profiler connection is made" FORCE)
-  set(TRACY_NO_FRAME_IMAGE ON CACHE BOOL "Disable Tracy frame image support" FORCE)
   add_subdirectory(libs/tracy)
   target_link_libraries(Application PRIVATE Tracy::TracyClient)
   target_link_libraries(ConcurrencyExamples PRIVATE Tracy::TracyClient)
@@ -176,11 +208,15 @@ set_target_properties(Logger PROPERTIES COMPILE_DEFINITIONS "DEBUG_LOGGER=1")
 
 # app sources used for development and reaserch
 file(GLOB SRC_DEVELOPMENT CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/development/*.cpp)
+file(GLOB_RECURSE SRC_DEVELOPMENT_CRACKING_CODE_INTERVIEW CONFIGURE_DEPENDS
+  ${CMAKE_CURRENT_SOURCE_DIR}/development/cracking_code_interview/*.cpp
+)
 list(REMOVE_ITEM SRC_DEVELOPMENT
   ${CMAKE_CURRENT_SOURCE_DIR}/development/excluded/*.cpp
   #${CMAKE_CURRENT_SOURCE_DIR}/development/another_excluded_file.cpp
 )
 target_sources(Development PRIVATE ${SRC_DEVELOPMENT})
+target_sources(Development PRIVATE ${SRC_DEVELOPMENT_CRACKING_CODE_INTERVIEW})
 
 if(BUILD_TESTING AND TARGET GTest::gtest_main)
   add_executable(UnitTests

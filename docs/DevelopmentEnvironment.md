@@ -47,6 +47,11 @@ cmake --build --preset with-profiling --target Application
 .\build\profiling\Application.exe
 ```
 
+The profiling preset uses the custom `DebugTracy` build type. `DebugTracy`
+inherits the normal Debug compiler and linker flags, including MSVC `/Zi` and
+`/DEBUG`, so the executable PDB is generated and VS Code breakpoints can bind
+while Tracy profiling is enabled.
+
 The shared presets in `CMakePresets.json` are hidden base presets. The visible `default` and `with-profiling` presets live in `CMakeUserPresets.json`, where each developer can provide machine-specific compiler, SDK, and Ninja paths.
 
 ## VS Code CMake Tools

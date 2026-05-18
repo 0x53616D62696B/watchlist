@@ -48,6 +48,17 @@
             "cwd": "${input:cmakeApplicationDirectory}",
             "environment": [],
             "console": "integratedTerminal"
+        },
+        {
+            "name": "CMake: Development target",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${input:cmakeDevelopmentPath}",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${input:cmakeDevelopmentDirectory}",
+            "environment": [],
+            "console": "integratedTerminal"
         }
     ],
     "inputs": [
@@ -65,6 +76,22 @@
             "command": "cmake.launchTargetDirectory",
             "args": {
                 "targetName": "Application"
+            }
+        },
+        {
+            "id": "cmakeDevelopmentPath",
+            "type": "command",
+            "command": "cmake.launchTargetPath",
+            "args": {
+                "targetName": "Development"
+            }
+        },
+        {
+            "id": "cmakeDevelopmentDirectory",
+            "type": "command",
+            "command": "cmake.launchTargetDirectory",
+            "args": {
+                "targetName": "Development"
             }
         }
     ]

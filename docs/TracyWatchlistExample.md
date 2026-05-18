@@ -25,6 +25,12 @@ The preset uses:
 - `ENABLE_PROFILING=ON`
 - `Tracy::TracyClient` linked into `Application`
 - `TRACY_NO_EXIT=ON`, so short-lived runs stay available until Tracy connects
+- Debug compiler and linker flags, so MSVC emits executable PDB files for source breakpoints
+
+`DebugTracy` must keep both sides of the debug-symbol pipeline enabled:
+compiler flags such as `/Zi`, and linker flags such as `/DEBUG`. Without the
+linker flag, the program can run normally under the debugger while source
+breakpoints fail to bind because the executable PDB is missing.
 
 ## Run With Tracy
 
