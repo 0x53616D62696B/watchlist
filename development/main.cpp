@@ -68,10 +68,10 @@ int main(int argc, char* argv[]){
     main_exception_throwing();
 
     //* unique pointers
-    main_unique_ptrs();
+     main_unique_ptrs();
 
     //* Cracking code interview: Smart Pointer: pg 428:
-    main_smart_ptr_428();
+    int ret = main_smart_ptr_428();
 
 
     return 0; 
