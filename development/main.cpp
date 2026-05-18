@@ -6,6 +6,7 @@
 #include "pure_virtual_method_in_abs_cls_constructor.hpp"
 #include "exception_throwing.hpp"
 #include "unique_ptrs.hpp"
+#include "cracking_code_interview/smart_ptr_428.hpp"
 
 int main(int argc, char* argv[]){
     if (argc!= 2){
@@ -68,6 +69,10 @@ int main(int argc, char* argv[]){
 
     //* unique pointers
     main_unique_ptrs();
+
+    //* Cracking code interview: Smart Pointer: pg 428:
+    main_smart_ptr_428();
+
 
     return 0; 
 }
