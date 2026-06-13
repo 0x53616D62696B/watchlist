@@ -1,0 +1,4 @@
+interface:
+  display_name: "Branch PR Description"
+  short_description: "Document current-branch changes for PRs"
+  default_prompt: "Use $branch-pr-description to document what happened on the current branch."

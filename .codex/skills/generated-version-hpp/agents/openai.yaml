@@ -1,0 +1,4 @@
+interface:
+  display_name: "Generated Version.hpp"
+  short_description: "Avoid hand-editing generated Version.hpp"
+  default_prompt: "Use $generated-version-hpp when Version.hpp appears during watchlist repo changes."
