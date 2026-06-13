@@ -5,6 +5,7 @@ __pycache__
 CMakeUserPresets.json
 src/Common/Version.hpp
 .codex/PR_description*.md
+.codex/PR_descriptions/*.md
 
 # Temporary files
 docs/*/*.drawio.bkp

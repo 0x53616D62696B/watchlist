@@ -1,0 +1,4 @@
+interface:
+  display_name: "CMake User Presets Sync"
+  short_description: "Keep CMake user preset examples aligned"
+  default_prompt: "Use $cmake-user-presets-sync when editing CMake user presets in the watchlist repo."

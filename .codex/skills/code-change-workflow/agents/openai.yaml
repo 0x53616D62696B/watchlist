@@ -1,0 +1,4 @@
+interface:
+  display_name: "Code Change Workflow"
+  short_description: "Prepare watchlist code changes safely"
+  default_prompt: "Use $code-change-workflow before making code changes in the watchlist repo."
