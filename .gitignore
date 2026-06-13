@@ -10,3 +10,6 @@ src/Common/Version.hpp
 
 # Temporary files
 docs/*/*.drawio.bkp
+
+# Runtime files
+*imgui.ini
