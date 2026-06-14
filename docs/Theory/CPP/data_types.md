@@ -367,7 +367,7 @@ Important notes:
 
 ## Sets
 
-Use sets when you need unique values without separate mapped data.
+Use sets when you need **unique** values without separate mapped data.
 
 Memory placement:
 
@@ -551,7 +551,7 @@ These are similarities, not exact replacements. Python types are dynamically typ
 | `std::list<T>` | `std::list<int> l = {1, 2, 3};` | no common built-in equivalent | Python `list` is closer to `std::vector`, not linked list |
 | `std::forward_list<T>` | `std::forward_list<int> l = {1, 2, 3};` | no common built-in equivalent | Singly linked lists are uncommon in normal Python code |
 | `std::unordered_map<K, V>` | `std::unordered_map<std::string, int> m;` | `dict` | C++ key and value types are explicit |
-| `std::map<K, V>` | `std::map<std::string, int> m;` | sorted dictionary-like mapping | Python `dict` preserves insertion order, not sorted key order |
+| `std::map<K, V>` | `std::map<std::string, int> m;` | sorted dictionary-like mapping | Python `dict` preserves insertion order (starting Python 3.7), not sorted key order |
 | `std::unordered_set<T>` | `std::unordered_set<int> s;` | `set` | Both are hash-based unique collections |
 | `std::set<T>` | `std::set<int> s;` | sorted set-like collection | Python built-in `set` is not sorted |
 | `std::queue<T>` | `std::queue<int> q;` | `queue.Queue` or `collections.deque` | C++ queue is an adapter with a restricted interface |
