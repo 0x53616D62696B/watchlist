@@ -22,6 +22,38 @@ void example() {
 
 `stack_value` is cleaned up when the function returns. `heap_value` owns dynamic memory and releases it automatically when the `std::unique_ptr` is destroyed.
 
+## Volatile and Direct Memory Access
+
+`volatile` does not allocate memory and it does not control ownership.
+
+It tells the compiler that every read and write must really happen, because the value may change outside normal C++ code.
+
+This is used mostly in embedded programming for direct access to memory-mapped hardware registers:
+
+```cpp
+#include <cstdint>
+
+constexpr std::uintptr_t status_register_address = 0x40000000;
+
+volatile std::uint32_t* status_register =
+    reinterpret_cast<volatile std::uint32_t*>(status_register_address);
+
+std::uint32_t status = *status_register;
+```
+
+Here, the program is not allocating memory at `0x40000000`. It is treating that existing hardware address as a register.
+
+Without `volatile`, the compiler may cache, remove, merge, or reorder accesses because it cannot see that hardware may change the value.
+
+Typical uses:
+
+- memory-mapped hardware registers
+- embedded device control/status registers
+- values changed by interrupt handlers
+- special low-level memory where every load or store matters
+
+Do not use `volatile` for normal thread synchronization. For communication between C++ threads, use `std::atomic`, mutexes, condition variables, or other synchronization tools.
+
 ## RAII
 
 RAII means Resource Acquisition Is Initialization.
