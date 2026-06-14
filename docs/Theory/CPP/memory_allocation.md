@@ -22,6 +22,16 @@ void example() {
 
 `stack_value` is cleaned up when the function returns. `heap_value` owns dynamic memory and releases it automatically when the `std::unique_ptr` is destroyed.
 
+
+### Unique Ptr
+
+These allocation are the same, first is more modern approach.
+
+```cpp
+auto value = std::make_unique<int>(42);
+std::unique_ptr<int> value = std::unique_ptr<int>(new int(42));
+```
+
 ## Volatile and Direct Memory Access
 
 `volatile` does not allocate memory and it does not control ownership.
@@ -81,6 +91,35 @@ FilePtr open_file(const char* path) {
 
 RAII is used for memory, files, sockets, mutex locks, database handles, graphics handles, and almost any resource that must be released.
 
+Common lifetime-managed objects:
+
+| Object | Category | What lifetime controls |
+| --- | --- | --- |
+| `std::vector<T>` | RAII container | dynamic array memory |
+| `std::string` | RAII container | dynamic character memory |
+| `std::deque<T>` | RAII container | dynamic block-based sequence storage |
+| `std::list<T>` / `std::forward_list<T>` | RAII container | dynamic linked-list node storage |
+| `std::map<K, V>` / `std::set<T>` | RAII container | dynamic ordered tree nodes |
+| `std::unordered_map<K, V>` / `std::unordered_set<T>` | RAII container | dynamic hash table buckets and nodes |
+| `std::queue<T>` / `std::stack<T>` | container adapter | lifetime of the underlying container |
+| `std::priority_queue<T>` | container adapter | lifetime of the underlying heap container |
+| `std::array<T, N>` | fixed-storage container | lifetime of contained elements, but no dynamic allocation |
+| `std::unique_ptr<T>` | RAII owner | one owned heap object |
+| `std::shared_ptr<T>` | RAII owner | shared heap object ownership |
+| `std::ifstream` / `std::ofstream` | RAII handle | file handle |
+| `std::lock_guard<std::mutex>` | RAII lock | locked mutex scope |
+| `std::unique_lock<std::mutex>` | RAII lock | movable/unlockable mutex ownership |
+| `std::jthread` | RAII thread | running thread that joins on destruction |
+| custom wrapper class | RAII wrapper | OS handle, socket, database connection, GPU resource |
+
+Category meanings:
+
+- RAII owner: directly owns one heap object or shared heap control block, such as `std::unique_ptr` or `std::shared_ptr`.
+- RAII handle: wraps an external resource handle, such as a file, socket, OS handle, database connection, or GPU resource.
+- RAII container: owns and destroys many contained elements, often including dynamic storage for those elements.
+- RAII lock/thread: owns a temporary concurrency responsibility, such as holding a mutex or joining a thread.
+- Fixed-storage container: controls element lifetime but usually does not allocate separate dynamic storage.
+
 Prefer:
 
 - `std::vector` instead of manual dynamic arrays.
@@ -101,6 +140,21 @@ Prefer:
 ```cpp
 auto value = std::make_unique<int>(42);
 ```
+
+## Non-RAII Style
+
+Non-RAII style means a value represents a resource, but cleanup is manual and separate from object lifetime.
+
+| Non-RAII style | Manual cleanup required | RAII replacement |
+| --- | --- | --- |
+| owning raw pointer from `new` | `delete` | `std::unique_ptr<T>` |
+| buffer from `malloc` | `free` | `std::vector<T>` or `std::unique_ptr<T[]>` |
+| `FILE*` from `std::fopen` | `std::fclose` | `std::ifstream` / `std::ofstream` or custom deleter |
+| OS handle | platform close function | custom wrapper class |
+| socket descriptor | socket close function | custom wrapper class |
+| manual `mutex.lock()` | `mutex.unlock()` | `std::lock_guard` / `std::unique_lock` |
+
+Plain values such as `int`, `double`, or small structs are not usually called RAII objects because they do not own external resources, but they are also not dangerous by themselves. The risky case is manual ownership: a pointer or handle that must be released but has no destructor responsible for doing it.
 
 ## Arena Allocator
 
@@ -165,6 +219,8 @@ Arena arena(1024);
 void* memory = arena.allocate(sizeof(Node), alignof(Node));
 Node* node = new (memory) Node{42};
 ```
+
+`new (memory) Node{42}` is placement `new`: it constructs `Node` at the already-provided address in `memory`. It does not allocate; the arena already provided raw storage, and placement `new` only starts the object's lifetime there.
 
 Important: placement `new` constructs the object, but it does not make the arena call destructors automatically.
 
