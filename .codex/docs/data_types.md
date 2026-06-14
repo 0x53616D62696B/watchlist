@@ -8,23 +8,23 @@ This guide compares common C++ data types and standard containers, with emphasis
 | --- | --- | --- | --- |
 | Resizable array | `std::vector<T>` | `std::vector<int> v = {1, 2, 3};` | Fast iteration, compact memory, random access |
 | Fixed-size array known at compile time | `std::array<T, N>` | `std::array<int, 3> a = {1, 2, 3};` | No heap allocation, size is part of the type |
-| Non-owning view of contiguous values | `std::span<T>` | `std::span<const int> values;` | Pass array/vector data without copying |
+| Non-owning view of contiguous values | `std::span<T>` | `std::span<const int> values = v;` | Pass array/vector data without copying |
 | Text that owns its memory | `std::string` | `std::string name = "Ada";` | Safer and easier than raw character buffers |
 | Non-owning text view | `std::string_view` | `std::string_view name = "Ada";` | Cheap parameter type for read-only text |
-| Fast push/pop at both ends | `std::deque<T>` | `std::deque<int> d;` | Stable growth at front and back |
+| Fast push/pop at both ends | `std::deque<T>` | `std::deque<int> d = {1, 2, 3};` | Stable growth at front and back |
 | Frequent insertion/removal in middle when you already have an iterator | `std::list<T>` | `std::list<int> l = {1, 2, 3};` | Node links make insertion/removal cheap |
-| Key-value lookup by key | `std::unordered_map<K, V>` | `std::unordered_map<std::string, int> m;` | Usually fastest average lookup |
-| Ordered key-value lookup | `std::map<K, V>` | `std::map<std::string, int> m;` | Keeps keys sorted |
-| Unique values with fast lookup | `std::unordered_set<T>` | `std::unordered_set<int> s;` | Hash-based membership check |
-| Unique values in sorted order | `std::set<T>` | `std::set<int> s;` | Ordered membership check |
-| Queue behavior | `std::queue<T>` | `std::queue<int> q;` | First in, first out adapter |
-| Stack behavior | `std::stack<T>` | `std::stack<int> s;` | Last in, first out adapter |
-| Priority ordering | `std::priority_queue<T>` | `std::priority_queue<int> q;` | Efficient access to largest/smallest item |
-| Optional value | `std::optional<T>` | `std::optional<int> value;` | Represents "maybe present" without sentinel values |
-| One of several possible types | `std::variant<A, B>` | `std::variant<int, std::string> id;` | Type-safe tagged union |
+| Key-value lookup by key | `std::unordered_map<K, V>` | `std::unordered_map<std::string, int> m = {{"Alice", 30}, {"Evan", 20}};` | Usually fastest average lookup |
+| Ordered key-value lookup | `std::map<K, V>` | `std::map<std::string, int> m = {{"Alice", 30}, {"Evan", 20}};` | Keeps keys sorted |
+| Unique values with fast lookup | `std::unordered_set<T>` | `std::unordered_set<int> s = {1, 2, 3};` | Hash-based membership check |
+| Unique values in sorted order | `std::set<T>` | `std::set<int> s = {1, 2, 3};` | Ordered membership check |
+| Queue behavior | `std::queue<T>` | `std::queue<int> q(std::deque<int>{1, 2, 3});` | First in, first out adapter |
+| Stack behavior | `std::stack<T>` | `std::stack<int> s(std::deque<int>{1, 2, 3});` | Last in, first out adapter |
+| Priority ordering | `std::priority_queue<T>` | `std::priority_queue<int> q(std::less<int>(), std::vector<int>{1, 2, 3});` | Efficient access to largest/smallest item |
+| Optional value | `std::optional<T>` | `std::optional<int> value = 42;` | Represents "maybe present" without sentinel values |
+| One of several possible types | `std::variant<A, B>` | `std::variant<int, std::string> id = "Ada";` | Type-safe tagged union |
 | Shared read-only constant | `constexpr` / `const` | `constexpr int max = 10;` | Communicates immutability |
-| Exclusive heap ownership | `std::unique_ptr<T>` | `std::unique_ptr<int> p;` | Single owner, automatic cleanup |
-| Shared heap ownership | `std::shared_ptr<T>` | `std::shared_ptr<int> p;` | Multiple owners, reference-counted cleanup |
+| Exclusive heap ownership | `std::unique_ptr<T>` | `auto p = std::make_unique<int>(42);` | Single owner, automatic cleanup |
+| Shared heap ownership | `std::shared_ptr<T>` | `auto p = std::make_shared<int>(42);` | Multiple owners, reference-counted cleanup |
 
 ## Stack and Heap Placement
 
