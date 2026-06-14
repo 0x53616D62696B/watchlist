@@ -6,6 +6,7 @@ CMakeUserPresets.json
 src/Common/Version.hpp
 .codex/PR_description*.md
 .codex/PR_descriptions/*.md
+.worktrees/
 
 # Temporary files
 docs/*/*.drawio.bkp

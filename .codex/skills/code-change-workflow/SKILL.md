@@ -13,8 +13,10 @@ Apply this workflow only before making code changes in the watchlist repo. It is
 
 1. Ask the user which worktree to use before changing code.
 2. If the user chooses a different worktree or asks to swap worktrees, switch to that worktree first.
-3. After swapping to a new worktree, initialize submodules before editing.
-4. Continue only after the worktree context is clear.
+3. If creating new worktree, place it into folder `.worktrees/<branch_name>`.
+3a. Place this new worktree in currently used vscode workspace.
+4. After swapping to a new worktree, initialize submodules before editing.
+5. Continue only after the worktree context is clear.
 
 ## After Code Changes
 
