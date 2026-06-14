@@ -192,19 +192,29 @@ Costs:
 
 Use it only when you specifically need a minimal singly linked list. Most code should prefer `std::vector`, `std::deque`, or `std::list`.
 
-## Vector vs List
+## Vector vs Array vs Deque vs List
 
-| Operation | `std::vector` | `std::list` |
-| --- | --- | --- |
-| Append at end | Fast amortized | Fast |
-| Insert at front | Slow | Fast if position known |
-| Insert in middle | Slow due to shifting | Fast if iterator known |
-| Remove in middle | Slow due to shifting | Fast if iterator known |
-| Random access | Fast | Not supported |
-| Iteration speed | Usually excellent | Usually poor |
-| Memory overhead | Low | High |
-| Cache behavior | Good | Poor |
-| Iterator stability | Can be invalidated | Usually stable |
+| Property | `std::array<T, N>` | `std::vector<T>` | `std::deque<T>` | `std::list<T>` |
+| --- | --- | --- | --- | --- |
+| Size | fixed at compile time | dynamic | dynamic | dynamic |
+| Memory layout | contiguous | contiguous | segmented blocks | separate linked nodes |
+| Random access | fast | fast | fast | not supported |
+| Insert/remove at end | not resizable | fast amortized | fast | fast |
+| Insert/remove at front | not resizable | slow because elements shift | fast | fast if position is known |
+| Insert/remove in middle | not resizable | slow because later elements shift | slow | fast if iterator is already known |
+| Iteration speed | excellent | usually excellent | good | usually poor |
+| Cache locality | excellent | good | good, but less than vector | poor |
+| Memory overhead | none beyond elements | low, may reserve extra capacity | moderate | high, each node stores links |
+| Iterator/reference stability | stable for object lifetime | growth and erase can invalidate | usually more stable than vector, but rules are operation-specific | strong for existing elements |
+| Main weakness | cannot resize | front/middle edits shift elements | not one contiguous buffer | slow traversal and no indexing |
+| Best use | small fixed-size collections | default dynamic sequence | queues, buffers, push/pop at both ends | stable iterators and frequent splicing |
+
+Rule of thumb:
+
+- Use `std::array` when the size is known and never changes.
+- Use `std::vector` for most runtime-sized lists.
+- Use `std::deque` when both front and back operations matter.
+- Use `std::list` only when stable iterators or node splicing are the real reason.
 
 Default to `std::vector`. Choose `std::list` only when node-based behavior is part of the requirement.
 
@@ -285,7 +295,7 @@ print_name(owned);
 print_name("Grace");
 ```
 
-Be careful with `std::string_view`: it does not own the characters. Never return a view to a temporary string.
+The important danger: `std::string_view` does not own the text. The original characters must outlive the view.
 
 ## Pointers and Ownership
 
