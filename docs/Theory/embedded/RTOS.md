@@ -601,6 +601,8 @@ Many RTOS mutexes support priority inheritance, where the low-priority task temp
 
 Use proper RTOS mutexes, not binary semaphores, when protecting shared resources.
 
+For a fuller explanation, examples, and prevention checklist, see [Priority Inversion in RTOS](../../docs/Theory/priority_inversion.md).
+
 ## Deadlocks
 
 A deadlock occurs when tasks wait forever for each other.
@@ -847,3 +849,14 @@ The tradeoff is complexity. You gain powerful tools, but you must handle concurr
 For embedded C++, an RTOS can work very well when you keep the C API boundary clean, use static task entry functions, avoid unnecessary dynamic allocation, and design tasks around message passing instead of shared global state.
 
 The best rule: use an RTOS when it simplifies the system's real behavior, not when it merely makes the firmware look more advanced.
+
+## Sources and Further Reading
+
+These references were used as background material for the RTOS concepts in this document:
+
+- [FreeRTOS kernel documentation: tasks and co-routines](https://www.freertos.org/Documentation/02-Kernel/02-Kernel-features/01-Tasks-and-co-routines/00-Tasks-and-co-routines): task structure, scheduling concepts, and FreeRTOS task APIs.
+- [FreeRTOS kernel documentation: queues](https://www.freertos.org/Documentation/02-Kernel/02-Kernel-features/02-Queues-mutexes-and-semaphores/01-Queues): queue-based communication between tasks.
+- [Zephyr Project documentation: threads](https://docs.zephyrproject.org/latest/kernel/services/threads/index.html): thread lifecycle, stacks, priorities, scheduling behavior, and thread states.
+- [Arm CMSIS-RTOS2 documentation](https://arm-software.github.io/CMSIS_6/latest/RTOS2/index.html): RTOS API abstraction for Arm Cortex-M systems.
+- [Eclipse ThreadX repository](https://github.com/eclipse-threadx/threadx): ThreadX background, positioning, and source distribution.
+- [Zephyr Project documentation: kernel services](https://docs.zephyrproject.org/latest/kernel/services/index.html): synchronization, data passing, timing, and memory-management concepts.
