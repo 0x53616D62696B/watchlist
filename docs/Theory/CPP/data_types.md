@@ -306,11 +306,11 @@ Use it only when you specifically need a minimal singly linked list. Most code s
 | --- | --- | --- | --- | --- |
 | **Size** | fixed at compile time | dynamic | dynamic | dynamic |
 | **Memory layout** | contiguous | contiguous | segmented blocks | separate linked nodes |
-| **Random access** | fast | fast | fast | not supported |
-| **Insert/remove at end** | not resizable | fast amortized | fast | fast |
-| **Insert/remove at front** | not resizable | slow because elements shift | fast | fast if position is known |
-| **Insert/remove in middle** | not resizable | slow because later elements shift | slow | fast if iterator is already known |
-| **Iteration speed** | excellent | usually excellent | good | usually poor |
+| **Random access** | O(1) | O(1) | O(1) | not supported |
+| **Insert/remove at end** | not resizable | amortized O(1) insert, O(1) remove | O(1) | O(1) |
+| **Insert/remove at front** | not resizable | O(n) | O(1) | O(1) if position is known |
+| **Insert/remove in middle** | not resizable | O(n) | O(n) | O(1) if iterator is already known |
+| **Iterate all elements** | O(n), excellent locality | O(n), excellent locality | O(n), good locality | O(n), poor locality |
 | **Cache locality** | excellent | good | good, but less than vector | poor |
 | **Memory overhead** | none beyond elements | low, may reserve extra capacity | moderate | high, each node stores links |
 | **Iterator/reference stability** | stable for object lifetime | growth and erase can invalidate | usually more stable than vector, but rules are operation-specific | strong for existing elements |
@@ -320,7 +320,7 @@ Use it only when you specifically need a minimal singly linked list. Most code s
 
 Legend:
 
-- **Fast amortized**: usually fast on average across many operations, but one operation can occasionally be slower. For `std::vector::push_back`, this can happen when the vector grows and moves existing elements.
+- **Amortized O(1)**: constant time on average across many operations, but one operation can occasionally be slower. For `std::vector::push_back`, this can happen when the vector grows and moves existing elements.
 - **Cache locality**: how easily the CPU can read nearby data efficiently. How close elements are in memory.
 
   Modern CPUs do not usually fetch only one variable from RAM. They fetch a small block of nearby memory into fast CPU cache. So if your data is stored next to each other, the CPU can process it very quickly.
