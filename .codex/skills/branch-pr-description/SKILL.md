@@ -7,13 +7,10 @@ description: Document what happened on the current branch for a pull request. Us
 
 ## Overview
 
-Update the branch-specific PR description file for the current branch. Keep the notes scoped to the current branch so work from different branches is not mixed.
+Update the current worktree's branch-specific PR description without mixing notes from other worktrees or branches.
 
 ## Workflow
 
-1. Determine the current branch with `git branch --show-current`.
-2. Convert `/` or `\` in the branch name to `_` for the PR description filename.
-3. Update `.codex/PR_descriptions/<branch>.md`.
-4. Include a suitable PR title.
-5. Add a concise description of what has been done on the current branch.
-6. Preserve relevant existing branch notes, and revise stale content when the current branch story has changed.
+1. Treat the current working directory as the git worktree; do not switch checkouts unless explicitly asked.
+2. Get the branch with `git branch --show-current`, replace `/` or `\` with `_`, and update `.codex/PR_descriptions/<branch>.md` in this worktree.
+3. Include a suitable title, concise summary of branch work, and any relevant existing notes; revise stale content.
