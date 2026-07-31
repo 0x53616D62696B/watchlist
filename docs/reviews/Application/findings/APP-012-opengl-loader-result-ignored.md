@@ -3,6 +3,7 @@
 - **Priority:** P1
 - **Kind:** Defect
 - **Confidence:** High
+- **Status:** Resolved
 - **Subsystem:** GUI
 - **Location:** [`src/Gui/Gui.cpp`](../../../../src/Gui/Gui.cpp), lines 31-37
 - **Dependencies:** APP-011
@@ -32,3 +33,7 @@ Do not inspect or change GLAD library code; validate only the Application-side c
 ## Suggested tests
 
 Wrap the loader to return failure and verify the process-visible GUI result, log content, and cleanup order.
+
+## Resolution and validation
+
+`gladLoadGL` is checked before any OpenGL call. Failure reports the requested 3.3 core context, notes that the actual version is unavailable, includes the latest GLFW diagnostic, and unwinds the owned window/GLFW stages. Successful loading captures and validates the actual major/minor version before rendering; the injected OpenGL-stage failure test verifies cleanup.

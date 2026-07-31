@@ -3,6 +3,7 @@
 - **Priority:** P1
 - **Kind:** Defect
 - **Confidence:** High
+- **Status:** Resolved
 - **Subsystem:** Startup
 - **Location:** [`src/Watchlist/main.cpp`](../../../../src/Watchlist/main.cpp), lines 71-110; [`src/Gui/Gui.cpp`](../../../../src/Gui/Gui.cpp), lines 214-260
 - **Dependencies:** None
@@ -32,3 +33,7 @@ Do not merely add blocking `get()` calls in submission order; that can hide late
 ## Suggested tests
 
 Inject failures before and after GUI initialization, in the async task, and in SQLite work. Verify exit status, peer cancellation, and absence of hangs.
+
+## Resolution and validation
+
+Startup now runs the GUI synchronously on the process main thread and observes its structured result directly. The owned storage worker drains accepted commands and exposes every completion once; the first GUI or storage failure requests peer shutdown and maps to `EXIT_FAILURE`. Headless tests cover coordinated background failure, command draining, and observable storage errors.

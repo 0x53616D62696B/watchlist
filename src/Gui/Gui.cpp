@@ -1,4 +1,4 @@
-#include "Gui.hpp"
+#include "src/Gui/Gui.hpp"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -6,279 +6,352 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
-#include <cstdlib>
-#include <exception>
+#include <algorithm>
+#include <cassert>
+#include <cstdio>
+#include <format>
 #include <stdexcept>
+#include <string>
+#include <thread>
 
 #include "src/Gui/MyApp.hpp"
 #include "src/Utils/Logger/Logger.hpp"
 #include "src/Utils/Profiling/TracyProfiling.hpp"
+#include "src/Watchlist/DeviceStorageService.hpp"
 
 namespace Watchlist::Gui {
 namespace {
 
-// const std::string windowTitleStr = "MyApp MOM!";
-//  const char* windowTitle = windowTitleStr.c_str();
+PlatformErrorState g_glfwErrors;
 
-// glfwSetWindowTitle("MyApp MOM!");
-
-void GLFWInitialize()
+void GlfwErrorCallback(int code, const char* description) noexcept
 {
-    PROFILE_FUNCTION;
-    auto GLFWErrorCallback = [](int error, const char* description) {};
-    glfwSetErrorCallback(GLFWErrorCallback);
-    if (not glfwInit())
-        throw std::runtime_error("GLFW initialization failed");
-}
-
-GLFWwindow* GLFWCreateWindow(int width, int height, bool hidden)
-{
-    PROFILE_FUNCTION;
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_VISIBLE, hidden ? GLFW_FALSE : GLFW_TRUE);
-    GLFWwindow* window = glfwCreateWindow(hidden ? 1 : width, hidden ? 1 : height, WindowTitle.data(), nullptr, nullptr);
-    if (not window)
-        throw std::runtime_error("GLFW create window failed");
-
-    return window;
-}
-
-void GLFWInitializeGL(GLFWwindow* window)
-{
-    PROFILE_FUNCTION;
-    glfwMakeContextCurrent(window);
-    gladLoadGL();
-    glfwSwapInterval(1);
-}
-
-void GLFWSetWindowCallback(GLFWwindow* window, GLFWkeyfun callback)
-{
-    glfwSetKeyCallback(window, callback);
-}
-
-void ImGuiSetStyle(ImGuiStyle& style)
-{
-    constexpr auto ColorFromBytes = [](float r, float g, float b)
-    { return ImVec4(r / 255.0f, g / 255.0f, b / 255.0f, 1.0f); };
-
-    ImVec4* colors = style.Colors;
-
-    const ImVec4 bgColor = ColorFromBytes(37, 37, 38);
-    const ImVec4 lightBgColor = ColorFromBytes(82, 82, 85);
-    const ImVec4 veryLightBgColor = ColorFromBytes(90, 90, 95);
-
-    const ImVec4 panelColor = ColorFromBytes(51, 51, 55);
-    const ImVec4 panelHoverColor = ColorFromBytes(29, 151, 236);
-    const ImVec4 panelActiveColor = ColorFromBytes(0, 119, 200);
-
-    const ImVec4 textColor = ColorFromBytes(255, 255, 255);
-    const ImVec4 textDisabledColor = ColorFromBytes(151, 151, 151);
-    const ImVec4 borderColor = ColorFromBytes(78, 78, 78);
-
-    colors[ImGuiCol_Text] = textColor;
-    colors[ImGuiCol_TextDisabled] = textDisabledColor;
-    colors[ImGuiCol_TextSelectedBg] = panelActiveColor;
-    colors[ImGuiCol_WindowBg] = bgColor;
-    colors[ImGuiCol_ChildBg] = bgColor;
-    colors[ImGuiCol_PopupBg] = bgColor;
-    colors[ImGuiCol_Border] = borderColor;
-    colors[ImGuiCol_BorderShadow] = borderColor;
-    colors[ImGuiCol_FrameBg] = panelColor;
-    colors[ImGuiCol_FrameBgHovered] = panelHoverColor;
-    colors[ImGuiCol_FrameBgActive] = panelActiveColor;
-    colors[ImGuiCol_TitleBg] = bgColor;
-    colors[ImGuiCol_TitleBgActive] = bgColor;
-    colors[ImGuiCol_TitleBgCollapsed] = bgColor;
-    colors[ImGuiCol_MenuBarBg] = panelColor;
-    colors[ImGuiCol_ScrollbarBg] = panelColor;
-    colors[ImGuiCol_ScrollbarGrab] = lightBgColor;
-    colors[ImGuiCol_ScrollbarGrabHovered] = veryLightBgColor;
-    colors[ImGuiCol_ScrollbarGrabActive] = veryLightBgColor;
-    colors[ImGuiCol_CheckMark] = panelActiveColor;
-    colors[ImGuiCol_SliderGrab] = panelHoverColor;
-    colors[ImGuiCol_SliderGrabActive] = panelActiveColor;
-    colors[ImGuiCol_Button] = panelColor;
-    colors[ImGuiCol_ButtonHovered] = panelHoverColor;
-    colors[ImGuiCol_ButtonActive] = panelHoverColor;
-    colors[ImGuiCol_Header] = panelColor;
-    colors[ImGuiCol_HeaderHovered] = panelHoverColor;
-    colors[ImGuiCol_HeaderActive] = panelActiveColor;
-    colors[ImGuiCol_Separator] = borderColor;
-    colors[ImGuiCol_SeparatorHovered] = borderColor;
-    colors[ImGuiCol_SeparatorActive] = borderColor;
-    colors[ImGuiCol_ResizeGrip] = bgColor;
-    colors[ImGuiCol_ResizeGripHovered] = panelColor;
-    colors[ImGuiCol_ResizeGripActive] = lightBgColor;
-    colors[ImGuiCol_PlotLines] = panelActiveColor;
-    colors[ImGuiCol_PlotLinesHovered] = panelHoverColor;
-    colors[ImGuiCol_PlotHistogram] = panelActiveColor;
-    colors[ImGuiCol_PlotHistogramHovered] = panelHoverColor;
-    colors[ImGuiCol_ModalWindowDimBg] = bgColor;
-    colors[ImGuiCol_DragDropTarget] = bgColor;
-    colors[ImGuiCol_NavHighlight] = bgColor;
-    colors[ImGuiCol_DockingPreview] = panelActiveColor;
-    colors[ImGuiCol_Tab] = bgColor;
-    colors[ImGuiCol_TabActive] = panelActiveColor;
-    colors[ImGuiCol_TabUnfocused] = bgColor;
-    colors[ImGuiCol_TabUnfocusedActive] = panelActiveColor;
-    colors[ImGuiCol_TabHovered] = panelHoverColor;
-
-    style.WindowRounding = 0.0f;
-    style.ChildRounding = 0.0f;
-    style.FrameRounding = 0.0f;
-    style.GrabRounding = 0.0f;
-    style.PopupRounding = 0.0f;
-    style.ScrollbarRounding = 0.0f;
-    style.TabRounding = 0.0f;
-}
-
-ImGuiIO& ImGuiInitialize(GLFWwindow* window, float scale)
-{
-    PROFILE_FUNCTION;
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-
-    ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Docking
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;   // Enable Multi-Viewport / Platform Windows
-    // io.Fonts->AddFontFromFileTTF("../data/apps/CascadiaCode.ttf", scale * 19);
-    // io.IniFilename = "../data/apps/imgui.ini";
-
-    ImGui::StyleColorsDark();
-    ImGuiStyle& style = ImGui::GetStyle();
-    ImGuiSetStyle(style);
-    style.ScaleAllSizes(scale);
-    style.GrabRounding = 12;
-
-    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    g_glfwErrors.Record(code, description);
+    try
     {
-        style.WindowRounding = 0.0f;
-        style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+        std::fprintf(stderr, "GLFW error %d: %s\n", code, description != nullptr ? description : "No description");
+        std::fflush(stderr);
+    }
+    catch (...)
+    {
+    }
+}
+
+std::string WithLatestGlfwError(std::string message)
+{
+    if (const auto error = g_glfwErrors.Latest())
+        return std::format("{} (GLFW {}: {})", message, error->code, error->description);
+    return message;
+}
+
+void SetBaseStyle(ImGuiStyle& style)
+{
+    constexpr auto color = [](float red, float green, float blue) {
+        return ImVec4(red / 255.0F, green / 255.0F, blue / 255.0F, 1.0F);
+    };
+    ImGui::StyleColorsDark(&style);
+    style.Colors[ImGuiCol_WindowBg] = color(37.0F, 37.0F, 38.0F);
+    style.Colors[ImGuiCol_FrameBg] = color(51.0F, 51.0F, 55.0F);
+    style.Colors[ImGuiCol_Button] = color(51.0F, 51.0F, 55.0F);
+    style.Colors[ImGuiCol_ButtonHovered] = color(29.0F, 151.0F, 236.0F);
+    style.Colors[ImGuiCol_ButtonActive] = color(0.0F, 119.0F, 200.0F);
+    style.Colors[ImGuiCol_Header] = color(51.0F, 51.0F, 55.0F);
+    style.Colors[ImGuiCol_HeaderHovered] = color(29.0F, 151.0F, 236.0F);
+    style.Colors[ImGuiCol_HeaderActive] = color(0.0F, 119.0F, 200.0F);
+    style.WindowRounding = 0.0F;
+    style.ChildRounding = 0.0F;
+    style.FrameRounding = 0.0F;
+    style.PopupRounding = 0.0F;
+    style.ScrollbarRounding = 0.0F;
+    style.TabRounding = 0.0F;
+}
+
+class GlfwPlatform final : public IGuiPlatform {
+public:
+    GlfwPlatform(GuiConfiguration configuration, std::thread::id processMainThread)
+        : configuration_(configuration), processMainThread_(processMainThread)
+    {
     }
 
-    if (not ImGui_ImplGlfw_InitForOpenGL(window, true))
-        throw std::runtime_error("Failed to initialize ImGui GLFW");
-    if (not ImGui_ImplOpenGL3_Init("#version 130"))
-        throw std::runtime_error("Failed to initialize ImGui OpenGL");
-
-    return io;
-}
-
-void ImGuiNewFrame()
-{
-    PROFILE_FUNCTION;
-    glfwPollEvents();
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-}
-
-void GLFWCloseWindow(GLFWwindow* window)
-{
-    glfwSetWindowShouldClose(window, GLFW_TRUE);
-}
-
-void ImGuiRender(GLFWwindow* window, ImGuiIO& io)
-{
-    PROFILE_FUNCTION;
-    ImGui::Render();
-    int width, height;
-    glfwGetFramebufferSize(window, &width, &height);
-    glViewport(0, 0, width, height);
-    glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
-    glClear(GL_COLOR_BUFFER_BIT);
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    void InitializeGlfw() override
     {
-        GLFWwindow* backup_current_context = glfwGetCurrentContext();
-        ImGui::UpdatePlatformWindows();
-        ImGui::RenderPlatformWindowsDefault();
-        glfwMakeContextCurrent(backup_current_context);
+        AssertMainThread();
+        glfwSetErrorCallback(GlfwErrorCallback);
+        if (glfwInit() == GLFW_FALSE)
+            throw std::runtime_error(WithLatestGlfwError("GLFW initialization failed"));
     }
 
-    if (ImGui::IsKeyPressed(ImGuiKey_Escape))
-        GLFWCloseWindow(window);
+    void TerminateGlfw() noexcept override
+    {
+        AssertMainThreadNoexcept();
+        glfwTerminate();
+        glfwSetErrorCallback(nullptr);
+    }
 
-    glfwSwapBuffers(window);
-    PROFILE_FRAME;
-}
+    void CreateWindow() override
+    {
+        AssertMainThread();
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, configuration_.openGlMajor);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, configuration_.openGlMinor);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_VISIBLE, configuration_.hidden ? GLFW_FALSE : GLFW_TRUE);
 
-void ImGuiShutdown()
+        GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+        if (monitor == nullptr)
+            throw std::runtime_error(WithLatestGlfwError("No primary monitor is available"));
+        int x = 0;
+        int y = 0;
+        int width = configuration_.width;
+        int height = configuration_.height;
+        glfwGetMonitorWorkarea(monitor, &x, &y, &width, &height);
+        const auto geometry = CalculateWindowGeometry(configuration_, {.x = x, .y = y, .width = width, .height = height});
+
+        window_ = glfwCreateWindow(
+            configuration_.hidden ? 1 : geometry.width,
+            configuration_.hidden ? 1 : geometry.height,
+            WindowTitle.data(),
+            nullptr,
+            nullptr);
+        if (window_ == nullptr)
+            throw std::runtime_error(WithLatestGlfwError(std::format(
+                "GLFW window creation failed for requested OpenGL {}.{} core context",
+                configuration_.openGlMajor,
+                configuration_.openGlMinor)));
+        glfwSetWindowPos(window_, geometry.x, geometry.y);
+        glfwSetWindowUserPointer(window_, this);
+        glfwSetKeyCallback(window_, KeyCallback);
+    }
+
+    void DestroyWindow() noexcept override
+    {
+        AssertMainThreadNoexcept();
+        if (window_ != nullptr)
+            glfwDestroyWindow(window_);
+        window_ = nullptr;
+    }
+
+    void InitializeOpenGl() override
+    {
+        AssertMainThread();
+        glfwMakeContextCurrent(window_);
+        if (gladLoadGL() == 0)
+            throw std::runtime_error(WithLatestGlfwError(std::format(
+                "GLAD failed to load requested OpenGL {}.{} core context; actual version is unavailable",
+                configuration_.openGlMajor,
+                configuration_.openGlMinor)));
+
+        glGetIntegerv(GL_MAJOR_VERSION, &actualOpenGlMajor_);
+        glGetIntegerv(GL_MINOR_VERSION, &actualOpenGlMinor_);
+        const bool versionTooOld = actualOpenGlMajor_ < configuration_.openGlMajor ||
+                                   (actualOpenGlMajor_ == configuration_.openGlMajor &&
+                                    actualOpenGlMinor_ < configuration_.openGlMinor);
+        if (versionTooOld)
+            throw std::runtime_error(WithLatestGlfwError(std::format(
+                "Requested OpenGL {}.{} core but created OpenGL {}.{}",
+                configuration_.openGlMajor,
+                configuration_.openGlMinor,
+                actualOpenGlMajor_,
+                actualOpenGlMinor_)));
+        LOG_INFO(std::format(
+            "Requested OpenGL {}.{} core; created OpenGL {}.{}",
+            configuration_.openGlMajor,
+            configuration_.openGlMinor,
+            actualOpenGlMajor_,
+            actualOpenGlMinor_));
+        glfwSwapInterval(1);
+    }
+
+    void CreateImGuiContext() override
+    {
+        AssertMainThread();
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+        SetBaseStyle(ImGui::GetStyle());
+        baseStyle_ = ImGui::GetStyle();
+        float xScale = 1.0F;
+        float yScale = 1.0F;
+        glfwGetWindowContentScale(window_, &xScale, &yScale);
+        ApplyContentScale(NormalizeContentScale(xScale, yScale));
+    }
+
+    void DestroyImGuiContext() noexcept override
+    {
+        AssertMainThreadNoexcept();
+        ImGui::DestroyContext();
+    }
+
+    void InitializeImGuiGlfwBackend() override
+    {
+        AssertMainThread();
+        if (!ImGui_ImplGlfw_InitForOpenGL(window_, true))
+            throw std::runtime_error(WithLatestGlfwError("Failed to initialize the ImGui GLFW backend"));
+        glfwSetWindowContentScaleCallback(window_, ContentScaleCallback);
+    }
+
+    void ShutdownImGuiGlfwBackend() noexcept override
+    {
+        AssertMainThreadNoexcept();
+        ImGui_ImplGlfw_Shutdown();
+    }
+
+    void InitializeImGuiOpenGlBackend() override
+    {
+        AssertMainThread();
+        if (!ImGui_ImplOpenGL3_Init("#version 330 core"))
+            throw std::runtime_error(WithLatestGlfwError("Failed to initialize the ImGui OpenGL 3.3 backend"));
+    }
+
+    void ShutdownImGuiOpenGlBackend() noexcept override
+    {
+        AssertMainThreadNoexcept();
+        ImGui_ImplOpenGL3_Shutdown();
+    }
+
+    bool WindowShouldClose() override
+    {
+        AssertMainThread();
+        return glfwWindowShouldClose(window_) != GLFW_FALSE;
+    }
+
+    void RequestClose() override
+    {
+        AssertMainThread();
+        glfwSetWindowShouldClose(window_, GLFW_TRUE);
+    }
+
+    void BeginFrame() override
+    {
+        AssertMainThread();
+        glfwPollEvents();
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+    }
+
+    void DrawFrame(DeviceMonitorState& state) override
+    {
+        AssertMainThread();
+        ShowWindow(state);
+        if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+            state.RequestExit();
+    }
+
+    void EndFrame() override
+    {
+        AssertMainThread();
+        ImGui::Render();
+        int width = 0;
+        int height = 0;
+        glfwGetFramebufferSize(window_, &width, &height);
+        glViewport(0, 0, width, height);
+        glClearColor(0.145F, 0.145F, 0.149F, 1.0F);
+        glClear(GL_COLOR_BUFFER_BIT);
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        ImGuiIO& io = ImGui::GetIO();
+        if ((io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) != 0)
+        {
+            GLFWwindow* backup = glfwGetCurrentContext();
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+            glfwMakeContextCurrent(backup);
+        }
+        glfwSwapBuffers(window_);
+        PROFILE_FRAME;
+    }
+
+private:
+    void AssertMainThread() const
+    {
+        const bool onMainThread = IsExpectedThread(processMainThread_);
+        assert(onMainThread && "GLFW/ImGui operation must run on the process main thread");
+        if (!onMainThread)
+            throw std::logic_error("GLFW/ImGui operation called off the process main thread");
+    }
+
+    void AssertMainThreadNoexcept() const noexcept
+    {
+        assert(IsExpectedThread(processMainThread_) && "GLFW/ImGui cleanup must run on the process main thread");
+    }
+
+    void ApplyContentScale(float scale)
+    {
+        ImGuiStyle& style = ImGui::GetStyle();
+        style = baseStyle_;
+        style.ScaleAllSizes(scale);
+        ImGui::GetIO().FontGlobalScale = scale;
+    }
+
+    static void ContentScaleCallback(GLFWwindow* window, float xScale, float yScale) noexcept
+    {
+        try
+        {
+            if (auto* self = static_cast<GlfwPlatform*>(glfwGetWindowUserPointer(window)))
+                self->ApplyContentScale(NormalizeContentScale(xScale, yScale));
+        }
+        catch (...)
+        {
+        }
+    }
+
+    static void KeyCallback(GLFWwindow* window, int key, int, int action, int)
+    {
+        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+            glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+
+    GuiConfiguration configuration_;
+    std::thread::id processMainThread_;
+    GLFWwindow* window_{};
+    ImGuiStyle baseStyle_{};
+    int actualOpenGlMajor_{};
+    int actualOpenGlMinor_{};
+};
+
+std::optional<std::string> PumpStorage(DeviceStorageService& storage, DeviceMonitorState& state)
 {
-    PROFILE_FUNCTION;
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-}
+    if (auto commands = state.ConsumeCommands(); !commands.empty())
+        storage.Submit(std::move(commands));
 
-void GLFWShutdown(GLFWwindow* window)
-{
-    PROFILE_FUNCTION;
-    glfwDestroyWindow(window);
-    glfwTerminate();
-}
-
-void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    for (auto& result : storage.PollResults())
+    {
+        if (!result.success)
+        {
+            storage.RequestStop();
+            return std::move(result.error);
+        }
+        state.ReplaceDevices(std::move(result.devices));
+    }
+    return std::nullopt;
 }
 
 } // namespace
 
-int ImGuiStart(DeviceMonitorState& state)
+GuiResult ImGuiStart(
+    DeviceMonitorState& state,
+    DeviceStorageService& storage,
+    std::thread::id processMainThread,
+    const GuiConfiguration& configuration)
 {
-    try
+    PROFILE_THREAD("Watchlist GUI main thread");
+    GlfwPlatform platform(configuration, processMainThread);
+    auto result = RunGuiLifecycle(platform, state, [&storage](DeviceMonitorState& currentState) {
+        return PumpStorage(storage, currentState);
+    });
+    for (auto& storageResult : storage.StopAndDrain())
     {
-        PROFILE_THREAD("Watchlist GUI");
-        PROFILE_FUNCTION;
-        GLFWInitialize();
-        auto window = GLFWCreateWindow(1920, 1080, false); // set this to false if you want background window
-        GLFWInitializeGL(window);
-        GLFWSetWindowCallback(window, KeyCallback);
-        ImGuiIO& io = ImGuiInitialize(window, 3.0);
-        LOG_INFO("GUI Window Initialized");
-
-        while (!glfwWindowShouldClose(window))
-        {
-            PROFILE_SCOPE(WatchlistGuiFrame);
-            {
-                PROFILE_SCOPE(NewFrame);
-                ImGuiNewFrame();
-            }
-            {
-                PROFILE_SCOPE(WatchlistUi);
-                // Place user code here
-                // ImGui::ShowDemoWindow();
-                ShowWindow(state);
-                if (state.ExitRequested())
-                    GLFWCloseWindow(window);
-            }
-
-            {
-                PROFILE_SCOPE(RenderFrame);
-                ImGuiRender(window, io);
-            }
-        }
-
-        ImGuiShutdown();
-        GLFWShutdown(window);
-        return EXIT_SUCCESS;
+        if (storageResult.success)
+            state.ReplaceDevices(std::move(storageResult.devices));
+        else if (result.success)
+            result = {.success = false, .error = std::move(storageResult.error)};
     }
-    catch (const std::exception& e)
-    {
-        LOG_EXCEPTION(e);
-        return EXIT_FAILURE;
-    }
-    catch (...)
-    {
-        LOG_ERROR("Unable to initialize ImGui. Unknown error!");
-        return EXIT_FAILURE;
-    }
+    if (!result.success)
+        LOG_ERROR(result.error);
+    return result;
 }
 
 } // namespace Watchlist::Gui
