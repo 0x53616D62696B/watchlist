@@ -1,7 +1,5 @@
-#include <chrono>
 #include <format>
 #include <iostream>
-#include <thread>
 
 #include "src/Common/Version.hpp"
 #include "src/Gui/Gui.hpp"
@@ -30,16 +28,10 @@ try
     // MQTT has its own service thread so reconnect/subscription work never blocks ImGui frames.
     runtime.StartDedicatedThread("MQTT IO", [&mqtt, &appState](std::stop_token stopToken) {
         auto consoleState = appState.SnapshotConsole();
-        mqtt.Connect(consoleState.brokerHost, consoleState.brokerPort, consoleState.clientId);
         mqtt.Subscribe(Messaging::AckTopicForClient(consoleState.clientId), [&appState](std::string, std::string payload) {
             appState.AddAck(std::move(payload));
         });
-
-        while (!stopToken.stop_requested()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        }
-
-        mqtt.Disconnect();
+        mqtt.Run(stopToken, consoleState.brokerHost, consoleState.brokerPort, consoleState.clientId);
     });
 
     runtime.StartDedicatedThread("ImGui", [&runtime](std::stop_token stopToken) {

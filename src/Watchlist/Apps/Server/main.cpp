@@ -1,7 +1,5 @@
-#include <chrono>
 #include <filesystem>
 #include <format>
-#include <thread>
 
 #include "src/Common/Version.hpp"
 #include "src/Gui/Gui.hpp"
@@ -39,16 +37,10 @@ try
     // The MQTT callback stays lightweight and hands validated work to RequestDispatcher.
     runtime.StartDedicatedThread("MQTT IO", [&mqtt, &appState, &dispatcher](std::stop_token stopToken) {
         auto consoleState = appState.SnapshotConsole();
-        mqtt.Connect(consoleState.brokerHost, consoleState.brokerPort, consoleState.clientId);
         mqtt.Subscribe(Messaging::RequestsTopic, [&dispatcher](std::string, std::string payload) {
             [[maybe_unused]] const auto ack = dispatcher.HandleIncomingPayload(payload);
         });
-
-        while (!stopToken.stop_requested()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        }
-
-        mqtt.Disconnect();
+        mqtt.Run(stopToken, consoleState.brokerHost, consoleState.brokerPort, consoleState.clientId);
     });
 
     runtime.StartDedicatedThread("ImGui", [&runtime](std::stop_token stopToken) {
