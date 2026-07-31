@@ -47,6 +47,33 @@ cmake --build --preset with-profiling --target Application
 
 The visible configure, build, and test presets live in `CMakePresets.json`. To provide machine-specific compiler, SDK, or Ninja paths, copy the example to `CMakeUserPresets.json`, customize it, and select `local-default` or `local-with-profiling`. The local presets use separate build directories so they cannot reuse an incompatible tracked-preset cache.
 
+## Paho MQTT Dependencies
+
+CMake fetches pinned Paho MQTT C++ `v1.6.0` and Paho MQTT C `v1.3.16`
+sources during configuration. Only their static, non-TLS asynchronous
+libraries are built; Paho examples, tests, documentation, packaging, and SSL
+features are disabled. The first configure therefore requires access to
+GitHub. Later configures reuse the populated sources under the build tree.
+
+Git submodules are the fallback for development environments that cannot let
+CMake fetch dependencies. Add both repositories at the paths detected by
+`cmake/PahoMqtt.cmake`, pin them to the same versions, and commit the resulting
+`.gitmodules` and gitlink changes on the branch that adopts this fallback:
+
+```powershell
+git submodule add https://github.com/eclipse-paho/paho.mqtt.c.git libs/paho.mqtt.c
+git -C libs/paho.mqtt.c checkout v1.3.16
+git submodule add https://github.com/eclipse-paho/paho.mqtt.cpp.git libs/paho.mqtt.cpp
+git -C libs/paho.mqtt.cpp checkout v1.6.0
+git submodule update --init --recursive
+cmake --preset default
+```
+
+The same commands work in a Linux shell. Existing clones initialize the
+fallback with `git submodule update --init --recursive`; no system-installed
+Paho package is required. Keep both submodules pinned to the documented tags
+when upgrading because the C++ release requires the matching C API.
+
 ## VS Code CMake Tools
 
 When using the CMake Tools extension, select one of the configure presets:

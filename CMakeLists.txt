@@ -23,6 +23,9 @@ option(BUILD_TESTING "Build unit tests" ON)
 option(WATCHLIST_ENABLE_GUI_SMOKE_TESTS "Run the real GLFW/OpenGL GUI smoke test" OFF)
 set(WATCHLIST_TEST_TIMEOUT_SECONDS 20 CACHE STRING "Timeout for deterministic Watchlist CTest cases")
 
+# MQTT transport dependencies
+include(PahoMqtt)
+
 set(CMAKE_CXX_FLAGS_DEBUGTRACY "${CMAKE_CXX_FLAGS_DEBUG}" CACHE STRING "Flags for DebugTracy build type" FORCE)
 set(CMAKE_C_FLAGS_DEBUGTRACY "${CMAKE_C_FLAGS_DEBUG}" CACHE STRING "Flags for DebugTracy build type" FORCE)
 mark_as_advanced(CMAKE_CXX_FLAGS_DEBUGTRACY CMAKE_C_FLAGS_DEBUGTRACY)
