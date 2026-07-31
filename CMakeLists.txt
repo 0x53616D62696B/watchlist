@@ -218,6 +218,17 @@ if(BUILD_TESTING AND TARGET GTest::gtest_main)
 
   include(GoogleTest)
   gtest_discover_tests(UnitTests)
+
+  add_executable(GeneratorLifecycleTests
+    tests/UnitTests/Concurrency/EventLoopGeneratorTests.cpp
+    src/Utils/Logger/Logger.cpp
+  )
+
+  target_link_libraries(GeneratorLifecycleTests PRIVATE
+    GTest::gtest_main
+  )
+
+  gtest_discover_tests(GeneratorLifecycleTests)
 elseif(BUILD_TESTING)
   message(STATUS "GoogleTest was not found. Add it to libs/googletest or install a GTest package to build UnitTests.")
 endif()

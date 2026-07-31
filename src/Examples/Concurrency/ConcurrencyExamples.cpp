@@ -70,7 +70,7 @@ int example_eloop_gen()
     ::Concurrency::EventLoopGenerator event_loop;
 
     // Schedule individual events
-    event_loop.schedule_event("Single Task", []() {
+    auto single_event = event_loop.schedule_event("Single Task", []() {
         PROFILE_SCOPE(EventLoopGeneratorExampleSingleTask);
         PROFILE_MESSAGE("[TRACY][ELOOP_GEN_EXAMPLE] Single queued task executes on the event-loop worker");
         LOG_INFO("Executing single task");
@@ -84,13 +84,18 @@ int example_eloop_gen()
     });
 
     LOG_INFO("Events initiated.");
-    event_loop.process_event_sequence(std::move(event_gen));
+    auto sequence = event_loop.process_event_sequence(std::move(event_gen));
 
-    // Keep the event loop running
     {
         PROFILE_SCOPE(EventLoopGeneratorExampleObserveAsyncWork);
-        PROFILE_MESSAGE("[TRACY][ELOOP_GEN_EXAMPLE] Main thread sleeps while producer and worker threads run");
-        std::this_thread::sleep_for(std::chrono::seconds(3));
+        PROFILE_MESSAGE("[TRACY][ELOOP_GEN_EXAMPLE] Observe event and sequence completion results");
+        const auto single_result = single_event.completion.get();
+        const auto sequence_result = sequence.get();
+        if (single_result.status != ::Concurrency::EventLoopGenerator::EventStatus::Executed ||
+            sequence_result.status != ::Concurrency::EventLoopGenerator::SequenceStatus::Completed) {
+            LOG_ERROR("Generator event-loop example did not complete successfully");
+            return EXIT_FAILURE;
+        }
     }
 
     PROFILE_MESSAGE("[TRACY][ELOOP_GEN_EXAMPLE] Done: event loop destructor will stop the worker");
