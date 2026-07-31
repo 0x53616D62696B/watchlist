@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <functional>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -26,8 +27,12 @@ struct ConsoleState {
 /// Thread-safe UI event history shared by GUI, MQTT, and dispatcher threads.
 class AppState {
 public:
+    using OutboundCommandHandler = std::function<void(std::string payload)>;
+
     ConsoleState SnapshotConsole() const;
     void UpdateConsole(const ConsoleState& console);
+    void SetOutboundCommandHandler(OutboundCommandHandler handler);
+    [[nodiscard]] bool DispatchOutbound(std::string payload);
     void AddOutbound(std::string line);
     void AddReceived(std::string line);
     void AddAck(std::string line);
@@ -43,6 +48,7 @@ private:
     void AddBounded(std::vector<std::string>& lines, std::string line);
 
     mutable std::mutex mutex_;
+    OutboundCommandHandler outboundCommandHandler_;
     ConsoleState console_;
     std::vector<std::string> outbound_;
     std::vector<std::string> received_;
