@@ -32,13 +32,13 @@ The preset uses:
 2. Start the Watchlist app:
 
    ```powershell
-   .\build\profiling\Application.exe
+   .\build\profiling\Watchlist.exe
    ```
 
    Or keep the short-lived example open in the console while you connect Tracy:
 
    ```powershell
-   .\build\profiling\Application.exe --wait-for-tracy
+   .\build\profiling\Watchlist.exe --wait-for-tracy
    ```
 
 3. In Tracy, connect to the running process.

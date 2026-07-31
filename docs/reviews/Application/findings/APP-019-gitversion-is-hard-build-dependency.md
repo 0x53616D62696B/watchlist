@@ -1,5 +1,7 @@
 # APP-019: GitVersion is an unconditional configure dependency
 
+- **Status:** Resolved
+
 - **Priority:** P1
 - **Kind:** Improvement
 - **Confidence:** High
@@ -28,3 +30,13 @@ Support an explicit version cache variable for packaging, use GitVersion when av
 ## Suggested tests
 
 Configure with GitVersion present, absent with an override, absent in development mode, and required in release mode.
+
+## Resolution
+
+Version resolution now follows `WATCHLIST_VERSION_OVERRIDE`, validated GitVersion JSON, then the deterministic `0.0.0-dev+unversioned` development fallback. Configure reports the selected source. `WATCHLIST_REQUIRE_GITVERSION` rejects overrides/fallbacks, while `WATCHLIST_REQUIRE_CLEAN_PROVENANCE` additionally rejects GitVersion output with uncommitted changes.
+
+## Validation
+
+- Configured successfully from an explicit archive version and from the installed GitVersion executable.
+- Exercised the development fallback with GitVersion discovery disabled.
+- Verified strict GitVersion and clean-provenance modes fail with actionable diagnostics.

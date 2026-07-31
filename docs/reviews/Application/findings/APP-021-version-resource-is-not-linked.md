@@ -1,5 +1,7 @@
 # APP-021: Generated Windows version resource is unused
 
+- **Status:** Resolved
+
 - **Priority:** P2
 - **Kind:** Defect
 - **Confidence:** High
@@ -28,3 +30,12 @@ Generate the resource in the build tree and add it to `Application` on Windows, 
 ## Suggested tests
 
 Inspect target sources at configure time and query built executable version properties in a Windows integration test.
+
+## Resolution
+
+Windows configuration generates `<build>/generated/version.rc`, marks it generated, and attaches it to `Application` with `target_sources`. Non-Windows configuration neither generates nor references the resource.
+
+## Validation
+
+- Observed Ninja compile `generated/version.rc` into `version.rc.res` and link it into `Watchlist.exe`.
+- Queried the built executable's Windows `VersionInfo` and confirmed numeric version 7.8.9 plus the configured full display version.

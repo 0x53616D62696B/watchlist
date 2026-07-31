@@ -9,10 +9,10 @@ The Watchlist `Application` target includes a Tracy example when profiling is en
 ```powershell
 cmake --preset with-profiling
 cmake --build --preset with-profiling --target Application
-.\build\profiling\Application.exe
+.\build\profiling\Watchlist.exe
 ```
 
-The startup example is short-lived. If you need time to connect Tracy from VS Code, build with CMake Tools and run the `launch.json` configuration named `CMake: Application target (wait for Tracy)`. It passes `--wait-for-tracy` to the same `Application.exe`, so no second build is needed.
+The startup example is short-lived. If you need time to connect Tracy from VS Code, build with CMake Tools and run the `launch.json` configuration named `CMake: Application target (wait for Tracy)`. It passes `--wait-for-tracy` to the same `Watchlist.exe`, so no second build is needed.
 
 Start the Tracy profiler UI before or after launching the app, then connect to `127.0.0.1:8086`.
 See [docs/TracyWatchlistExample.md](docs/TracyWatchlistExample.md) for the instrumented zones and GUI notes.
@@ -92,13 +92,16 @@ ctest --preset with-profiling
 
 ## Versioning System
 
-This project uses [GitVersion](https://gitversion.net/) for automatic semantic versioning based on Git history and commits.
+This project can use [GitVersion](https://gitversion.net/) for automatic semantic versioning based on Git history and commits.
 
 Version calculation happens during the CMake configure step, not during C++ compilation itself.
 
 - `configure_version()` is called from `CMakeLists.txt`
-- `generate_version_header("${CMAKE_SOURCE_DIR}/src/Common/Version.hpp")` writes the generated header during configure
-- if GitVersion is not installed or not found on `PATH`, CMake falls back to version `0.1.0`
+- `WATCHLIST_VERSION_OVERRIDE` supplies a validated packaging/archive version when set
+- otherwise GitVersion JSON is validated field-by-field when GitVersion is available
+- otherwise development builds use the deterministic `0.0.0-dev+unversioned` fallback
+- the selected source is printed during configure
+- generated `Common/Version.hpp` and `version.rc` files live only under the selected build directory
 
 Typical triggers for configure are:
 
@@ -111,14 +114,26 @@ Detailed GitVersion rules, branch examples, `unknown` branch behavior, and `sour
 
 ### CMake Build Integration
 
-After GitVersion is installed, configure and build the project as usual:
+Configure and build the project as usual:
 
 ```sh
 cmake -S . -B build
 cmake --build build
 ```
 
-During configure, CMake runs GitVersion and generates `src/Common/Version.hpp` with the resolved values.
+During configure, CMake generates `<build>/generated/Common/Version.hpp`. On Windows it also generates and links `<build>/generated/version.rc` into `Watchlist.exe`.
+
+For a reproducible archive or packaging build, provide a semantic version explicitly:
+
+```sh
+cmake -S . -B build -DWATCHLIST_VERSION_OVERRIDE=1.2.3
+```
+
+Release automation can reject overrides/fallbacks and require clean Git provenance:
+
+```sh
+cmake -S . -B build -DWATCHLIST_REQUIRE_GITVERSION=ON -DWATCHLIST_REQUIRE_CLEAN_PROVENANCE=ON
+```
 
 If you already have a configured build directory and only run:
 
@@ -168,7 +183,7 @@ dotnet-gitversion /output json
 
 ### Accessing Version Information in Code
 
-The build system generates `src/Common/Version.hpp` during CMake configure with all version components:
+The build system generates `<build>/generated/Common/Version.hpp` during CMake configure with all version components:
 
 ```cpp
 #include "Common/Version.hpp"
@@ -187,9 +202,10 @@ std::cout << "PreRelease: " << VERSION_PRERELEASE << std::endl;
 std::cout << "Build: " << VERSION_BUILD << std::endl;
 std::cout << "Branch: " << VERSION_BRANCH << std::endl;
 std::cout << "Commit: " << VERSION_COMMIT << std::endl;
+std::cout << "Source: " << VERSION_SOURCE << std::endl;
 ```
 
-If GitVersion is unavailable, CMake falls back to the default version values defined in the CMake integration.
+If GitVersion is unavailable and strict release policy is disabled, CMake uses the deterministic development fallback and reports that source explicitly.
 
 ### Configuration
 
