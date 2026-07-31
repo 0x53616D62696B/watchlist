@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <functional>
 #include <memory>
 #include <stop_token>
@@ -39,7 +40,11 @@ public:
     /// SetErrorHandler and Lifecycle(); Run() retries failed initial attempts.
     void Connect(std::string host, int port, std::string clientId);
     void Subscribe(std::string topic, MessageHandler handler);
+    void Unsubscribe(std::string topic);
     void Publish(std::string topic, std::string payload);
+    /// Wait for outstanding subscribe/unsubscribe/publish callbacks. This is
+    /// bounded so a failed broker cannot hang application shutdown forever.
+    [[nodiscard]] bool WaitForPendingOperations(std::chrono::milliseconds timeout);
     void Disconnect();
     [[nodiscard]] bool Connected() const;
     [[nodiscard]] LifecycleStatus Lifecycle() const;

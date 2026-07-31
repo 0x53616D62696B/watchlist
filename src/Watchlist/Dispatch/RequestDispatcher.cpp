@@ -19,26 +19,44 @@ RequestDispatcher::RequestDispatcher(
 {
 }
 
-Messaging::MqttAck RequestDispatcher::HandleIncomingPayload(const std::string& payload)
+bool RequestDispatcher::HandleIncomingPayload(const std::string& payload)
 {
     if (appState_ != nullptr)
         appState_->AddReceived(payload);
 
     auto parseResult = Messaging::ParseRequest(payload);
     if (!parseResult.request.has_value()) {
-        auto ack = Messaging::MakeAck("", "error", parseResult.error);
-        if (appState_ != nullptr)
-            appState_->AddAck(Messaging::SerializeAck(ack));
-        return ack;
+        auto ack = Messaging::MakeAck(parseResult.requestId, "error", parseResult.error);
+        Messaging::MqttRequest route;
+        route.id = parseResult.requestId;
+        route.sourceClientId = parseResult.sourceClientId;
+        RecordAndPublishAck(route, ack);
+        return false;
     }
 
     auto request = std::move(*parseResult.request);
-    auto future = Dispatch(request);
-    return future.get();
+    if (!accepting_.load(std::memory_order_acquire)) {
+        RecordAndPublishAck(request, Messaging::MakeAck(request.id, "error", "server shutting down"));
+        return false;
+    }
+
+    try {
+        [[maybe_unused]] auto completion = Dispatch(request);
+        return true;
+    }
+    catch (const std::runtime_error&) {
+        // StopAll can race the accepting check. Convert the rejected enqueue
+        // into the same deterministic response as an orderly shutdown.
+        RecordAndPublishAck(request, Messaging::MakeAck(request.id, "error", "server shutting down"));
+        return false;
+    }
 }
 
 std::future<Messaging::MqttAck> RequestDispatcher::Dispatch(Messaging::MqttRequest request)
 {
+    if (!accepting_.load(std::memory_order_acquire))
+        throw std::runtime_error("RequestDispatcher is not accepting requests");
+
     if (appState_ != nullptr) {
         appState_->AddActivity(std::format("Queued {} request {}", Messaging::ToString(request.type), request.id));
     }
@@ -46,12 +64,24 @@ std::future<Messaging::MqttAck> RequestDispatcher::Dispatch(Messaging::MqttReque
     // Handlers may block on device/database/script work, so they run as bounded worker tasks.
     return runtime_.EnqueueTask([this, request = std::move(request)] {
         auto ack = ExecuteWorkerRequest(request);
-        if (appState_ != nullptr)
-            appState_->AddAck(Messaging::SerializeAck(ack));
-        if (ackPublisher_)
-            ackPublisher_(request, ack);
+        RecordAndPublishAck(request, ack);
         return ack;
     });
+}
+
+void RequestDispatcher::StopAccepting()
+{
+    accepting_.store(false, std::memory_order_release);
+}
+
+void RequestDispatcher::RecordAndPublishAck(
+    const Messaging::MqttRequest& request,
+    const Messaging::MqttAck& ack)
+{
+    if (appState_ != nullptr)
+        appState_->AddAck(Messaging::SerializeAck(ack));
+    if (ackPublisher_ && Messaging::IsValidClientId(request.sourceClientId))
+        ackPublisher_(request, ack);
 }
 
 Messaging::MqttAck RequestDispatcher::ExecuteWorkerRequest(const Messaging::MqttRequest& request)

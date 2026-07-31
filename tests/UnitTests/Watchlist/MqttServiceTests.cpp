@@ -1,3 +1,4 @@
+#include <chrono>
 #include <string>
 #include <vector>
 
@@ -45,6 +46,16 @@ TEST(MqttServiceTests, DisconnectIsIdempotentWithoutBrokerAccess)
 
     EXPECT_EQ(service.Lifecycle(), MqttService::LifecycleStatus::Offline);
     EXPECT_FALSE(service.Connected());
+}
+
+TEST(MqttServiceTests, OfflineUnsubscribeAndPendingDrainAreImmediate)
+{
+    MqttService service;
+
+    service.Subscribe("watchlist/requests", [](std::string, std::string) {});
+    service.Unsubscribe("watchlist/requests");
+
+    EXPECT_TRUE(service.WaitForPendingOperations(std::chrono::milliseconds(10)));
 }
 
 } // namespace
