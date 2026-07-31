@@ -1,5 +1,7 @@
 # APP-027: `schedule` creates work with no resume path
 
+- **Status:** Resolved
+
 - **Priority:** P1
 - **Kind:** Defect
 - **Confidence:** High
@@ -28,3 +30,9 @@ Queue the coroutine handle through an instance scheduler at creation, or replace
 ## Suggested tests
 
 Schedule one and many tasks before/while the worker waits, race stop with schedule, and assert exactly-once execution and result propagation.
+
+## Resolution
+
+`schedule` now registers its coroutine frame in the owning loop's ready queue. The worker resumes accepted tasks automatically; callers no longer receive a manual `resume` operation. Stopped admission produces a cancelled task, while success and failure are available through task status and `get()`.
+
+Validated by 32 immediate tasks executing exactly once without manual resume and by stopped-loop rejection tests for both immediate and delayed work.

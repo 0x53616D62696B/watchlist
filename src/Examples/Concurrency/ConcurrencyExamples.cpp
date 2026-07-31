@@ -110,13 +110,13 @@ int example_eloop_coro()
     ::Concurrency::EventLoopCoroutine event_loop;
 
     // Schedule tasks with different delays
-    event_loop.schedule_after(std::chrono::milliseconds(1000), []() {
+    [[maybe_unused]] auto one_second_task = event_loop.schedule_after(std::chrono::milliseconds(1000), []() {
         PROFILE_SCOPE(EventLoopCoroutineExampleOneSecondTask);
         PROFILE_MESSAGE("[TRACY][ELOOP_CORO_EXAMPLE] One-second coroutine resumed and task body executes");
         LOG_INFO("Task executed after 1 second");
     });
 
-    event_loop.schedule_after(std::chrono::milliseconds(500), []() {
+    [[maybe_unused]] auto half_second_task = event_loop.schedule_after(std::chrono::milliseconds(500), []() {
         PROFILE_SCOPE(EventLoopCoroutineExampleHalfSecondTask);
         PROFILE_MESSAGE("[TRACY][ELOOP_CORO_EXAMPLE] Half-second coroutine resumed and task body executes");
         LOG_INFO("Task executed after 500ms");
@@ -170,7 +170,6 @@ int example_async_eloop()
 
     // Schedule a task to be executed immediately
     ::Concurrency::AsyncEventLoop::Task task3 = loop.schedule(task_to_be_executed_immediately);
-    task3.resume(); // Resume the task immediately //! Should be part of manager not manually called
 
     // Create an event stream using a generator
     auto event_stream = loop.create_event_stream("sensor_data", 5);
@@ -179,7 +178,7 @@ int example_async_eloop()
     ::Concurrency::AsyncEventLoop::Task generated_task = loop.process_events(std::move(event_stream));
 
     // Manually emit a custom event
-    loop.emit_event({"custom_event", std::string("Hello from custom event!")});
+    (void)loop.emit_event({"custom_event", std::string("Hello from custom event!")});
 
     // Keep the program running to see all events
     std::this_thread::sleep_for(std::chrono::seconds(5));

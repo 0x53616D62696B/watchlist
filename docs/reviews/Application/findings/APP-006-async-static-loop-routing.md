@@ -1,5 +1,7 @@
 # APP-006: Async awaiters route through one process-wide loop pointer
 
+- **Status:** Resolved
+
 - **Priority:** P1
 - **Kind:** Defect
 - **Confidence:** High
@@ -32,3 +34,9 @@ Do not add global locking around the static pointer; that would serialize the ra
 ## Suggested tests
 
 Run two loops concurrently with identical event names and interleaved delays. Verify each task resumes on its own loop, then destroy the loops in both orders.
+
+## Resolution
+
+All async awaiters now receive their originating `AsyncEventLoop&` at construction and all scheduling APIs are instance methods. The process-wide loop pointers and setter calls were removed.
+
+Validated with simultaneous loops using interleaved delays and the same event name; emitting on one loop leaves the other loop's waiter pending.

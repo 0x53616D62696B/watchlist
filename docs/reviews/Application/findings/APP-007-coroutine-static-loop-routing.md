@@ -1,5 +1,7 @@
 # APP-007: Delay awaiters route through one process-wide loop pointer
 
+- **Status:** Resolved
+
 - **Priority:** P1
 - **Kind:** Defect
 - **Confidence:** High
@@ -32,3 +34,9 @@ Coordinate the scheduler reference with APP-004's frame-ownership model; avoid i
 ## Suggested tests
 
 Schedule on two simultaneous loops, destroy one while the other remains active, and test calls during and after shutdown.
+
+## Resolution
+
+`EventLoopCoroutine::schedule_after` is now an instance method and its `Delay` stores the destination loop directly. `stop()` closes admission, and a scheduling attempt after stop returns an observably cancelled task without touching stale state.
+
+Validated by independent-loop scheduling and explicit stopped-loop rejection tests.

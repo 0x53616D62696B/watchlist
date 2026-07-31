@@ -177,7 +177,9 @@ target_sources(Development PRIVATE ${SRC_DEVELOPMENT})
 
 if(BUILD_TESTING AND TARGET GTest::gtest_main)
   add_executable(UnitTests
+    tests/UnitTests/Concurrency/EventLoopTests.cpp
     tests/UnitTests/Storage/SQLiteDatabaseTests.cpp
+    src/Utils/Logger/Logger.cpp
     src/Utils/Storage/SQLiteDatabase.cpp
   )
 
