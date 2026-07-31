@@ -41,11 +41,14 @@ struct MqttAck {
 /// Parsed request or a deterministic validation error.
 struct ParseResult {
     std::optional<MqttRequest> request;
+    std::string requestId;
+    std::string sourceClientId;
     std::string error;
 };
 
 [[nodiscard]] std::string ToString(MessageType type);
 [[nodiscard]] std::optional<MessageType> MessageTypeFromString(std::string_view value);
+[[nodiscard]] bool IsValidClientId(std::string_view value);
 
 /// Serialize and parse the compact JSON envelopes used on MQTT topics.
 [[nodiscard]] std::string SerializeRequest(const MqttRequest& request);

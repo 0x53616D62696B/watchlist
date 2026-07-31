@@ -1,5 +1,7 @@
+#include <chrono>
 #include <filesystem>
 #include <format>
+#include <future>
 
 #include "src/Common/Version.hpp"
 #include "src/Gui/Gui.hpp"
@@ -24,10 +26,13 @@ try
     console.clientId = "watchlist-server";
     appState.UpdateConsole(console);
 
-    Concurrency::ThreadPoolManager runtime(3);
+    // Keep bounded request workers separate from long-lived services so
+    // shutdown can drain work and acknowledgements before MQTT disconnects.
+    Concurrency::ThreadPoolManager workerRuntime(3);
+    Concurrency::ThreadPoolManager serviceRuntime(0);
     Messaging::MqttService mqtt(&appState);
     Dispatch::RequestDispatcher dispatcher(
-        runtime,
+        workerRuntime,
         std::filesystem::temp_directory_path() / "watchlist_server.sqlite",
         &appState,
         [&mqtt](const Messaging::MqttRequest& request, const Messaging::MqttAck& ack) {
@@ -35,21 +40,36 @@ try
         });
 
     // The MQTT callback stays lightweight and hands validated work to RequestDispatcher.
-    runtime.StartDedicatedThread("MQTT IO", [&mqtt, &appState, &dispatcher](std::stop_token stopToken) {
+    serviceRuntime.StartDedicatedThread("MQTT IO", [&mqtt, &appState, &dispatcher](std::stop_token stopToken) {
         auto consoleState = appState.SnapshotConsole();
         mqtt.Subscribe(Messaging::RequestsTopic, [&dispatcher](std::string, std::string payload) {
-            [[maybe_unused]] const auto ack = dispatcher.HandleIncomingPayload(payload);
+            [[maybe_unused]] const bool queued = dispatcher.HandleIncomingPayload(payload);
         });
         mqtt.Run(stopToken, consoleState.brokerHost, consoleState.brokerPort, consoleState.clientId);
     });
 
-    runtime.StartDedicatedThread("ImGui", [&runtime](std::stop_token stopToken) {
+    std::promise<void> guiClosed;
+    auto guiClosedFuture = guiClosed.get_future();
+    serviceRuntime.StartDedicatedThread("ImGui", [&guiClosed](std::stop_token stopToken) {
         ImGuiStart(stopToken);
-        // Closing the GUI is the user-facing shutdown signal for the current apps.
-        runtime.StopAll();
+        guiClosed.set_value();
     });
 
-    runtime.JoinAll();
+    guiClosedFuture.wait();
+    // Stop inbound delivery first, then drain queued worker work while the
+    // transport remains connected for completion acknowledgements.
+    dispatcher.StopAccepting();
+    mqtt.Unsubscribe(Messaging::RequestsTopic);
+    if (!mqtt.WaitForPendingOperations(std::chrono::seconds(3)))
+        appState.AddActivity("Timed out waiting for MQTT request unsubscribe");
+
+    workerRuntime.StopAll();
+    workerRuntime.JoinAll();
+
+    if (!mqtt.WaitForPendingOperations(std::chrono::seconds(3)))
+        appState.AddActivity("Timed out waiting for MQTT acknowledgement publication");
+    serviceRuntime.StopAll();
+    serviceRuntime.JoinAll();
     SetAppState(nullptr);
     return EXIT_SUCCESS;
 }

@@ -84,6 +84,7 @@ TEST(MqttMessagingTests, RoundTripsAllRequestTypes)
 
 TEST(MqttMessagingTests, InvalidPayloadReturnsDeterministicErrors)
 {
+    EXPECT_EQ(Watchlist::Messaging::ParseRequest("not JSON").error, "invalid JSON object");
     EXPECT_EQ(Watchlist::Messaging::ParseRequest("{}").error, "missing required field: type");
     EXPECT_EQ(
         Watchlist::Messaging::ParseRequest(R"({"type":"not_real"})").error,
@@ -91,6 +92,104 @@ TEST(MqttMessagingTests, InvalidPayloadReturnsDeterministicErrors)
     EXPECT_EQ(
         Watchlist::Messaging::ParseRequest(R"({"type":"execute_script","id":"1","created_utc":"now","source_client_id":"client"})").error,
         "missing required field: script_name");
+}
+
+TEST(MqttMessagingTests, CallbackQueuesValidWorkWithoutWaitingForWorker)
+{
+    Concurrency::ThreadPoolManager runtime(1);
+    std::promise<void> blockerStarted;
+    std::promise<void> releaseBlocker;
+    auto releaseFuture = releaseBlocker.get_future().share();
+    auto blocker = runtime.EnqueueTask([&] {
+        blockerStarted.set_value();
+        releaseFuture.wait();
+    });
+    ASSERT_EQ(blockerStarted.get_future().wait_for(std::chrono::seconds(1)), std::future_status::ready);
+
+    std::promise<Watchlist::Messaging::MqttAck> published;
+    auto publishedFuture = published.get_future();
+    Watchlist::Dispatch::RequestDispatcher dispatcher(
+        runtime,
+        TempDatabasePath("async_dispatcher_"),
+        nullptr,
+        [&](const Watchlist::Messaging::MqttRequest&, const Watchlist::Messaging::MqttAck& ack) {
+            published.set_value(ack);
+        });
+
+    EXPECT_TRUE(dispatcher.HandleIncomingPayload(
+        Watchlist::Messaging::SerializeRequest(RequestFor(MessageType::ExecuteScript))));
+    EXPECT_EQ(publishedFuture.wait_for(std::chrono::milliseconds(50)), std::future_status::timeout);
+
+    releaseBlocker.set_value();
+    blocker.get();
+    ASSERT_EQ(publishedFuture.wait_for(std::chrono::seconds(1)), std::future_status::ready);
+    EXPECT_EQ(publishedFuture.get().status, "ok");
+}
+
+TEST(MqttMessagingTests, ValidationErrorPublishesOnlyWithSafelyRecoveredClient)
+{
+    Concurrency::ThreadPoolManager runtime(1);
+    std::vector<std::pair<Watchlist::Messaging::MqttRequest, Watchlist::Messaging::MqttAck>> published;
+    Watchlist::Dispatch::RequestDispatcher dispatcher(
+        runtime,
+        TempDatabasePath("validation_dispatcher_"),
+        nullptr,
+        [&](const Watchlist::Messaging::MqttRequest& request, const Watchlist::Messaging::MqttAck& ack) {
+            published.emplace_back(request, ack);
+        });
+
+    EXPECT_FALSE(dispatcher.HandleIncomingPayload(
+        R"({"type":"execute_script","id":"bad-1","created_utc":"now","source_client_id":"client-1"})"));
+    ASSERT_EQ(published.size(), 1);
+    EXPECT_EQ(published.front().first.sourceClientId, "client-1");
+    EXPECT_EQ(published.front().second.requestId, "bad-1");
+    EXPECT_EQ(published.front().second.message, "missing required field: script_name");
+
+    EXPECT_FALSE(dispatcher.HandleIncomingPayload(
+        R"({"type":"execute_script","id":"bad-2","source_client_id":"client-1",)"));
+    EXPECT_EQ(published.size(), 1);
+
+    EXPECT_FALSE(dispatcher.HandleIncomingPayload(
+        R"({"type":"execute_script","id":"bad-3","created_utc":"now","source_client_id":"bad/topic"})"));
+    EXPECT_EQ(published.size(), 1);
+}
+
+TEST(MqttMessagingTests, ShutdownRejectsNewRequestsAndDrainsQueuedAcknowledgement)
+{
+    Concurrency::ThreadPoolManager runtime(1);
+    std::promise<void> blockerStarted;
+    std::promise<void> releaseBlocker;
+    auto releaseFuture = releaseBlocker.get_future().share();
+    auto blocker = runtime.EnqueueTask([&] {
+        blockerStarted.set_value();
+        releaseFuture.wait();
+    });
+    ASSERT_EQ(blockerStarted.get_future().wait_for(std::chrono::seconds(1)), std::future_status::ready);
+
+    std::vector<Watchlist::Messaging::MqttAck> published;
+    Watchlist::Dispatch::RequestDispatcher dispatcher(
+        runtime,
+        TempDatabasePath("shutdown_dispatcher_"),
+        nullptr,
+        [&](const Watchlist::Messaging::MqttRequest&, const Watchlist::Messaging::MqttAck& ack) {
+            published.push_back(ack);
+        });
+
+    EXPECT_TRUE(dispatcher.HandleIncomingPayload(
+        Watchlist::Messaging::SerializeRequest(RequestFor(MessageType::ExecuteScript))));
+    dispatcher.StopAccepting();
+    EXPECT_FALSE(dispatcher.HandleIncomingPayload(
+        Watchlist::Messaging::SerializeRequest(RequestFor(MessageType::ExecuteScript))));
+
+    runtime.StopAll();
+    releaseBlocker.set_value();
+    runtime.JoinAll();
+    blocker.get();
+
+    ASSERT_EQ(published.size(), 2);
+    EXPECT_EQ(published[0].status, "error");
+    EXPECT_EQ(published[0].message, "server shutting down");
+    EXPECT_EQ(published[1].status, "ok");
 }
 
 TEST(MqttMessagingTests, DispatcherRoutesWorkerRequestsAndPublishesAck)

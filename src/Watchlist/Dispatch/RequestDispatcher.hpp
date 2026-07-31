@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <filesystem>
 #include <functional>
 #include <future>
@@ -23,13 +24,18 @@ public:
         AppState* appState,
         AckPublisher ackPublisher);
 
-    /// Validate raw JSON, record it for UI state, and dispatch valid requests.
-    [[nodiscard]] Messaging::MqttAck HandleIncomingPayload(const std::string& payload);
+    /// Validate raw JSON and queue valid work without waiting for its result.
+    /// Returns true only when the request was accepted by the worker pool.
+    [[nodiscard]] bool HandleIncomingPayload(const std::string& payload);
 
     /// Queue a validated request for worker-pool execution and ack publication.
     [[nodiscard]] std::future<Messaging::MqttAck> Dispatch(Messaging::MqttRequest request);
 
+    /// Reject subsequent work while already-queued requests drain at shutdown.
+    void StopAccepting();
+
 private:
+    void RecordAndPublishAck(const Messaging::MqttRequest& request, const Messaging::MqttAck& ack);
     [[nodiscard]] Messaging::MqttAck ExecuteWorkerRequest(const Messaging::MqttRequest& request);
     [[nodiscard]] Messaging::MqttAck ExecuteScript(const Messaging::MqttRequest& request);
     [[nodiscard]] Messaging::MqttAck SendToDevice(const Messaging::MqttRequest& request);
@@ -41,6 +47,7 @@ private:
     std::filesystem::path databasePath_;
     AppState* appState_;
     AckPublisher ackPublisher_;
+    std::atomic_bool accepting_ = true;
 };
 
 } // namespace Watchlist::Dispatch

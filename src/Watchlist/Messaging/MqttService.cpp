@@ -181,6 +181,39 @@ public:
             SubscribeClient(client, topic);
     }
 
+    void Unsubscribe(std::string topic)
+    {
+        if (topic.empty()) {
+            ReportError("Cannot unsubscribe from an empty MQTT topic", false);
+            return;
+        }
+
+        std::shared_ptr<mqtt::async_client> client;
+        bool connected = false;
+        {
+            std::scoped_lock lock(mutex_);
+            subscriptions_.erase(topic);
+            client = client_;
+            connected = status_ == LifecycleStatus::Connected;
+        }
+        if (!connected || !client)
+            return;
+
+        try {
+            auto listener = TrackOperation("MQTT unsubscribe from " + topic);
+            try {
+                client->unsubscribe(topic, nullptr, *listener);
+            }
+            catch (...) {
+                CancelOperation(*listener);
+                throw;
+            }
+        }
+        catch (const mqtt::exception& exception) {
+            ReportError(std::format("MQTT unsubscribe from {} failed: {}", topic, exception.what()), false);
+        }
+    }
+
     void Publish(std::string topic, std::string payload)
     {
         if (topic.empty()) {
@@ -212,6 +245,12 @@ public:
         catch (const mqtt::exception& exception) {
             ReportError(std::format("MQTT publish failed: {}", exception.what()), false);
         }
+    }
+
+    bool WaitForPendingOperations(std::chrono::milliseconds timeout)
+    {
+        std::unique_lock lock(mutex_);
+        return pendingOperationsChanged_.wait_for(lock, timeout, [this] { return pendingOperations_.empty(); });
     }
 
     void Disconnect()
@@ -442,6 +481,7 @@ private:
             std::scoped_lock lock(mutex_);
             pendingOperations_.clear();
         }
+        pendingOperationsChanged_.notify_all();
     }
 
     std::shared_ptr<OperationListener> TrackOperation(std::string operation)
@@ -454,8 +494,11 @@ private:
 
     void CancelOperation(OperationListener& listener)
     {
-        std::scoped_lock lock(mutex_);
-        std::erase_if(pendingOperations_, [&](const auto& pending) { return pending.get() == &listener; });
+        {
+            std::scoped_lock lock(mutex_);
+            std::erase_if(pendingOperations_, [&](const auto& pending) { return pending.get() == &listener; });
+        }
+        pendingOperationsChanged_.notify_all();
     }
 
     void CompleteOperation(OperationListener& listener, std::string error)
@@ -472,6 +515,7 @@ private:
             keepAlive = *found;
             pendingOperations_.erase(found);
         }
+        pendingOperationsChanged_.notify_all();
         if (!error.empty())
             ReportError(std::move(error), false);
     }
@@ -536,6 +580,7 @@ private:
     mutable std::mutex mutex_;
     std::mutex operationMutex_;
     std::condition_variable stateChanged_;
+    std::condition_variable pendingOperationsChanged_;
     std::shared_ptr<mqtt::async_client> client_;
     std::map<std::string, MessageHandler, std::less<>> subscriptions_;
     std::vector<std::shared_ptr<OperationListener>> pendingOperations_;
@@ -562,9 +607,19 @@ void MqttService::Subscribe(std::string topic, MessageHandler handler)
     impl_->Subscribe(std::move(topic), std::move(handler));
 }
 
+void MqttService::Unsubscribe(std::string topic)
+{
+    impl_->Unsubscribe(std::move(topic));
+}
+
 void MqttService::Publish(std::string topic, std::string payload)
 {
     impl_->Publish(std::move(topic), std::move(payload));
+}
+
+bool MqttService::WaitForPendingOperations(std::chrono::milliseconds timeout)
+{
+    return impl_->WaitForPendingOperations(timeout);
 }
 
 void MqttService::Disconnect()

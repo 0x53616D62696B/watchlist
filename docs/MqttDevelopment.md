@@ -112,3 +112,17 @@ docker compose logs --tail 100 mosquitto
 
 The configuration has no named volumes. `docker compose down --remove-orphans`
 therefore leaves no broker data behind.
+
+## QoS 1 Duplicate Delivery
+
+Watchlist requests and acknowledgements use QoS 1, which guarantees delivery
+at least once rather than exactly once. A reconnect or lost acknowledgement
+can therefore cause the broker to deliver the same request more than once.
+`store_database_value` is naturally repeatable for the same key and value, but
+device commands, scripts, and other side effects are not generally idempotent.
+
+The request `id` is the intended idempotency key. This milestone does not yet
+persist a processed-request ledger, so clients should reuse the same ID when
+retrying and consumers must tolerate duplicate acknowledgements. A durable
+deduplication store should be added before commands with non-repeatable side
+effects are used in production.

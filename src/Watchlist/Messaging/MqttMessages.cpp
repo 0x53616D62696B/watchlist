@@ -1,12 +1,17 @@
 #include "src/Watchlist/Messaging/MqttMessages.hpp"
 
+#include <algorithm>
+#include <cctype>
 #include <chrono>
 #include <format>
-#include <regex>
 #include <sstream>
+
+#include "libs/shenanigans/libs/json/single_include/nlohmann/json.hpp"
 
 namespace Watchlist::Messaging {
 namespace {
+
+using Json = nlohmann::json;
 
 std::string EscapeJson(std::string_view value)
 {
@@ -39,47 +44,12 @@ std::string EscapeJson(std::string_view value)
     return escaped;
 }
 
-std::string UnescapeJson(std::string value)
+std::optional<std::string> JsonStringValue(const Json& json, std::string_view key)
 {
-    std::string unescaped;
-    unescaped.reserve(value.size());
-
-    for (std::size_t index = 0; index < value.size(); ++index) {
-        if (value[index] != '\\' || index + 1 >= value.size()) {
-            unescaped += value[index];
-            continue;
-        }
-
-        const char escaped = value[++index];
-        switch (escaped) {
-        case 'n':
-            unescaped += '\n';
-            break;
-        case 'r':
-            unescaped += '\r';
-            break;
-        case 't':
-            unescaped += '\t';
-            break;
-        default:
-            unescaped += escaped;
-            break;
-        }
-    }
-
-    return unescaped;
-}
-
-std::optional<std::string> JsonStringValue(std::string_view json, std::string_view key)
-{
-    // The v1 envelope is flat string-only JSON, so a small keyed extractor keeps the dependency surface low.
-    const std::regex pattern(std::string("\"") + std::string(key) + R"json("\s*:\s*"((?:\\.|[^"\\])*)")json");
-    std::cmatch match;
-    const std::string text(json);
-    if (!std::regex_search(text.c_str(), match, pattern))
+    const auto found = json.find(std::string(key));
+    if (found == json.end() || !found->is_string())
         return std::nullopt;
-
-    return UnescapeJson(match[1].str());
+    return found->get<std::string>();
 }
 
 void AppendField(std::ostringstream& stream, std::string_view name, std::string_view value, bool& first)
@@ -106,6 +76,8 @@ std::optional<std::string> MissingRequiredField(const MqttRequest& request)
         return "missing required field: created_utc";
     if (request.sourceClientId.empty())
         return "missing required field: source_client_id";
+    if (!IsValidClientId(request.sourceClientId))
+        return "invalid field: source_client_id";
 
     switch (request.type) {
     case MessageType::ExecuteScript:
@@ -136,6 +108,28 @@ std::optional<std::string> MissingRequiredField(const MqttRequest& request)
         break;
     }
 
+    return std::nullopt;
+}
+
+std::optional<std::string> NonStringEnvelopeField(const Json& json)
+{
+    for (const auto field : {
+             "id",
+             "type",
+             "created_utc",
+             "source_client_id",
+             "script_name",
+             "device_id",
+             "payload",
+             "command",
+             "key",
+             "value",
+             "prompt",
+         }) {
+        const auto found = json.find(field);
+        if (found != json.end() && !found->is_string())
+            return std::format("field must be a string: {}", field);
+    }
     return std::nullopt;
 }
 
@@ -175,6 +169,16 @@ std::optional<MessageType> MessageTypeFromString(std::string_view value)
     return std::nullopt;
 }
 
+bool IsValidClientId(std::string_view value)
+{
+    if (value.empty() || value.size() > 128)
+        return false;
+
+    return std::ranges::all_of(value, [](const unsigned char character) {
+        return std::isalnum(character) != 0 || character == '-' || character == '_' || character == '.';
+    });
+}
+
 std::string SerializeRequest(const MqttRequest& request)
 {
     std::ostringstream stream;
@@ -197,31 +201,53 @@ std::string SerializeRequest(const MqttRequest& request)
 
 ParseResult ParseRequest(std::string_view json)
 {
-    auto typeValue = JsonStringValue(json, "type");
-    if (!typeValue.has_value())
-        return {.error = "missing required field: type"};
+    ParseResult result;
+    const auto object = Json::parse(json, nullptr, false);
+    if (object.is_discarded() || !object.is_object()) {
+        result.error = "invalid JSON object";
+        return result;
+    }
+
+    result.requestId = JsonStringValue(object, "id").value_or("");
+    result.sourceClientId = JsonStringValue(object, "source_client_id").value_or("");
+
+    if (const auto invalidField = NonStringEnvelopeField(object); invalidField.has_value()) {
+        result.error = *invalidField;
+        return result;
+    }
+
+    auto typeValue = JsonStringValue(object, "type");
+    if (!typeValue.has_value()) {
+        result.error = "missing required field: type";
+        return result;
+    }
 
     auto type = MessageTypeFromString(*typeValue);
-    if (!type.has_value())
-        return {.error = "unknown message type: " + *typeValue};
+    if (!type.has_value()) {
+        result.error = "unknown message type: " + *typeValue;
+        return result;
+    }
 
     MqttRequest request;
     request.type = *type;
-    request.id = JsonStringValue(json, "id").value_or("");
-    request.createdUtc = JsonStringValue(json, "created_utc").value_or("");
-    request.sourceClientId = JsonStringValue(json, "source_client_id").value_or("");
-    request.scriptName = JsonStringValue(json, "script_name");
-    request.deviceId = JsonStringValue(json, "device_id");
-    request.payload = JsonStringValue(json, "payload");
-    request.command = JsonStringValue(json, "command");
-    request.key = JsonStringValue(json, "key");
-    request.value = JsonStringValue(json, "value");
-    request.prompt = JsonStringValue(json, "prompt");
+    request.id = result.requestId;
+    request.createdUtc = JsonStringValue(object, "created_utc").value_or("");
+    request.sourceClientId = result.sourceClientId;
+    request.scriptName = JsonStringValue(object, "script_name");
+    request.deviceId = JsonStringValue(object, "device_id");
+    request.payload = JsonStringValue(object, "payload");
+    request.command = JsonStringValue(object, "command");
+    request.key = JsonStringValue(object, "key");
+    request.value = JsonStringValue(object, "value");
+    request.prompt = JsonStringValue(object, "prompt");
 
-    if (const auto missing = MissingRequiredField(request); missing.has_value())
-        return {.error = *missing};
+    if (const auto missing = MissingRequiredField(request); missing.has_value()) {
+        result.error = *missing;
+        return result;
+    }
 
-    return {.request = std::move(request)};
+    result.request = std::move(request);
+    return result;
 }
 
 std::string SerializeAck(const MqttAck& ack)
