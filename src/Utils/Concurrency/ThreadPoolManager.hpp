@@ -1,222 +1,232 @@
 #pragma once
 
-#include <vector>
-#include <queue>
-#include <thread>
-#include <mutex>
 #include <condition_variable>
+#include <cstddef>
 #include <functional>
 #include <future>
-#include <atomic>
+#include <memory>
+#include <mutex>
+#include <queue>
+#include <stdexcept>
+#include <thread>
+#include <type_traits>
+#include <utility>
+#include <vector>
 
+#include "src/Utils/Profiling/TracyProfiling.hpp"
 
 namespace Concurrency {
 
-/** @brief Thread pool manager for executing tasks in parallel.
- *
- * @details The ThreadPoolManager class is a thread pool implementation designed to manage and execute tasks in parallel
- * using a fixed number of worker threads. Here's a breakdown of its functionality:
- * 1. Thread Pool Management:
- *  The class initializes a pool of worker threads (workers) that continuously process tasks from a shared task queue (tasks).
- * 2. Task Enqueuing:
- *  Tasks are added to the queue using the enqueue method, which returns a std::future to retrieve the result of the task.
- * 3. Thread Safety:
- *  A std::mutex (queueMutex) ensures synchronized access to the task queue. 
- *  A std::condition_variable (condition) is used to notify worker threads when new tasks are available.
- * 4. Graceful Shutdown:
- *  The destructor ensures all threads are stopped and joined properly when the ThreadPoolManager is destroyed.
- * 5. Dynamic Thread Count:
- *  The maximum number of threads can be set or retrieved using setMaxThreads and getMaxThreads.
- * 
- * How it works:
- * 1. Initialization:
- * - The constructor creates maxThreads worker threads, each running the workerThread function.
- * 2. Task Enqueuing:
- * - The enqueue method wraps a task in a std::packaged_task and adds it to the tasks queue.
- * - A std::future is returned to allow the caller to retrieve the task's result.
- * - A worker thread is notified via the condition variable to process the task.
- * 3. Task Execution:
- * - Each worker thread continuously waits for tasks in the workerThread function.
- * - When a task is available, it is removed from the queue and executed.
- * 4. Shutdown:
- * - The destructor sets the stop flag to true and notifies all threads.
- * - Each thread exits its loop and is joined to ensure proper cleanup.
- * 
- * @example Usage:
- * ThreadPoolManager pool(4); // Create a thread pool with 4 threads.
- * auto future = pool.enqueue([](int a, int b) { return a + b; }, 5, 3); // Enqueue a task and get its result.
- * LOG_INFO(std::format("Result: {}", future.get())); // Output: Result: 8
- * 
- * @todo Be able to specify which thread is endless, long living and short living.
- * - when thread is endless, do not count with it in maxThreads
- * - cant specify more endless threads than (maxThreads -1)
- * - implement priority management for thread pools
- * - be able to have multiple thread pools instances with different pool priority 
- *   - there can be multiple thread pools with same priority - if so, first created will be highest priority 
- *       -> create priority list output for debugging reasons
- *   - pool priority > thread priority
- *   - thread pool priority is set when creating the thread pool
- *   - any thread created in pool with higher priority will always have higher priority then any thread created in a pool with 
- *     lower priority
- * - use TRACY!
- * - co_await .. neco jako event_loop's await - Coroutines https://en.cppreference.com/w/cpp/language/coroutines
- *  https://stackoverflow.com/questions/66281348/why-does-cs-async-await-not-need-an-event-loop
- * - std::generator - courutine support
- *     - https://en.cppreference.com/w/cpp/language/generator 
- *     - https://www.youtube.com/watch?v=7ZazVQB-RKc&ab_channel=C%2B%2BWeeklyWithJasonTurner
- */
+#ifdef WATCHLIST_THREAD_POOL_TESTING
+namespace Testing {
+struct ThreadPoolManagerAccess;
+}
+#endif
 
+/** Executes submitted tasks on a fixed set of worker threads.
+ *
+ * The default constructor uses the detected hardware concurrency and falls
+ * back to one worker when the platform reports an unknown value. The explicit
+ * constructor rejects zero. Accepted tasks are drained before destruction.
+ */
 class ThreadPoolManager {
 public:
-    // Constructor to initialize the thread pool with a specified number of threads.
-    explicit ThreadPoolManager(size_t maxThreads = std::thread::hardware_concurrency());
-    
-    // Destructor to clean up threads and stop the thread pool.
+    ThreadPoolManager();
+    explicit ThreadPoolManager(std::size_t threadCount);
     ~ThreadPoolManager();
 
-    // Enqueue a task into the thread pool and return a future to retrieve the result.
+    ThreadPoolManager(const ThreadPoolManager&) = delete;
+    ThreadPoolManager& operator=(const ThreadPoolManager&) = delete;
+    ThreadPoolManager(ThreadPoolManager&&) = delete;
+    ThreadPoolManager& operator=(ThreadPoolManager&&) = delete;
+
     template <typename F, typename... Args>
-    auto enqueue(F&& func, Args&&... args) -> std::future<typename std::invoke_result<F, Args...>::type>;
+    auto enqueue(F&& function, Args&&... args)
+        -> std::future<std::invoke_result_t<F, Args...>>;
 
-    // Set the maximum number of threads in the pool.
-    void setMaxThreads(size_t maxThreads);
-
-    // Get the maximum number of threads in the pool.
-    size_t getMaxThreads() const;
+    /** Returns the immutable number of workers owned by this pool. */
+    [[nodiscard]] std::size_t thread_count() const noexcept
+    {
+        return workers_.size();
+    }
 
 private:
-    // Function executed by each worker thread to process tasks.
-    void workerThread();
+    using WorkerFunction = std::function<void()>;
+    using ThreadFactory = std::function<std::thread(WorkerFunction)>;
 
-    // Vector to hold worker threads.
-    std::vector<std::thread> workers;
+    ThreadPoolManager(std::size_t threadCount, ThreadFactory threadFactory);
 
-    // Queue to hold tasks to be executed by the threads.
-    std::queue<std::function<void()>> tasks;
+    [[nodiscard]] static std::size_t ValidateExplicitThreadCount(std::size_t threadCount);
+    [[nodiscard]] static std::size_t NormalizeDefaultThreadCount(unsigned int hardwareConcurrency) noexcept;
+    [[nodiscard]] static ThreadFactory DefaultThreadFactory();
 
-    // Mutex to synchronize access to the task queue.
-    std::mutex queueMutex; //? create unique_lock instead?
-    //std::unique_lock<std::mutex> queueLock(std::mutex);
+    void StopAndJoinWorkers() noexcept;
+    void WorkerThread();
 
-    // Condition variable to notify worker threads of new tasks.
-    std::condition_variable condition;
+    std::vector<std::thread> workers_;
+    std::queue<WorkerFunction> tasks_;
+    std::mutex queueMutex_;
+    std::condition_variable condition_;
+    bool stop_{false};
 
-    // Atomic flag to indicate whether the thread pool is stopping.
-    std::atomic<bool> stop;
-
-    // Maximum number of threads in the pool.
-    size_t maxThreads;
+#ifdef WATCHLIST_THREAD_POOL_TESTING
+    friend struct Testing::ThreadPoolManagerAccess;
+#endif
 };
 
-// Constructor: Initializes the thread pool and starts the worker threads.
-inline ThreadPoolManager::ThreadPoolManager(size_t maxThreads)
-    : stop(false), maxThreads(maxThreads) {
+inline ThreadPoolManager::ThreadPoolManager()
+    : ThreadPoolManager(
+          NormalizeDefaultThreadCount(std::thread::hardware_concurrency()),
+          DefaultThreadFactory())
+{
+}
+
+inline ThreadPoolManager::ThreadPoolManager(std::size_t threadCount)
+    : ThreadPoolManager(ValidateExplicitThreadCount(threadCount), DefaultThreadFactory())
+{
+}
+
+inline ThreadPoolManager::ThreadPoolManager(
+    std::size_t threadCount,
+    ThreadFactory threadFactory)
+{
     PROFILE_FUNCTION;
     PROFILE_MESSAGE("[TRACY][THREAD_POOL] Creating worker threads");
-    for (size_t i = 0; i < maxThreads; ++i) {
-        workers.emplace_back(&ThreadPoolManager::workerThread, this);
+
+    workers_.reserve(threadCount);
+    try {
+        for (std::size_t index = 0; index < threadCount; ++index) {
+            workers_.emplace_back(threadFactory([this] { WorkerThread(); }));
+        }
+    } catch (...) {
+        StopAndJoinWorkers();
+        throw;
     }
 }
 
-// Destructor: Stops the thread pool and joins all worker threads.
-inline ThreadPoolManager::~ThreadPoolManager() {
+inline ThreadPoolManager::~ThreadPoolManager()
+{
     PROFILE_FUNCTION;
     PROFILE_MESSAGE("[TRACY][THREAD_POOL] Shutting down worker threads");
-    {
-        //ThreadPoolManager::queueLock.lock(); //? like unique_ptr - safe for multithreading when error, lock is released
-        PROFILE_SCOPE(ThreadPoolSetStopFlag);
-        std::unique_lock<std::mutex> lock(queueMutex);
-        stop = true; // Signal all threads to stop.
+    StopAndJoinWorkers();
+}
+
+inline std::size_t ThreadPoolManager::ValidateExplicitThreadCount(std::size_t threadCount)
+{
+    if (threadCount == 0) {
+        throw std::invalid_argument("ThreadPoolManager requires at least one worker");
     }
-    condition.notify_all(); // Notify all threads waiting on the condition variable.
-    for (std::thread& worker : workers) {
+    return threadCount;
+}
+
+inline std::size_t ThreadPoolManager::NormalizeDefaultThreadCount(
+    unsigned int hardwareConcurrency) noexcept
+{
+    return hardwareConcurrency == 0 ? 1U : static_cast<std::size_t>(hardwareConcurrency);
+}
+
+inline ThreadPoolManager::ThreadFactory ThreadPoolManager::DefaultThreadFactory()
+{
+    return [](WorkerFunction worker) {
+        return std::thread(std::move(worker));
+    };
+}
+
+inline void ThreadPoolManager::StopAndJoinWorkers() noexcept
+{
+    {
+        PROFILE_SCOPE(ThreadPoolSetStopFlag);
+        const std::lock_guard lock(queueMutex_);
+        stop_ = true;
+    }
+    condition_.notify_all();
+
+    for (std::thread& worker : workers_) {
         if (worker.joinable()) {
             PROFILE_SCOPE(ThreadPoolJoinWorker);
-            worker.join(); // Wait for each thread to finish.
+            worker.join();
         }
     }
 }
 
-// Enqueue a task into the thread pool and return a future to retrieve the result.
-/**
- * @brief This function template allows users to submit a task to a thread pool and receive a future for its result. The function is templated to accept any callable type along with arbitrary arguments, and it deduces the return type using ***std::invoke_result***. This ensures that no matter what kind of function, functor, or lambda you pass in, the code correctly determines the expected result type, making the function generic and flexible.
-
-Inside the function, the return type is defined as returnType using the result from std::invoke_result. The callable and its arguments are then wrapped into a ***std::packaged_task***, which encapsulates the task and allows the retrieval of its result via a ***future***. The packaging is achieved using ***std::bind*** along with ***perfect forwarding*** of the parameters, ensuring that the task is stored efficiently and without unnecessary copies.
-
-The task is then converted into a lambda (inside the tasks.emplace call) that invokes the packaged task when executed by a worker thread. A std::future for the task’s result is obtained through the packaged task. This future will later allow the caller to wait for the task's completion and obtain the result, effectively decoupling task submission from task execution.
-
-Finally, a lock is obtained on the internal task queue to safely add the new task. Before enqueuing, the code checks if the thread pool has been stopped to prevent new tasks from being added, thus maintaining the object's integrity. Once the task is successfully added to the queue, one of the waiting worker threads is notified via condition.notify_one(), making the thread pool responsive and ensuring that tasks are processed as they arrive.
-
-//? ask copilot:
-- 
-"""
-Explain in details how these methods/functions/std features are used with simple example:
-
-std::invoke_result
-std::future
-std::packaged_task
-std::bind
-perfect forwarding
-"""
-- template for functions vs template for classes
-- how to use enqueue - examples
-- todo : unit tests for thread pool manager
- */
 template <typename F, typename... Args>
-auto ThreadPoolManager::enqueue(F&& func, Args&&... args) -> std::future<typename std::invoke_result<F, Args...>::type> {
+auto ThreadPoolManager::enqueue(F&& function, Args&&... args)
+    -> std::future<std::invoke_result_t<F, Args...>>
+{
     PROFILE_FUNCTION;
     PROFILE_MESSAGE("[TRACY][THREAD_POOL] Enqueue task: package callable, store it, notify one worker");
-    using returnType = typename std::invoke_result<F, Args...>::type;
 
-    // Wrap the task in a packaged_task to allow retrieving the result via a future.
-    auto task = std::make_shared<std::packaged_task<returnType()>>(
-        std::bind(std::forward<F>(func), std::forward<Args>(args)...)
-    );
+    using ReturnType = std::invoke_result_t<F, Args...>;
+    auto task = std::make_shared<std::packaged_task<ReturnType()>>(
+        std::bind(std::forward<F>(function), std::forward<Args>(args)...));
+    std::future<ReturnType> result = task->get_future();
 
-    std::future<returnType> result = task->get_future(); // Get the future for the task result.
     {
         PROFILE_SCOPE(ThreadPoolPushTask);
-        std::unique_lock<std::mutex> lock(queueMutex);
-        if (stop) {
-            throw std::runtime_error("ThreadPoolManager is stopped"); // Prevent adding tasks if stopped.
+        const std::lock_guard lock(queueMutex_);
+        if (stop_) {
+            throw std::runtime_error("ThreadPoolManager is stopped");
         }
-        tasks.emplace([task]() { (*task)(); }); // Add the task to the queue.
+        tasks_.emplace([task] { (*task)(); });
     }
-    condition.notify_one(); // Notify one worker thread to process the task.
+
+    condition_.notify_one();
     return result;
 }
 
-// Set the maximum number of threads in the pool.
-inline void ThreadPoolManager::setMaxThreads(size_t maxThreads) {
-    this->maxThreads = maxThreads;
-}
-
-// Get the maximum number of threads in the pool.
-inline size_t ThreadPoolManager::getMaxThreads() const {
-    return maxThreads;
-}
-
-// Worker thread function: Processes tasks from the queue.
-inline void ThreadPoolManager::workerThread() {
+inline void ThreadPoolManager::WorkerThread()
+{
     PROFILE_THREAD("Thread pool worker");
     PROFILE_FUNCTION;
+
     while (true) {
-        std::function<void()> task;
+        WorkerFunction task;
         {
             PROFILE_SCOPE(ThreadPoolWorkerWaitForTask);
-            std::unique_lock<std::mutex> lock(queueMutex);
-            // Wait until there is a task to process or the pool is stopping.
-            condition.wait(lock, [this] { return stop || !tasks.empty(); });
-            if (stop && tasks.empty()) {
-                PROFILE_MESSAGE("[TRACY][THREAD_POOL] Worker exits because the queue is empty and the pool is stopping");
-                return; // Exit the thread if the pool is stopping and no tasks remain.
+            std::unique_lock lock(queueMutex_);
+            condition_.wait(lock, [this] { return stop_ || !tasks_.empty(); });
+
+            if (stop_ && tasks_.empty()) {
+                PROFILE_MESSAGE("[TRACY][THREAD_POOL] Worker exits after draining accepted tasks");
+                return;
             }
-            task = std::move(tasks.front()); // Get the next task from the queue.
-            tasks.pop(); // Remove the task from the queue.
+
+            task = std::move(tasks_.front());
+            tasks_.pop();
         }
+
         PROFILE_SCOPE(ThreadPoolWorkerExecuteTask);
-        task(); // Execute the task.
+        task();
     }
 }
+
+#ifdef WATCHLIST_THREAD_POOL_TESTING
+namespace Testing {
+
+/** Test-only access to deterministic hardware and worker-creation seams. */
+struct ThreadPoolManagerAccess {
+    using WorkerFunction = ThreadPoolManager::WorkerFunction;
+    using ThreadFactory = ThreadPoolManager::ThreadFactory;
+
+    [[nodiscard]] static ThreadPoolManager CreateWithFactory(
+        std::size_t threadCount,
+        ThreadFactory threadFactory)
+    {
+        return ThreadPoolManager(
+            ThreadPoolManager::ValidateExplicitThreadCount(threadCount),
+            std::move(threadFactory));
+    }
+
+    [[nodiscard]] static ThreadPoolManager CreateForHardwareCount(
+        unsigned int hardwareConcurrency)
+    {
+        return ThreadPoolManager(
+            ThreadPoolManager::NormalizeDefaultThreadCount(hardwareConcurrency),
+            ThreadPoolManager::DefaultThreadFactory());
+    }
+};
+
+} // namespace Testing
+#endif
 
 } // namespace Concurrency

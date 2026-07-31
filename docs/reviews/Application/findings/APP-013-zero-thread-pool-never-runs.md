@@ -28,3 +28,9 @@ Define and enforce a minimum capacity. Either reject zero with a clear exception
 ## Suggested tests
 
 Construct with zero and through an injectable unknown-hardware path; verify the chosen error/fallback behavior and future completion.
+
+## Resolution
+
+- **Status:** Resolved
+- **Implementation:** Split default and explicit construction contracts. An explicit zero now throws `std::invalid_argument`, while the default path normalizes an unknown `hardware_concurrency()` result to one worker before construction.
+- **Validation:** Deterministic tests cover explicit zero, an injected unknown hardware count, reported capacity, and completion of accepted jobs. The profiling-off test suite and standalone probe completed without timeouts.

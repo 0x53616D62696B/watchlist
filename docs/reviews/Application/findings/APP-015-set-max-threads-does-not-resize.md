@@ -28,3 +28,9 @@ Either remove runtime resizing and expose an immutable `thread_count()`, or impl
 ## Suggested tests
 
 Measure concurrent task execution before and after grow/shrink operations, and race queries/resizes with enqueue and shutdown under TSan.
+
+## Resolution
+
+- **Status:** Resolved
+- **Implementation:** Removed the misleading `setMaxThreads`/`getMaxThreads` metadata API and the separate mutable count. The pool is explicitly fixed-size and exposes only `thread_count()`, derived from its immutable post-construction worker vector.
+- **Validation:** Repository searches confirm the resizing API and detached count are gone. Tests verify explicit capacities, queued result progress, task exception propagation, and draining of tasks accepted before destruction.

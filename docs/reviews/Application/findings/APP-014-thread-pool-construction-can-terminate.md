@@ -28,3 +28,9 @@ Use a construction guard that requests stop, notifies, and joins every successfu
 ## Suggested tests
 
 Inject a thread factory that fails at each creation index and verify join counts, exception propagation, and lack of termination.
+
+## Resolution
+
+- **Status:** Resolved
+- **Implementation:** Worker construction is guarded by a catch path that closes admission, notifies all created workers, joins every joinable thread, and rethrows the original exception. A macro-gated test access point injects a thread factory without expanding the production API.
+- **Validation:** A deterministic test injects failure at worker indices 0 through 3, waits for every prior worker to start, and verifies all of them exit before the original typed exception reaches the caller. No termination or stranded worker occurs.

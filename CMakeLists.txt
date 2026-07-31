@@ -214,6 +214,23 @@ target_include_directories(Development PRIVATE "${CMAKE_SOURCE_DIR}")
 target_link_libraries(Development PRIVATE watchlist_logger)
 watchlist_apply_owned_code(Development)
 
+if(BUILD_TESTING)
+  # This target deliberately has no PCH. Building it in profiling-off and
+  # profiling-on configurations verifies the header's direct dependencies.
+  add_executable(ThreadPoolHeaderCompileProbe
+    tests/Compile/ThreadPoolManagerHeaderCompile.cpp
+  )
+  target_include_directories(ThreadPoolHeaderCompileProbe PRIVATE "${CMAKE_SOURCE_DIR}")
+  target_link_libraries(ThreadPoolHeaderCompileProbe PRIVATE
+    Threads::Threads
+    watchlist_profiling
+  )
+  watchlist_apply_owned_code(ThreadPoolHeaderCompileProbe)
+  if(NOT ENABLE_PROFILING)
+    add_test(NAME ThreadPoolHeaderCompileProbe COMMAND ThreadPoolHeaderCompileProbe)
+  endif()
+endif()
+
 if(BUILD_TESTING AND TARGET GTest::gtest_main)
   add_executable(UnitTests
     tests/UnitTests/Concurrency/EventLoopTests.cpp
@@ -231,6 +248,21 @@ if(BUILD_TESTING AND TARGET GTest::gtest_main)
 
   include(GoogleTest)
   gtest_discover_tests(UnitTests)
+
+  add_executable(ThreadPoolManagerTests
+    tests/UnitTests/Concurrency/ThreadPoolManagerTests.cpp
+  )
+  target_include_directories(ThreadPoolManagerTests PRIVATE "${CMAKE_SOURCE_DIR}")
+  target_compile_definitions(ThreadPoolManagerTests PRIVATE WATCHLIST_THREAD_POOL_TESTING=1)
+  target_link_libraries(ThreadPoolManagerTests PRIVATE
+    GTest::gtest_main
+    Threads::Threads
+    watchlist_profiling
+  )
+  watchlist_apply_owned_code(ThreadPoolManagerTests)
+  # Profiling builds link a Tracy client configured to remain alive, so test
+  # enumeration must not execute the binary as a post-build action.
+  gtest_discover_tests(ThreadPoolManagerTests DISCOVERY_MODE PRE_TEST)
 
   add_executable(GeneratorLifecycleTests
     tests/UnitTests/Concurrency/EventLoopGeneratorTests.cpp
