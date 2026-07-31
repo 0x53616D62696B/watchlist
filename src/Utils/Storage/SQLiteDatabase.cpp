@@ -474,7 +474,7 @@ void MigrateUnversionedDeviceSchema(SQLite::Database& database)
 } // namespace
 
 SQLiteDatabase::SQLiteDatabase(const std::filesystem::path& databasePath)
-    : database_(databasePath.string(), SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE)
+    : database_(databasePath, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE)
 {
 }
 

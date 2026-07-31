@@ -3,6 +3,7 @@
 - **Priority:** P2
 - **Kind:** Defect
 - **Confidence:** Medium
+- **Status:** Resolved
 - **Subsystem:** Storage/portability
 - **Location:** [`src/Utils/Storage/SQLiteDatabase.cpp`](../../../../src/Utils/Storage/SQLiteDatabase.cpp), lines 30-34
 - **Dependencies:** None
@@ -28,3 +29,7 @@ Use the SQLiteCpp/SQLite path API that preserves UTF-8 or native wide paths for 
 ## Suggested tests
 
 Create/open/query a database beneath Unicode directory and filename components, including characters outside the active Windows code page.
+
+## Resolution and validation
+
+Paths remain `std::filesystem::path` through the worker into SQLiteCpp's path constructor; logging converts to UTF-8 explicitly. A non-ASCII-directory integration test creates, queries, and reopens the database successfully.

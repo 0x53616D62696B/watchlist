@@ -40,6 +40,8 @@ if (const auto router = database.GetItem("router")) {
 
 ## API Notes
 
+Production startup resolves the database independently of the working directory: `%LOCALAPPDATA%/Watchlist/watchlist.sqlite` on Windows, `$XDG_DATA_HOME/watchlist/watchlist.sqlite` or `$HOME/.local/share/watchlist/watchlist.sqlite` on Linux, and `$HOME/Library/Application Support/Watchlist/watchlist.sqlite` on macOS. `--database-path <file>` overrides it. Parent directories are created on first use; missing configuration fails without fallback. Startup initializes and reads only and never seeds stored devices.
+
 - `AddItem` inserts a new device and fails if the id already exists.
 - `UpsertItem` means update-or-insert: it inserts a missing id or updates the fields for an existing id.
 - `GetItem` returns `std::optional<DatabaseItem>` so missing ids can be handled without exceptions.
