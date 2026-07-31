@@ -28,3 +28,9 @@ Include every direct standard/project dependency in the header and remove unused
 ## Suggested tests
 
 Compile the header alone and after randomized include orders with PCH disabled in profiling and non-profiling configurations.
+
+## Resolution
+
+- **Status:** Resolved
+- **Implementation:** `ThreadPoolManager.hpp` now includes every standard dependency it uses plus `TracyProfiling.hpp` directly, removes incidental PCH dependencies, and provides a focused standalone compile-probe target with no precompiled header.
+- **Validation:** The standalone translation unit includes `ThreadPoolManager.hpp` first and compiled, linked, and ran with PCH disabled and profiling off. It also compiled and linked with PCH disabled and Tracy enabled; compile-command checks confirmed no PCH flags and the complete Tracy requirement only in the profiling build.

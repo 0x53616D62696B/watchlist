@@ -9,8 +9,11 @@
  *
  */
 
+#include <chrono>
 #include <format>
 #include <iostream>
+#include <stdexcept>
+#include <string>
 #include <string_view>
 
 #include "Common/Version.hpp"
@@ -86,9 +89,13 @@ try
         // Wait for a quit AsyncLoop event
         Concurrency::AsyncEventLoop::Task quitAsyncLoopEvent = asyncLoop.wait_for_event("async_loop_quit");
 
-        // How to emit this event.
-        //TODO: We should be able to emit this event anywhere, even outside this thread..??
-        asyncLoop.emit_event({"async_loop_quit", std::string("Async loop quit event")});
+        if (!asyncLoop.emit_event({"async_loop_quit", std::string("Async loop quit event")})) {
+            throw std::runtime_error("Async loop rejected the quit event");
+        }
+        if (!quitAsyncLoopEvent.wait_for(std::chrono::seconds(1))) {
+            throw std::runtime_error("Async loop quit waiter was not resumed");
+        }
+        quitAsyncLoopEvent.get();
 
         // TODO: I do not have any task yet. But I would like to be able to add tasks to this asyncLoop whener in code in future. How to make this loop to await anything?
 
