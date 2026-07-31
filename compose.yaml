@@ -1,0 +1,28 @@
+name: watchlist-mqtt
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0.22
+    ports:
+      - "127.0.0.1:1883:1883"
+    volumes:
+      - ./docker/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    healthcheck:
+      test:
+        - CMD
+        - mosquitto_pub
+        - -h
+        - 127.0.0.1
+        - -p
+        - "1883"
+        - -t
+        - watchlist/dev/health
+        - -m
+        - ok
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 2s
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"
