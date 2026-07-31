@@ -76,15 +76,16 @@ try
      */
     PROFILE_SCOPE(ThreadPoolManagerLifetime);
     Concurrency::ThreadPoolManager threadPool(3); // Create a thread pool with 3 threads.
+    Gui::DeviceMonitorState deviceMonitorState;
     
     /** Thread Pool Manager - 1.st worker thread - ImGui
      *  - Could be separated into multiple? For example separate: New Frame, WatchlistUI, RenderFrame 
      * into multiple threads?
      */
-    auto futureImGui = threadPool.enqueue([] {
+    auto futureImGui = threadPool.enqueue([&deviceMonitorState] {
         PROFILE_SCOPE(ThreadPoolImGui);
         PROFILE_MESSAGE("[TRACY][THREAD_POOL] ImGui thread starts");
-        ImGuiStart();
+        Gui::ImGuiStart(deviceMonitorState);
         // No return needed
     });
 

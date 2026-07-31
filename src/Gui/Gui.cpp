@@ -1,5 +1,22 @@
 #include "Gui.hpp"
 
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+
+#include <cstdlib>
+#include <exception>
+#include <stdexcept>
+
+#include "src/Gui/MyApp.hpp"
+#include "src/Utils/Logger/Logger.hpp"
+#include "src/Utils/Profiling/TracyProfiling.hpp"
+
+namespace Watchlist::Gui {
+namespace {
+
 // const std::string windowTitleStr = "MyApp MOM!";
 //  const char* windowTitle = windowTitleStr.c_str();
 
@@ -21,7 +38,7 @@ GLFWwindow* GLFWCreateWindow(int width, int height, bool hidden)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_VISIBLE, hidden ? GLFW_FALSE : GLFW_TRUE);
-    GLFWwindow* window = glfwCreateWindow(hidden ? 1 : width, hidden ? 1 : height, WINDOWTITLE, nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(hidden ? 1 : width, hidden ? 1 : height, WindowTitle.data(), nullptr, nullptr);
     if (not window)
         throw std::runtime_error("GLFW create window failed");
 
@@ -211,7 +228,9 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
-int ImGuiStart()
+} // namespace
+
+int ImGuiStart(DeviceMonitorState& state)
 {
     try
     {
@@ -235,8 +254,9 @@ int ImGuiStart()
                 PROFILE_SCOPE(WatchlistUi);
                 // Place user code here
                 // ImGui::ShowDemoWindow();
-                bool p_open = true;
-                MyApp::ShowWindow(&p_open);
+                ShowWindow(state);
+                if (state.ExitRequested())
+                    GLFWCloseWindow(window);
             }
 
             {
@@ -260,3 +280,5 @@ int ImGuiStart()
         return EXIT_FAILURE;
     }
 }
+
+} // namespace Watchlist::Gui

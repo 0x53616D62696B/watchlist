@@ -135,6 +135,8 @@ add_executable(Application
   src/Watchlist/ApplicationPaths.hpp
   src/Watchlist/SQLiteThreadWorker.cpp
   src/Watchlist/SQLiteThreadWorker.hpp
+  src/Gui/DeviceMonitorState.cpp
+  src/Gui/DeviceMonitorState.hpp
   src/Gui/Gui.cpp
   src/Gui/Gui.hpp
   src/Gui/MyApp.cpp
@@ -231,15 +233,33 @@ if(BUILD_TESTING)
   if(NOT ENABLE_PROFILING)
     add_test(NAME ThreadPoolHeaderCompileProbe COMMAND ThreadPoolHeaderCompileProbe)
   endif()
+
+  add_executable(GuiHeaderCompileProbe
+    tests/Compile/GuiHeaderCompile.cpp
+    src/Gui/DeviceMonitorState.cpp
+  )
+  target_include_directories(GuiHeaderCompileProbe PRIVATE "${CMAKE_SOURCE_DIR}")
+  watchlist_apply_owned_code(GuiHeaderCompileProbe)
+  add_test(NAME GuiHeaderCompileProbe COMMAND GuiHeaderCompileProbe)
+
+  add_executable(MyAppHeaderCompileProbe
+    tests/Compile/MyAppHeaderCompile.cpp
+    src/Gui/DeviceMonitorState.cpp
+  )
+  target_include_directories(MyAppHeaderCompileProbe PRIVATE "${CMAKE_SOURCE_DIR}")
+  watchlist_apply_owned_code(MyAppHeaderCompileProbe)
+  add_test(NAME MyAppHeaderCompileProbe COMMAND MyAppHeaderCompileProbe)
 endif()
 
 if(BUILD_TESTING AND TARGET GTest::gtest_main)
   add_executable(UnitTests
     tests/UnitTests/Concurrency/EventLoopTests.cpp
+    tests/UnitTests/Gui/DeviceMonitorStateTests.cpp
     tests/UnitTests/Storage/SQLiteDatabaseTests.cpp
     tests/UnitTests/Watchlist/ApplicationPathsTests.cpp
     src/Watchlist/ApplicationPaths.cpp
     src/Watchlist/SQLiteThreadWorker.cpp
+    src/Gui/DeviceMonitorState.cpp
   )
   target_include_directories(UnitTests PRIVATE "${CMAKE_SOURCE_DIR}")
   target_link_libraries(UnitTests PRIVATE

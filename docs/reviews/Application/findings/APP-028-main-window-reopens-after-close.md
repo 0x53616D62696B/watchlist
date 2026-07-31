@@ -3,6 +3,7 @@
 - **Priority:** P2
 - **Kind:** Defect
 - **Confidence:** High
+- **Status:** Resolved
 - **Subsystem:** GUI
 - **Location:** [`src/Gui/Gui.cpp`](../../../../src/Gui/Gui.cpp), lines 227-245
 - **Dependencies:** None
@@ -28,3 +29,7 @@ Store window-open state outside the frame loop. Define whether closing the prima
 ## Suggested tests
 
 Drive the close flag across multiple frames with an ImGui test harness and verify the selected exit/reopen policy.
+
+## Resolution and validation
+
+The externally owned `DeviceMonitorState` now retains an exit request across frames. Closing the primary ImGui window and choosing File > Exit both set that state, and the GUI loop converts it into the same GLFW close request used by the platform window. The headless state test verifies that an exit request remains set after commands are consumed.

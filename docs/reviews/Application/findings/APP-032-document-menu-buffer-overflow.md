@@ -3,6 +3,7 @@
 - **Priority:** P1
 - **Kind:** Defect
 - **Confidence:** High
+- **Status:** Resolved
 - **Subsystem:** GUI
 - **Location:** [`src/Gui/MyApp.cpp`](../../../../src/Gui/MyApp.cpp), lines 355-368
 - **Dependencies:** APP-033
@@ -28,3 +29,7 @@ Avoid the intermediate C buffer by using `std::format`/`std::string`, or use a b
 ## Suggested tests
 
 Render context menus for empty, 255-byte, 256-byte, multi-kilobyte, and UTF-8 names under ASan.
+
+## Resolution and validation
+
+The demo document/context-menu implementation and its unbounded `sprintf` buffer were removed from the production target. Device labels are held in `std::string` and passed to ImGui as data through `TextUnformatted` or fixed format strings, so device-provided text is neither copied into a fixed buffer nor interpreted as a format string. The Application builds cleanly with MSVC warnings treated as errors.
