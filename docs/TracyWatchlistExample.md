@@ -24,7 +24,8 @@ The preset uses:
 - `CMAKE_BUILD_TYPE=DebugTracy`
 - `ENABLE_PROFILING=ON`
 - `Tracy::TracyClient` linked into `Application`
-- `TRACY_NO_EXIT=ON`, so short-lived runs stay available until Tracy connects
+- compile-time `TRACY_NO_EXIT=OFF`, allowing test discovery processes to terminate
+- dedicated VS Code `Tracy no-exit, wait` configurations pass `--wait-for-tracy` and set `TRACY_NO_EXIT=1` only for the launched application
 
 ## Run With Tracy
 
@@ -64,10 +65,11 @@ When using the CMake extension:
 3. Select launch target `Application`.
 4. Build `Application` normally with CMake Tools.
 5. For a normal short run, use the CMake Tools run action.
-6. For a run that waits for Tracy to connect, use Run and Debug with `CMake: Application target (wait for Tracy)`.
-7. Connect Tracy to `127.0.0.1:8086`.
+6. For a run that pauses at startup until you press Enter, use Run and Debug with `CMake: Application target (wait for Tracy)`.
+7. To combine that startup pause with Tracy's post-exit data-transfer behavior, use `CMake: Application target (Tracy no-exit, wait)`.
+8. Connect Tracy to `127.0.0.1:8086`.
 
-The `.vscode/launch.json` configs use CMake Tools target substitution. The `wait for Tracy` debugger configs pass `--wait-for-tracy` to the same active or named `Application` target without creating a second build.
+The `.vscode/launch.json` configs use CMake Tools target substitution. The `wait for Tracy` configs pass `--wait-for-tracy`. The `Tracy no-exit, wait` configs pass the same argument and also set `TRACY_NO_EXIT=1` in the launched process. All configurations use the same active or named `Application` target without creating a second build.
 
 ## Profiling The GUI Path
 

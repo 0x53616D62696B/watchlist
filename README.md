@@ -12,7 +12,7 @@ cmake --build --preset with-profiling --target Application
 .\build\profiling\Watchlist.exe
 ```
 
-The startup example is short-lived. If you need time to connect Tracy from VS Code, build with CMake Tools and run the `launch.json` configuration named `CMake: Application target (wait for Tracy)`. It passes `--wait-for-tracy` to the same `Watchlist.exe`, so no second build is needed.
+The startup example is short-lived. Use `CMake: Application target (wait for Tracy)` to pause startup until you press Enter. Use `CMake: Application target (Tracy no-exit, wait)` to both pass `--wait-for-tracy` and set `TRACY_NO_EXIT=1` for the same `Watchlist.exe`, covering startup attachment and post-exit data transfer without a second build.
 
 Start the Tracy profiler UI before or after launching the app, then connect to `127.0.0.1:8086`.
 See [docs/TracyWatchlistExample.md](docs/TracyWatchlistExample.md) for the instrumented zones and GUI notes.

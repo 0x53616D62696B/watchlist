@@ -94,7 +94,9 @@ add_subdirectory(libs/glad)
 # Tracy is exposed as one complete, target-scoped usage requirement.
 add_library(watchlist_profiling INTERFACE)
 if(ENABLE_PROFILING)
-  set(TRACY_NO_EXIT ON CACHE BOOL "Keep Tracy client alive until a profiler connection is made" FORCE)
+  # Keep test discovery processes exit-safe. Dedicated debugger launches may
+  # opt into Tracy's runtime TRACY_NO_EXIT environment setting.
+  set(TRACY_NO_EXIT OFF CACHE BOOL "Allow Tracy clients and test discovery to exit normally" FORCE)
   set(TRACY_NO_FRAME_IMAGE ON CACHE BOOL "Disable Tracy frame image support" FORCE)
   add_subdirectory(libs/tracy)
   target_compile_definitions(watchlist_profiling INTERFACE ENABLE_PROFILING)
@@ -169,6 +171,14 @@ endif()
 set(WATCHLIST_GUI_RUNTIME_SOURCES
   src/Watchlist/DeviceStorageService.cpp
   src/Watchlist/DeviceStorageService.hpp
+  src/Gui/ApplicationLogWindow.cpp
+  src/Gui/ApplicationLogWindow.hpp
+  src/Gui/Apps/AiChatApp.cpp
+  src/Gui/Apps/AiChatApp.hpp
+  src/Gui/Apps/HomeAssistantApp.cpp
+  src/Gui/Apps/HomeAssistantApp.hpp
+  src/Gui/Apps/WatchlistApp.cpp
+  src/Gui/Apps/WatchlistApp.hpp
   src/Gui/DeviceMonitorState.cpp
   src/Gui/DeviceMonitorState.hpp
   src/Gui/Gui.cpp
@@ -177,6 +187,9 @@ set(WATCHLIST_GUI_RUNTIME_SOURCES
   src/Gui/GuiRuntime.hpp
   src/Gui/MyApp.cpp
   src/Gui/MyApp.hpp
+  src/Gui/Workspace/DetachableApp.hpp
+  src/Gui/Workspace/DetachableAppWorkspace.cpp
+  src/Gui/Workspace/DetachableAppWorkspace.hpp
 )
 
 # Application composition is intentionally explicit. Adding an unrelated utility
@@ -294,8 +307,15 @@ add_executable(Development
   development/unique_ptrs.hpp
 )
 target_include_directories(Development PRIVATE "${CMAKE_SOURCE_DIR}")
-target_link_libraries(Development PRIVATE watchlist_logger)
-watchlist_apply_owned_code(Development)
+target_link_libraries(Development PRIVATE
+  watchlist_logger
+  watchlist_project_options
+)
+# Development no longer receives the production warning-policy target, so /W4 and /WX are absent while C++23 and platform settings remain.
+set_target_properties(Development PROPERTIES
+  CXX_EXTENSIONS OFF
+  CXX_STANDARD_REQUIRED ON
+)
 
 if(BUILD_TESTING)
   # This target deliberately has no PCH. Building it in profiling-off and
@@ -400,13 +420,9 @@ if(BUILD_TESTING AND TARGET GTest::gtest_main)
     watchlist_profiling
   )
   watchlist_apply_owned_code(ThreadPoolManagerTests)
-  # Profiling builds link a Tracy client configured to remain alive, so test
-  # enumeration must not execute the binary as a post-build action.
-  gtest_discover_tests(ThreadPoolManagerTests
-    DISCOVERY_MODE PRE_TEST
-    PROPERTIES
-      LABELS "UNIT_CONCURRENCY"
-      TIMEOUT "${WATCHLIST_TEST_TIMEOUT_SECONDS}"
+  gtest_discover_tests(ThreadPoolManagerTests PROPERTIES
+    LABELS "UNIT_CONCURRENCY"
+    TIMEOUT "${WATCHLIST_TEST_TIMEOUT_SECONDS}"
   )
 
   add_executable(GeneratorLifecycleTests
