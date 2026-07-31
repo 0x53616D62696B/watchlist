@@ -6,6 +6,7 @@
 - **Subsystem:** Storage
 - **Location:** [`src/Utils/Storage/SQLiteDatabase.cpp`](../../../../src/Utils/Storage/SQLiteDatabase.cpp), lines 42-50, 86-123, and 138-157
 - **Dependencies:** APP-022, APP-041
+- **Status:** Resolved
 
 ## Observation
 
@@ -28,3 +29,11 @@ Add schema checks for `port BETWEEN 0 AND 65535` and `alive IN (0,1)`, validate 
 ## Suggested tests
 
 Insert `-1`, `65536`, and non-boolean alive values through raw SQL and verify rejection or explicit migration handling; test both boundaries.
+
+## Resolution
+
+Schema v1 enforces integer storage plus `port BETWEEN 0 AND 65535` and `alive IN (0,1)`. The shared decoder reads both values as `int64_t`, checks their SQLite types and ranges, and narrows only after validation; corrupt rows now raise a field-specific `DatabaseValidationError`.
+
+## Validation
+
+Tests verify raw SQL rejection of ports -1/65536 and alive 2, exact round trips for ports 0/65535, invalid migration rollback, and identical checked-decoder failures through every row-returning query.

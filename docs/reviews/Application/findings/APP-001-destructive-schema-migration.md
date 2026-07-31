@@ -6,6 +6,7 @@
 - **Subsystem:** Storage
 - **Location:** [`src/Utils/Storage/SQLiteDatabase.cpp`](../../../../src/Utils/Storage/SQLiteDatabase.cpp), lines 38-40
 - **Dependencies:** None
+- **Status:** Resolved
 
 ## Observation
 
@@ -33,3 +34,11 @@ Change migration and schema-version behavior only; do not combine it with UI or 
 ## Suggested tests
 
 Create a legacy database fixture with representative rows, migrate it, and verify every field. Inject a duplicate/invalid row to verify rollback, and supply an unknown schema to verify non-destructive failure.
+
+## Resolution
+
+Initialization now uses `PRAGMA user_version` with schema version 1. Only the exact former unversioned device schema is migratable: inside one transaction every source row is decoded and validated, a separate `items_v1` destination is created and populated, its row count is verified, and only then is it atomically installed and versioned. The key/value schema and every unknown shape/version are rejected without mutation.
+
+## Validation
+
+Migration tests verify every preserved field, reopening the resulting v1 database, rollback for an invalid source row, unchanged key/value contents, and unchanged unknown/future schemas.

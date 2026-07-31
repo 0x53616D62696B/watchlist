@@ -6,6 +6,7 @@
 - **Subsystem:** Storage/API
 - **Location:** [`src/Utils/Storage/DatabaseItem.hpp`](../../../../src/Utils/Storage/DatabaseItem.hpp), lines 6-16; [`src/Utils/Storage/IDatabase.hpp`](../../../../src/Utils/Storage/IDatabase.hpp), lines 12-53
 - **Dependencies:** None
+- **Status:** Resolved
 
 ## Observation
 
@@ -28,3 +29,11 @@ Define invariants in a domain value type or documented service boundary before p
 ## Suggested tests
 
 Create a shared backend contract suite covering empty/oversized IDs and names, address formats selected by product policy, port boundaries, and duplicate IDs.
+
+## Resolution
+
+Storage now owns one documented validation contract and reports `DatabaseValidationError` with a structured `DatabaseField`. IDs accept 1-128 valid UTF-8 bytes, names 1-256, and addresses valid IPv4/IPv6 literals or ASCII DNS hostnames up to 253 bytes. The API's `uint16_t` and `bool` types define the complete port and alive domains. Add, upsert, and replacement validate before mutation, including duplicate replacement IDs.
+
+## Validation
+
+Contract tests cover empty, oversized, malformed UTF-8, invalid address/hostname, valid Unicode, all supported address forms, duplicate IDs, and unchanged contents after every rejected mutation.

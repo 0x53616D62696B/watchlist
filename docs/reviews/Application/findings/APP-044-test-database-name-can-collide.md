@@ -6,6 +6,7 @@
 - **Subsystem:** Tests/storage
 - **Location:** [`tests/UnitTests/Storage/SQLiteDatabaseTests.cpp`](../../../../tests/UnitTests/Storage/SQLiteDatabaseTests.cpp), lines 11-31
 - **Dependencies:** None
+- **Status:** Resolved
 
 ## Observation
 
@@ -28,3 +29,11 @@ Use a per-test temporary directory/name with collision-resistant creation and an
 ## Suggested tests
 
 Run many test binaries concurrently, simulate a locked file during cleanup, and verify unique paths plus deterministic diagnostics.
+
+## Resolution
+
+Every fixture owns an atomically created, random 128-bit-plus-sequence temporary directory. Creation retries only collisions, the database connection is destroyed before directory cleanup, and the RAII destructor uses non-throwing `error_code` cleanup with a GoogleTest failure diagnostic rather than masking the active exception.
+
+## Validation
+
+A parallel test creates 32 fixture directories concurrently and verifies every path is distinct and present. All storage tests exercise RAII cleanup on normal and exception paths.

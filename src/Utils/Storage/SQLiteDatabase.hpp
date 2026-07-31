@@ -34,7 +34,10 @@ private:
     /// adapter detail here so public query operations remain logically const.
     [[nodiscard]] SQLite::Database& QueryConnection() const noexcept { return database_; }
 
+    void EnsureInitialized() const;
+
     mutable SQLite::Database database_;
+    bool initialized_ = false;
 };
 
 } // namespace Utils::Storage

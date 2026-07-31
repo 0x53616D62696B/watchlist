@@ -6,6 +6,7 @@
 - **Subsystem:** Storage
 - **Location:** [`src/Utils/Storage/SQLiteDatabase.cpp`](../../../../src/Utils/Storage/SQLiteDatabase.cpp), lines 5-51
 - **Dependencies:** APP-001
+- **Status:** Resolved
 
 ## Observation
 
@@ -28,3 +29,11 @@ Introduce explicit schema version metadata and validate the complete expected sc
 ## Suggested tests
 
 Create fixtures missing each required column, using incompatible types/constraints, and representing every supported version.
+
+## Resolution
+
+Version-1 initialization validates the sole user table, exact normalized `CREATE TABLE` definition, ordered columns and declared types, nullability, integer primary key, the sole non-partial unique `device_id` index, and every domain/numeric check constraint. Missing, incompatible, partial, or extra objects throw `DatabaseSchemaError` before storage is marked initialized.
+
+## Validation
+
+Fixtures cover fresh/reopened v1, missing checks, wrong column types, missing columns, unrelated tables, extra views, the supported unversioned shape, the unsupported key/value shape, and unknown schema versions.

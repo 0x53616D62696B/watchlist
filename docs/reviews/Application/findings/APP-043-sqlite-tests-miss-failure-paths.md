@@ -6,6 +6,7 @@
 - **Subsystem:** Tests/storage
 - **Location:** [`tests/UnitTests/Storage/SQLiteDatabaseTests.cpp`](../../../../tests/UnitTests/Storage/SQLiteDatabaseTests.cpp), lines 43-127
 - **Dependencies:** APP-001, APP-022, APP-023, APP-041
+- **Status:** Resolved
 
 ## Observation
 
@@ -28,3 +29,11 @@ Turn the storage contract into a reusable test suite and add direct SQLite fixtu
 ## Suggested tests
 
 Cover duplicate `AddItem`, duplicate IDs inside `ReplaceAll`, unknown/partial legacy schemas, invalid numeric rows, operations before `Initialize`, and database reopen persistence.
+
+## Resolution
+
+The SQLite suite now exercises the storage contract's success, constraint, validation, schema, migration, corruption, and transactional failure paths. Each rejected mutation or migration asserts the pre-existing logical contents and schema version remain unchanged.
+
+## Validation
+
+Eighteen tests cover duplicate add, prevalidated and injected transactional replacement failure, invalid raw rows, supported migration, rollback, unknown/legacy/future schemas, exact schema checks, operations before initialization, persistence/reopen, and CRUD/query behavior.
