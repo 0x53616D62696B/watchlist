@@ -1,15 +1,10 @@
 #pragma once
-#include <string>
-#include <chrono>
-#include <source_location>
-#include <iostream>
-#include <filesystem>
+
 #include <format>
+#include <source_location>
+#include <string_view>
 
-// TODO implement colored logger, which will be on only if terminal supports it
-#define COLORED_LOG false
-
-enum class LogLevel : char // TODO: test this
+enum class LogLevel : char
 {
     Info = 'I',
     Warning = 'W',
@@ -19,18 +14,18 @@ enum class LogLevel : char // TODO: test this
     Trace = 'T',
 };
 
-auto LocalTime(std::chrono::system_clock::time_point const);
-std::string ToString(std::source_location const);
-// void Log(LogLevel const, std::string_view const, std::source_location const);
-void Log(LogLevel const level, std::string_view const message,
-    std::source_location const source = std::source_location::current());
+// A call emits and flushes one complete newline-terminated record before it
+// returns. Records from concurrent callers never interleave.
+void Log(LogLevel level, std::string_view message,
+    std::source_location source = std::source_location::current());
+
+[[noreturn]] void LogFatal(std::string_view message,
+    std::source_location source = std::source_location::current());
 
 #define LOG_INFO(...) Log(LogLevel::Info, __VA_ARGS__)
 #define LOG_WARNING(...) Log(LogLevel::Warning, __VA_ARGS__)
 #define LOG_ERROR(...) Log(LogLevel::Error, __VA_ARGS__)
-#define LOG_FATAL(...) Log(LogLevel::Fatal, __VA_ARGS__)
+#define LOG_FATAL(...) LogFatal(__VA_ARGS__)
 #define LOG_DEBUG(...) Log(LogLevel::Debug, __VA_ARGS__)
 #define LOG_TRACE(...) Log(LogLevel::Trace, __VA_ARGS__)
-#define LOG_EXCEPTION(e) Log(LogLevel::Error, std::format("Exception error: {}", e.what()))
-
-// TODO create Logger Class instea of logger funtion
+#define LOG_EXCEPTION(e) Log(LogLevel::Error, std::format("Exception error: {}", (e).what()))

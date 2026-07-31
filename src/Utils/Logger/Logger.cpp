@@ -1,65 +1,149 @@
 #include "Logger.hpp"
 
-// TODO: swap auto to std::chrono::zoned_time... or smthing this metod returns.
-//! std::chrono::zoned_time doesnt work as return type.. check documentation
-auto LocalTime(std::chrono::system_clock::time_point const tp)
+#if defined(WATCHLIST_LOGGER_TESTING)
+#include "LoggerTesting.hpp"
+#endif
+
+#include <chrono>
+#include <cstdio>
+#include <exception>
+#include <iostream>
+#include <mutex>
+#include <ostream>
+#include <string>
+
+namespace
 {
-    return std::chrono::zoned_time{std::chrono::current_zone(), tp};
+struct LoggerState
+{
+    std::mutex mutex;
+    std::ostream* output = &std::cout;
+#if defined(WATCHLIST_LOGGER_TESTING)
+    LoggerTesting::FatalHandler fatalHandler = nullptr;
+#endif
+};
+
+LoggerState& State()
+{
+    static LoggerState state;
+    return state;
 }
 
-std::string ToString(std::source_location const source)
+std::string_view Filename(std::string_view path) noexcept
 {
-    // return std::format("{:%F %T %Z}", tp.first, tp.second, tp.third);
-    //? -------------------------------------------------- test tp.first etc
-    return std::format("{}:{}",
-        // source.file_name(),
-        // std::filesystem::path(source.file_name()).filename().string(), source.function_name(), source.line());
-        std::filesystem::path(source.file_name()).filename().string(), source.line());
-
-    // * format types here: https://en.cppreference.com/w/cpp/chrono/system_clock/formatter#Format_specification
+    auto const separator = path.find_last_of("/\\");
+    return separator == std::string_view::npos ? path : path.substr(separator + 1);
 }
-void Log(LogLevel const level, std::string_view const message, std::source_location const source)
+
+std::string BuildRecord(LogLevel level, std::string_view message, std::source_location source)
 {
-    // std::source_location const source = std::source_location::current();
+    return std::format("[{}] {} | {}:{} | {}\n", static_cast<char>(level),
+        std::chrono::system_clock::now(), Filename(source.file_name()), source.line(), message);
+}
+
+void EmitRecord(std::string_view record)
+{
+    auto& state = State();
+    std::scoped_lock lock{state.mutex};
+    state.output->write(record.data(), static_cast<std::streamsize>(record.size()));
+    state.output->flush();
+}
+
+void EmitFormattingFailure() noexcept
+{
+    constexpr std::string_view fallback = "[E] logger failed to format record\n";
     try
     {
-        std::cout << std::format("[{}] {} | {} | {}",
-                         // Log severity level
-                         static_cast<char>(level),
-                         // ToString(LocalTimeToString(std::chrono::system_clock::now())), //TODO: This is not working.
-                         // Viz this: std::string new_string1 = std::format("{:%F %T %Z}", std::chrono::zoned_time{
-                         // std::chrono::current_zone(), std::chrono::system_clock::now() });
-                         //  Time
-                         std::format("{}", std::chrono::system_clock::now()),
-                         // Source
-                         ToString(source),
-                         // Log Message
-                         message)
-                  << '\n';
-        // << std::endl;
-    }
-    catch (std::chrono::nonexistent_local_time& ex)
-    {
-        std::cout << "Error: " << ex.what() << '\n';
-    }
-    catch (const std::exception& ex)
-    {
-        std::cout << "Error: " << ex.what() << '\n';
+        EmitRecord(fallback);
     }
     catch (...)
     {
-        std::cout << "Generic error occurred" << std::endl;
+        auto& state = State();
+        std::scoped_lock lock{state.mutex};
+        std::fwrite(fallback.data(), 1, fallback.size(), stderr);
+        std::fflush(stderr);
     }
 }
+
+void EmitLogRecord(LogLevel level, std::string_view message, std::source_location source) noexcept
+{
+    try
+    {
+        EmitRecord(BuildRecord(level, message, source));
+    }
+    catch (...)
+    {
+        EmitFormattingFailure();
+    }
+}
+
+[[noreturn]] void TerminateProcess()
+{
+#if defined(WATCHLIST_LOGGER_TESTING)
+    LoggerTesting::FatalHandler handler = nullptr;
+    {
+        auto& state = State();
+        std::scoped_lock lock{state.mutex};
+        handler = state.fatalHandler;
+    }
+    if (handler != nullptr)
+    {
+        handler();
+    }
+#endif
+    std::terminate();
+}
+}
+
+void Log(LogLevel level, std::string_view message, std::source_location source)
+{
+    if (level == LogLevel::Fatal)
+    {
+        LogFatal(message, source);
+    }
+    EmitLogRecord(level, message, source);
+}
+
+[[noreturn]] void LogFatal(std::string_view message, std::source_location source)
+{
+    EmitLogRecord(LogLevel::Fatal, message, source);
+    TerminateProcess();
+}
+
+#if defined(WATCHLIST_LOGGER_TESTING)
+namespace LoggerTesting
+{
+void SetOutput(std::ostream& output) noexcept
+{
+    auto& state = State();
+    std::scoped_lock lock{state.mutex};
+    state.output = &output;
+}
+
+void ResetOutput() noexcept
+{
+    SetOutput(std::cout);
+}
+
+void SetFatalHandler(FatalHandler handler) noexcept
+{
+    auto& state = State();
+    std::scoped_lock lock{state.mutex};
+    state.fatalHandler = handler;
+}
+
+void ResetFatalHandler() noexcept
+{
+    SetFatalHandler(nullptr);
+}
+}
+#endif
 
 #ifdef DEBUG_LOGGER
 int main()
 {
-    // Logger test
     Log(LogLevel::Info, "Logging from main thread");
-    LOG_DEBUG("Added one debug meessage");
-    LOG_FATAL("\033[1;31mbold red text\033[0m\n");
-
+    LOG_DEBUG("Added one debug message");
     return 0;
 }
 #endif

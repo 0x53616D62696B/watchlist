@@ -221,14 +221,26 @@ if(BUILD_TESTING AND TARGET GTest::gtest_main)
 
   add_executable(GeneratorLifecycleTests
     tests/UnitTests/Concurrency/EventLoopGeneratorTests.cpp
-    src/Utils/Logger/Logger.cpp
   )
-
+  target_include_directories(GeneratorLifecycleTests PRIVATE "${CMAKE_SOURCE_DIR}")
   target_link_libraries(GeneratorLifecycleTests PRIVATE
     GTest::gtest_main
+    Threads::Threads
+    watchlist_logger
+    watchlist_profiling
   )
-
+  watchlist_apply_owned_code(GeneratorLifecycleTests)
   gtest_discover_tests(GeneratorLifecycleTests)
+
+  add_executable(LoggerUnitTests
+    tests/UnitTests/Logger/LoggerTests.cpp
+    src/Utils/Logger/Logger.cpp
+  )
+  target_include_directories(LoggerUnitTests PRIVATE "${CMAKE_SOURCE_DIR}")
+  target_compile_definitions(LoggerUnitTests PRIVATE WATCHLIST_LOGGER_TESTING=1)
+  target_link_libraries(LoggerUnitTests PRIVATE GTest::gtest_main Threads::Threads)
+  watchlist_apply_owned_code(LoggerUnitTests)
+  gtest_discover_tests(LoggerUnitTests)
 elseif(BUILD_TESTING)
   message(STATUS "GoogleTest was not found. Add it to libs/googletest or install a GTest package to build UnitTests.")
 endif()

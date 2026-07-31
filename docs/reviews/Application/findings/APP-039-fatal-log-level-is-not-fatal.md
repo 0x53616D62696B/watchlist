@@ -6,6 +6,7 @@
 - **Subsystem:** Logging/API
 - **Location:** [`src/Utils/Logger/Logger.hpp`](../../../../src/Utils/Logger/Logger.hpp), lines 12-35; [`src/Utils/Logger/Logger.cpp`](../../../../src/Utils/Logger/Logger.cpp), lines 21-51
 - **Dependencies:** APP-037
+- **Status:** Resolved
 
 ## Observation
 
@@ -28,3 +29,11 @@ Either rename the level to avoid control-flow implications or define a dedicated
 ## Suggested tests
 
 Use a subprocess or injectable fatal handler to verify record emission, flush, and the selected exit/exception behavior.
+
+## Resolution
+
+`LOG_FATAL` now calls the dedicated, `[[noreturn]]` `LogFatal` function. That function emits a fatal record, flushes the synchronized sink, and then invokes the production termination path (`std::terminate`). Passing `LogLevel::Fatal` directly to `Log` uses the same contract. A test-only header and compile definition expose output and fatal-handler injection only to `LoggerUnitTests`; a returning test handler still falls through to `std::terminate`.
+
+## Validation
+
+The deterministic fatal tests verify that the record is present and the sink has been flushed before an injected handler runs. A supported GoogleTest death test resets the hook and verifies that the default production path terminates its subprocess.
