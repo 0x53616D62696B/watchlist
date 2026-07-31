@@ -28,3 +28,9 @@ Use `target_compile_definitions` and link Tracy through a dedicated interface ta
 ## Suggested tests
 
 Configure target graphs with profiling on/off and assert target properties. Build a minimal consumer of the profiling interface in both modes when dependencies are available.
+
+## Resolution
+
+- **Status:** Resolved
+- **Implementation:** Added the `watchlist_profiling` interface target, which carries `ENABLE_PROFILING`, Tracy's include paths, compile definitions, and client linkage as one usage requirement. Only `Application` and `ConcurrencyExamples` opt into that interface.
+- **Validation:** Configured profiling-off and profiling-on MSVC/Ninja graphs and built `Application` in both configurations. Compile commands showed no Tracy state for the profiling-off application or storage target, while the profiling-on application received both `ENABLE_PROFILING` and the Tracy include/link requirements.

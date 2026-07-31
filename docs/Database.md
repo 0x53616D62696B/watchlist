@@ -1,13 +1,12 @@
 # Device Database Storage
 
-The database storage facade provides a small API for storing network devices without depending directly on a specific database engine. Application code can use `IDatabase`, while concrete implementations such as `SQLiteDatabase` hide SQL and connection details.
+The database storage facade provides a small API for storing network devices without depending directly on SQLite details. Application code can use `IDatabase`, while the supported `SQLiteDatabase` implementation hides SQL and connection management.
 
 ## Files
 
 - `src/Utils/Storage/DatabaseItem.hpp`: item stored by the facade.
 - `src/Utils/Storage/IDatabase.hpp`: virtual database API used by application code.
 - `src/Utils/Storage/SQLiteDatabase.hpp/.cpp`: working SQLite implementation.
-- `src/Utils/Storage/MySQLDatabase.hpp/.cpp`: example MySQL-shaped implementation placeholder.
 
 ## Stored Item
 
@@ -60,6 +59,6 @@ It uses SQLite transactions for `ReplaceAll`, so replacement is committed as one
 
 SQLite is a good local embedded database. Multiple processes can read from the same database file, but this facade is currently intended for simple local application storage rather than multi-device synchronization.
 
-## MySQL Placeholder
+## Supported Backend
 
-`MySQLDatabase` currently documents the shape a server-backed implementation would have, but it intentionally throws until a real MySQL client library is added. This keeps the facade example compile-safe without adding a dependency that the application does not use yet.
+SQLite is the only supported backend. Unsupported server databases are not exposed as constructible implementations; a future backend must provide a working client integration and explicit configuration capability before it is added to the production target.

@@ -28,3 +28,9 @@ List Application sources explicitly or split utilities into focused library targ
 ## Suggested tests
 
 Inspect the generated target source list and add a configure-time assertion or build-system test that rejects unexpected sources.
+
+## Resolution
+
+- **Status:** Resolved
+- **Implementation:** Replaced recursive source discovery with explicit source lists and focused `watchlist_logger`, `watchlist_storage`, and `watchlist_imgui` targets. `Application` now lists only its Watchlist, GUI, concurrency, and profiling sources and links only the usable SQLite storage implementation.
+- **Validation:** Configured the explicit target graph with MSVC/Ninja and built `Application` with warnings-as-errors. Compile-command inspection confirmed that no `MySQLDatabase` source is present and that bundled ImGui sources compile in their isolated third-party target.
