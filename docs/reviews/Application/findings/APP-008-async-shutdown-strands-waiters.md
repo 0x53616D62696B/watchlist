@@ -1,5 +1,7 @@
 # APP-008: Async shutdown strands event waiters and spins on delays
 
+- **Status:** Resolved
+
 - **Priority:** P1
 - **Kind:** Defect
 - **Confidence:** High
@@ -32,3 +34,9 @@ Implement only after task ownership and loop identity are corrected.
 ## Suggested tests
 
 Destroy a loop with only event waiters, with a 24-hour delay, with both pending and delayed work, and while another thread attempts to schedule.
+
+## Resolution
+
+Async shutdown now closes admission, detaches every ready, delayed, and event-wait queue under the scheduler lock, marks each detached task cancelled, and wakes the worker for immediate exit. Future deadlines are never drained during destruction.
+
+Validated by a combined event-waiter and 24-hour-delay test that completes in under one second and reports cancellation for both tasks.

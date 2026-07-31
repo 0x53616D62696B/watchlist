@@ -1,5 +1,7 @@
 # APP-049: Coroutine task exceptions terminate the process
 
+- **Status:** Resolved
+
 - **Priority:** P2
 - **Kind:** Defect
 - **Confidence:** High
@@ -28,3 +30,9 @@ Store `std::exception_ptr` in task completion state and propagate it to an obser
 ## Suggested tests
 
 Throw before and after suspension, from delayed callbacks, and during cancellation; verify propagation, peer shutdown, and frame cleanup.
+
+## Resolution
+
+Coroutine promises now capture `std::exception_ptr` in synchronized completion state instead of terminating. Task observers can wait, inspect status, and call `get()` to rethrow callback failures; cancellation has its own typed outcome. Event delivery is no longer declared `noexcept`, and generator failures are also rethrown to their consuming task.
+
+Validated by immediate and delayed callbacks that throw distinct standard exceptions and are reported as failed tasks without terminating the test process.

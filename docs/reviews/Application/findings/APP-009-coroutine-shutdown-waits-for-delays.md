@@ -1,5 +1,7 @@
 # APP-009: Coroutine-loop shutdown waits for future deadlines
 
+- **Status:** Resolved
+
 - **Priority:** P1
 - **Kind:** Defect
 - **Confidence:** High
@@ -32,3 +34,9 @@ Do not solve this by shortening delays or detaching the worker; ownership and jo
 ## Suggested tests
 
 Destroy with delays from zero to hours, verify callback execution policy, and test a callback that references a collaborator destroyed immediately before the loop.
+
+## Resolution
+
+`EventLoopCoroutine` now uses cancel-on-stop semantics. Destruction removes queued frames, publishes cancellation, wakes and joins the worker, and never waits for or executes a future deadline.
+
+Validated by destroying the loop with a 24-hour delay: teardown stays below one second, the callback does not run, and the task reports cancellation.

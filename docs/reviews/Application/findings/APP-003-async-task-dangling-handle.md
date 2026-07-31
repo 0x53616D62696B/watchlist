@@ -1,5 +1,7 @@
 # APP-003: `AsyncEventLoop::Task` retains a destroyed coroutine handle
 
+- **Status:** Resolved
+
 - **Priority:** P0
 - **Kind:** Defect
 - **Confidence:** High
@@ -33,3 +35,9 @@ Correct `Task`/promise ownership before changing event routing or shutdown logic
 ## Suggested tests
 
 Cover completion before task destruction, task destruction while suspended, move construction/assignment, multiple resumes, and loop destruction with outstanding tasks.
+
+## Resolution
+
+`AsyncEventLoop::Task` now shares a single frame-control object with the scheduler. The control object is the only code that destroys the frame, final suspension is explicit, and destroying or moving the observer cannot invalidate a queued coroutine.
+
+Validated by the event-loop unit tests covering observer destruction while suspended, moves, immediate exactly-once execution, completion, and cancellation during loop destruction.

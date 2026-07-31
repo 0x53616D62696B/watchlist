@@ -1,5 +1,7 @@
 # APP-004: `EventLoopCoroutine::Task` retains a destroyed coroutine handle
 
+- **Status:** Resolved
+
 - **Priority:** P0
 - **Kind:** Defect
 - **Confidence:** High
@@ -32,3 +34,9 @@ Resolve task ownership independently from the static loop-routing problem in APP
 ## Suggested tests
 
 Exercise zero-delay and delayed completion, moved tasks, caller destruction before the deadline, and loop destruction before and after task completion under ASan or an equivalent runtime checker.
+
+## Resolution
+
+`EventLoopCoroutine` uses the same single-owner frame control and suspending final state as the async loop. Scheduler and observer references can be released independently, while the coroutine frame is destroyed exactly once after both are finished with it.
+
+Validated by zero-delay completion, move, discarded-observer, long-delay cancellation, and exception unit tests under the MSVC debug runtime checks.
