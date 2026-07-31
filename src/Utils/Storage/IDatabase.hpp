@@ -23,22 +23,22 @@ public:
     virtual void UpsertItem(const DatabaseItem& item) = 0;
 
     /// Returns the device stored under id, or std::nullopt when the id does not exist.
-    [[nodiscard]] virtual std::optional<DatabaseItem> GetItem(const std::string& id) = 0;
+    [[nodiscard]] virtual std::optional<DatabaseItem> GetItem(const std::string& id) const = 0;
 
     /// Returns every stored device in the database implementation's natural order.
-    [[nodiscard]] virtual std::vector<DatabaseItem> GetAllItems() = 0;
+    [[nodiscard]] virtual std::vector<DatabaseItem> GetAllItems() const = 0;
 
     /// Removes all existing devices and inserts the supplied devices as one logical operation.
     virtual void ReplaceAll(const std::vector<DatabaseItem>& items) = 0;
 
     /// Returns every stored device ordered by id in ascending order.
-    [[nodiscard]] virtual std::vector<DatabaseItem> GetAllSortedById() = 0;
+    [[nodiscard]] virtual std::vector<DatabaseItem> GetAllSortedById() const = 0;
 
     /// Returns true when id exists in storage.
-    [[nodiscard]] virtual bool ContainsItem(const std::string& id) = 0;
+    [[nodiscard]] virtual bool ContainsItem(const std::string& id) const = 0;
 
     /// Returns the number of currently stored items.
-    [[nodiscard]] virtual std::int64_t CountItems() = 0;
+    [[nodiscard]] virtual std::int64_t CountItems() const = 0;
 
     /// Removes the device stored under id and returns true when a row was removed.
     [[nodiscard]] virtual bool RemoveItem(const std::string& id) = 0;

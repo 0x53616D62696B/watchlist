@@ -83,10 +83,10 @@ void SQLiteDatabase::UpsertItem(const DatabaseItem& item)
     upsert.exec();
 }
 
-std::optional<DatabaseItem> SQLiteDatabase::GetItem(const std::string& id)
+std::optional<DatabaseItem> SQLiteDatabase::GetItem(const std::string& id) const
 {
     SQLite::Statement query(
-        database_,
+        QueryConnection(),
         "SELECT device_id, name, ip_address, port, alive FROM items WHERE device_id = ?");
 
     query.bind(1, id);
@@ -103,10 +103,10 @@ std::optional<DatabaseItem> SQLiteDatabase::GetItem(const std::string& id)
     };
 }
 
-std::vector<DatabaseItem> SQLiteDatabase::GetAllItems()
+std::vector<DatabaseItem> SQLiteDatabase::GetAllItems() const
 {
     SQLite::Statement query(
-        database_,
+        QueryConnection(),
         "SELECT device_id, name, ip_address, port, alive FROM items");
 
     std::vector<DatabaseItem> items;
@@ -137,10 +137,10 @@ void SQLiteDatabase::ReplaceAll(const std::vector<DatabaseItem>& items)
     transaction.commit();
 }
 
-std::vector<DatabaseItem> SQLiteDatabase::GetAllSortedById()
+std::vector<DatabaseItem> SQLiteDatabase::GetAllSortedById() const
 {
     SQLite::Statement query(
-        database_,
+        QueryConnection(),
         "SELECT device_id, name, ip_address, port, alive FROM items ORDER BY device_id");
 
     std::vector<DatabaseItem> items;
@@ -158,10 +158,10 @@ std::vector<DatabaseItem> SQLiteDatabase::GetAllSortedById()
     return items;
 }
 
-bool SQLiteDatabase::ContainsItem(const std::string& id)
+bool SQLiteDatabase::ContainsItem(const std::string& id) const
 {
     SQLite::Statement query(
-        database_,
+        QueryConnection(),
         "SELECT 1 FROM items WHERE device_id = ? LIMIT 1");
 
     query.bind(1, id);
@@ -169,10 +169,10 @@ bool SQLiteDatabase::ContainsItem(const std::string& id)
     return query.executeStep();
 }
 
-std::int64_t SQLiteDatabase::CountItems()
+std::int64_t SQLiteDatabase::CountItems() const
 {
     SQLite::Statement query(
-        database_,
+        QueryConnection(),
         "SELECT COUNT(*) FROM items");
 
     query.executeStep();
