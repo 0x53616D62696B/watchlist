@@ -6,18 +6,24 @@
 
 #include <chrono>
 #include <cstdio>
+#include <deque>
 #include <exception>
 #include <iostream>
 #include <mutex>
 #include <ostream>
 #include <string>
+#include <utility>
 
 namespace
 {
+constexpr std::size_t MaxLogEntries = 10'000;
+
 struct LoggerState
 {
     std::mutex mutex;
     std::ostream* output = &std::cout;
+    std::deque<LogEntry> entries;
+    std::uint64_t nextSequence = 1;
 #if defined(WATCHLIST_LOGGER_TESTING)
     LoggerTesting::FatalHandler fatalHandler = nullptr;
 #endif
@@ -35,16 +41,27 @@ std::string_view Filename(std::string_view path) noexcept
     return separator == std::string_view::npos ? path : path.substr(separator + 1);
 }
 
-std::string BuildRecord(LogLevel level, std::string_view message, std::source_location source)
+void EmitRecord(LogLevel level, std::string_view message, std::source_location source)
 {
-    return std::format("[{}] {} | {}:{} | {}\n", static_cast<char>(level),
-        std::chrono::system_clock::now(), Filename(source.file_name()), source.line(), message);
-}
+    auto const timestamp = std::chrono::system_clock::now();
+    auto sourceName = std::format("{}:{}", Filename(source.file_name()), source.line());
+    auto messageText = std::string(message);
+    auto record = std::format("[{}] {} | {} | {}\n", static_cast<char>(level), timestamp, sourceName, messageText);
 
-void EmitRecord(std::string_view record)
-{
     auto& state = State();
     std::scoped_lock lock{state.mutex};
+    LogEntry entry{
+        .sequence = state.nextSequence,
+        .level = level,
+        .timestamp = timestamp,
+        .source = std::move(sourceName),
+        .message = std::move(messageText),
+    };
+    state.entries.push_back(std::move(entry));
+    ++state.nextSequence;
+    if (state.entries.size() > MaxLogEntries)
+        state.entries.pop_front();
+
     state.output->write(record.data(), static_cast<std::streamsize>(record.size()));
     state.output->flush();
 }
@@ -54,12 +71,13 @@ void EmitFormattingFailure() noexcept
     constexpr std::string_view fallback = "[E] logger failed to format record\n";
     try
     {
-        EmitRecord(fallback);
+        auto& state = State();
+        std::scoped_lock lock{state.mutex};
+        state.output->write(fallback.data(), static_cast<std::streamsize>(fallback.size()));
+        state.output->flush();
     }
     catch (...)
     {
-        auto& state = State();
-        std::scoped_lock lock{state.mutex};
         std::fwrite(fallback.data(), 1, fallback.size(), stderr);
         std::fflush(stderr);
     }
@@ -69,7 +87,7 @@ void EmitLogRecord(LogLevel level, std::string_view message, std::source_locatio
 {
     try
     {
-        EmitRecord(BuildRecord(level, message, source));
+        EmitRecord(level, message, source);
     }
     catch (...)
     {
@@ -87,9 +105,7 @@ void EmitLogRecord(LogLevel level, std::string_view message, std::source_locatio
         handler = state.fatalHandler;
     }
     if (handler != nullptr)
-    {
         handler();
-    }
 #endif
     std::terminate();
 }
@@ -98,9 +114,7 @@ void EmitLogRecord(LogLevel level, std::string_view message, std::source_locatio
 void Log(LogLevel level, std::string_view message, std::source_location source)
 {
     if (level == LogLevel::Fatal)
-    {
         LogFatal(message, source);
-    }
     EmitLogRecord(level, message, source);
 }
 
@@ -108,6 +122,27 @@ void Log(LogLevel level, std::string_view message, std::source_location source)
 {
     EmitLogRecord(LogLevel::Fatal, message, source);
     TerminateProcess();
+}
+
+std::vector<LogEntry> GetLogEntriesSince(std::uint64_t sequence)
+{
+    auto& state = State();
+    std::scoped_lock lock{state.mutex};
+
+    std::vector<LogEntry> result;
+    for (auto const& entry : state.entries)
+    {
+        if (entry.sequence > sequence)
+            result.push_back(entry);
+    }
+    return result;
+}
+
+void ClearLogEntries()
+{
+    auto& state = State();
+    std::scoped_lock lock{state.mutex};
+    state.entries.clear();
 }
 
 #if defined(WATCHLIST_LOGGER_TESTING)
