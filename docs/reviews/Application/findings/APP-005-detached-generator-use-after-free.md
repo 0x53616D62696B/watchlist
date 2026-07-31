@@ -4,6 +4,7 @@
 - **Kind:** Defect
 - **Confidence:** High
 - **Subsystem:** Concurrency
+- **Status:** Resolved
 - **Location:** [`src/Utils/Concurrency/EventLoopGenerator.hpp`](../../../../src/Utils/Concurrency/EventLoopGenerator.hpp), lines 134-147
 - **Dependencies:** None
 
@@ -32,3 +33,11 @@ Fix ownership before refining shutdown admission (APP-026) or ID generation (APP
 ## Suggested tests
 
 Destroy the loop immediately after starting long and short sequences, destroy it while `pattern_action` runs, and repeat under thread/lifetime sanitizers.
+
+## Resolution
+
+`EventLoopGenerator` now owns every sequence producer in a `std::jthread`. Shutdown closes admission, requests producer cancellation, joins every producer, and only then joins the queue worker after it drains accepted events. No detached thread retains the loop address.
+
+## Validation
+
+`EventLoopGeneratorTests.ImmediateDestructionCancelsAndJoinsProducer` repeatedly destroys loops immediately after starting long generators and asserts bounded completion. The complete focused test set was also repeated ten times without a failure.

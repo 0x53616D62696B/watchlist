@@ -4,6 +4,7 @@
 - **Kind:** Defect
 - **Confidence:** High
 - **Subsystem:** Concurrency
+- **Status:** Resolved
 - **Location:** [`src/Utils/Concurrency/EventLoopGenerator.hpp`](../../../../src/Utils/Concurrency/EventLoopGenerator.hpp), lines 84-107 and 134-147
 - **Dependencies:** APP-005, APP-025
 
@@ -28,3 +29,11 @@ Close admission under the same mutex used by the queue, return an explicit rejec
 ## Suggested tests
 
 Race scheduling with destruction, force allocation/action-generation failures, and verify every submission reports executed, cancelled, or rejected.
+
+## Resolution
+
+Admission now closes under the queue mutex. `schedule_event` reports accepted, stopped, or identifier-exhausted status and exposes a future for the eventual execution result. Accepted work drains during shutdown; stopped submissions are completed as rejected. Sequence futures aggregate execution outcomes and expose both generator and action exceptions without allowing either to escape a thread entry point.
+
+## Validation
+
+Focused tests verify drain-before-exit, post-stop rejection, concurrent scheduling versus shutdown, stopped sequence admission, action exceptions, and generator exceptions. All eight tests pass with bounded timeouts and passed ten consecutive repetitions.

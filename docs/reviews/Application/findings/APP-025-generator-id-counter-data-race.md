@@ -4,6 +4,7 @@
 - **Kind:** Defect
 - **Confidence:** High
 - **Subsystem:** Concurrency
+- **Status:** Resolved
 - **Location:** [`src/Utils/Concurrency/EventLoopGenerator.hpp`](../../../../src/Utils/Concurrency/EventLoopGenerator.hpp), lines 99-108
 - **Dependencies:** APP-005
 
@@ -28,3 +29,11 @@ Make identity instance-owned and increment it under the instance mutex, or use a
 ## Suggested tests
 
 Schedule high volumes from many threads into multiple loop instances under TSan; assert the selected uniqueness/ordering contract.
+
+## Resolution
+
+Identifiers are now per-loop `std::uint64_t` values assigned while holding the queue mutex. Each loop starts at one, so separate loop instances share no counter state. The documented overflow contract rejects submissions after the maximum identifier instead of wrapping.
+
+## Validation
+
+`EventLoopGeneratorTests.IdentifiersArePerLoopAndDoNotWrap` verifies independent loop identity and deterministic exhaustion behavior. `SchedulingRaceClassifiesEverySubmission` concurrently submits from four threads while shutdown closes admission.
