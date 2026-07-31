@@ -104,6 +104,28 @@ TEST_F(SQLiteDatabaseTest, GetAllSortedByIdReturnsAscendingIds)
     EXPECT_EQ(items[2].id, "router");
 }
 
+TEST_F(SQLiteDatabaseTest, ReadApisWorkThroughConstConcreteAndInterfaceReferences)
+{
+    database_->ReplaceAll({
+        Router(),
+        Printer(),
+    });
+
+    const Utils::Storage::SQLiteDatabase& concrete = *database_;
+    EXPECT_TRUE(concrete.GetItem("router").has_value());
+    EXPECT_EQ(concrete.GetAllItems().size(), 2);
+    EXPECT_EQ(concrete.GetAllSortedById().front().id, "printer-office");
+    EXPECT_TRUE(concrete.ContainsItem("router"));
+    EXPECT_EQ(concrete.CountItems(), 2);
+
+    const Utils::Storage::IDatabase& interface = concrete;
+    EXPECT_TRUE(interface.GetItem("printer-office").has_value());
+    EXPECT_EQ(interface.GetAllItems().size(), 2);
+    EXPECT_EQ(interface.GetAllSortedById().back().id, "router");
+    EXPECT_TRUE(interface.ContainsItem("printer-office"));
+    EXPECT_EQ(interface.CountItems(), 2);
+}
+
 TEST_F(SQLiteDatabaseTest, RemoveItemDeletesExistingDevice)
 {
     database_->AddItem(Router());

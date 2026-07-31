@@ -19,17 +19,22 @@ public:
     void Initialize() override;
     void AddItem(const DatabaseItem& item) override;
     void UpsertItem(const DatabaseItem& item) override;
-    [[nodiscard]] std::optional<DatabaseItem> GetItem(const std::string& id) override;
-    [[nodiscard]] std::vector<DatabaseItem> GetAllItems() override;
+    [[nodiscard]] std::optional<DatabaseItem> GetItem(const std::string& id) const override;
+    [[nodiscard]] std::vector<DatabaseItem> GetAllItems() const override;
     void ReplaceAll(const std::vector<DatabaseItem>& items) override;
-    [[nodiscard]] std::vector<DatabaseItem> GetAllSortedById() override;
-    [[nodiscard]] bool ContainsItem(const std::string& id) override;
-    [[nodiscard]] std::int64_t CountItems() override;
+    [[nodiscard]] std::vector<DatabaseItem> GetAllSortedById() const override;
+    [[nodiscard]] bool ContainsItem(const std::string& id) const override;
+    [[nodiscard]] std::int64_t CountItems() const override;
     [[nodiscard]] bool RemoveItem(const std::string& id) override;
     void Clear() override;
 
 private:
-    SQLite::Database database_;
+    /// SQLiteCpp prepares SELECT statements from a non-const Database& because
+    /// statement preparation updates connection-internal state. Keep that
+    /// adapter detail here so public query operations remain logically const.
+    [[nodiscard]] SQLite::Database& QueryConnection() const noexcept { return database_; }
+
+    mutable SQLite::Database database_;
 };
 
 } // namespace Utils::Storage
