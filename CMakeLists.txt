@@ -7,8 +7,13 @@ include(CompilerSettings)
 
 include(GitVersionConfig)
 configure_version()
-generate_version_header("${CMAKE_SOURCE_DIR}/src/Common/Version.hpp")
-generate_version_resource()
+set(WATCHLIST_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
+set(WATCHLIST_VERSION_HEADER "${WATCHLIST_GENERATED_DIR}/Common/Version.hpp")
+generate_version_header("${WATCHLIST_VERSION_HEADER}")
+if(WIN32)
+  set(WATCHLIST_VERSION_RESOURCE "${WATCHLIST_GENERATED_DIR}/version.rc")
+  generate_version_resource("${WATCHLIST_VERSION_RESOURCE}")
+endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -124,6 +129,7 @@ watchlist_apply_owned_code(watchlist_storage)
 # Application composition is intentionally explicit. Adding an unrelated utility
 # under src/Utils no longer changes this production target.
 add_executable(Application
+  "${WATCHLIST_VERSION_HEADER}"
   src/Watchlist/main.cpp
   src/Watchlist/SQLiteThreadWorker.cpp
   src/Watchlist/SQLiteThreadWorker.hpp
@@ -135,7 +141,13 @@ add_executable(Application
   src/Utils/Concurrency/ThreadPoolManager.hpp
   src/Utils/Profiling/TracyProfiling.hpp
 )
-target_include_directories(Application PRIVATE "${CMAKE_SOURCE_DIR}")
+if(WIN32)
+  target_sources(Application PRIVATE "${WATCHLIST_VERSION_RESOURCE}")
+endif()
+target_include_directories(Application PRIVATE
+  "${CMAKE_SOURCE_DIR}"
+  "${WATCHLIST_GENERATED_DIR}"
+)
 target_compile_definitions(Application PRIVATE MYAPP=1)
 target_link_libraries(Application PRIVATE
   Threads::Threads
@@ -145,6 +157,7 @@ target_link_libraries(Application PRIVATE
   watchlist_storage
 )
 watchlist_apply_owned_code(Application)
+set_target_properties(Application PROPERTIES OUTPUT_NAME Watchlist)
 
 if(ENABLE_PCH)
   set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
@@ -243,4 +256,26 @@ if(BUILD_TESTING AND TARGET GTest::gtest_main)
   gtest_discover_tests(LoggerUnitTests)
 elseif(BUILD_TESTING)
   message(STATUS "GoogleTest was not found. Add it to libs/googletest or install a GTest package to build UnitTests.")
+endif()
+
+if(BUILD_TESTING)
+  foreach(_version_case
+      valid
+      missing
+      wrong-type
+      escaped
+      non-ascii
+      override
+      fallback
+      strict-gitversion
+      strict-provenance)
+    add_test(
+      NAME "VersionPipeline.${_version_case}"
+      COMMAND "${CMAKE_COMMAND}"
+        "-DTEST_CASE=${_version_case}"
+        "-DMODULE_PATH=${CMAKE_SOURCE_DIR}/cmake/GitVersionConfig.cmake"
+        "-DFIXTURE_DIR=${CMAKE_SOURCE_DIR}/tests/CMake/fixtures"
+        "-DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/version-pipeline-tests/${_version_case}"
+        -P "${CMAKE_SOURCE_DIR}/tests/CMake/VersionPipelineTests.cmake")
+  endforeach()
 endif()

@@ -1,0 +1,11 @@
+{
+  "Major": 1,
+  "Minor": 2,
+  "Patch": 3,
+  "FullSemVer": "1.2.3+dirty",
+  "PreReleaseTag": "",
+  "BuildMetaData": "dirty",
+  "BranchName": "release/1.2.3",
+  "Sha": "0123456789abcdef0123456789abcdef01234567",
+  "UncommittedChanges": 2
+}

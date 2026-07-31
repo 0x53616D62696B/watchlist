@@ -1,5 +1,7 @@
 # APP-048: Regex parsing can generate an invalid version header
 
+- **Status:** Resolved
+
 - **Priority:** P2
 - **Kind:** Defect
 - **Confidence:** High
@@ -28,3 +30,13 @@ Use CMake's JSON query support for required fields, validate types/ranges, and e
 ## Suggested tests
 
 Feed representative valid JSON plus missing, null, reordered, escaped, and malformed field fixtures into the parser.
+
+## Resolution
+
+GitVersion output is parsed with `string(JSON)`. Required fields are checked for presence, JSON type, semantic consistency, integer form, Windows numeric range, non-empty branch, and hexadecimal commit identity. Generated C++ and resource strings escape quotes, backslashes, and control characters; templates are emitted as UTF-8-compatible files for non-ASCII metadata.
+
+## Validation
+
+- Added nine CTest script cases covering valid JSON, missing fields, wrong types, quotes/backslashes, non-ASCII text, override, fallback, strict GitVersion, and strict clean provenance.
+- Confirmed missing `Patch` and string-typed `Major` fail during CMake evaluation with the field named.
+- Generated header/resource fixtures for escaped and non-ASCII branches and built the production generated header/resource with MSVC.

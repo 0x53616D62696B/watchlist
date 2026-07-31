@@ -1,0 +1,11 @@
+{
+  "Major": 1,
+  "Minor": 2,
+  "Patch": 3,
+  "FullSemVer": "1.2.3-beta.4+17",
+  "PreReleaseTag": "beta.4",
+  "BuildMetaData": 17,
+  "BranchName": "feature/version",
+  "Sha": "0123456789abcdef0123456789abcdef01234567",
+  "UncommittedChanges": 0
+}

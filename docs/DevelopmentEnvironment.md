@@ -42,7 +42,7 @@ For Tracy profiling:
 ```powershell
 cmake --preset with-profiling
 cmake --build --preset with-profiling --target Application
-.\build\profiling\Application.exe
+.\build\profiling\Watchlist.exe
 ```
 
 The visible configure, build, and test presets live in `CMakePresets.json`. To provide machine-specific compiler, SDK, or Ninja paths, copy the example to `CMakeUserPresets.json`, customize it, and select `local-default` or `local-with-profiling`. The local presets use separate build directories so they cannot reuse an incompatible tracked-preset cache.
@@ -113,7 +113,7 @@ If using VS Code tasks, update `tasks.json` so it points at your local `VsDevCmd
 
 ## GitVersion Setup
 
-GitVersion is required so CMake can generate version metadata.
+GitVersion is optional for normal development builds. When it is unavailable, CMake uses the visible deterministic development version `0.0.0-dev+unversioned`. Release workflows can require GitVersion with `WATCHLIST_REQUIRE_GITVERSION=ON` and reject dirty provenance with `WATCHLIST_REQUIRE_CLEAN_PROVENANCE=ON`.
 
 Install the .NET SDK, then install GitVersion as a global .NET tool:
 
@@ -125,6 +125,12 @@ Verify installation:
 
 ```powershell
 dotnet-gitversion
+```
+
+Archive and packaging builds can instead pass a validated semantic version directly:
+
+```powershell
+cmake -S . -B build/package -DWATCHLIST_VERSION_OVERRIDE=1.2.3
 ```
 
 ## Optional MSYS2 Setup

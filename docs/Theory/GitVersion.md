@@ -2,7 +2,7 @@
 
 This repository uses [GitVersion](https://gitversion.net/) to calculate semantic versions from Git history.
 
-The active configuration is `GitVersion.yml` in the repository root. The CMake integration uses that file during configure and generates `src/Common/Version.hpp`.
+The active configuration is `GitVersion.yml` in the repository root. When no explicit `WATCHLIST_VERSION_OVERRIDE` is supplied, the CMake integration uses GitVersion when available and generates `<build>/generated/Common/Version.hpp`. Development builds fall back deterministically when GitVersion is unavailable; strict release switches can require GitVersion and clean provenance.
 
 ## Version Format
 
@@ -256,7 +256,7 @@ Or show the effective configuration:
 dotnet-gitversion /showconfig
 ```
 
-After changing branches, adding tags, or changing GitVersion configuration, re-run CMake configure so `src/Common/Version.hpp` is regenerated:
+After changing branches, adding tags, or changing GitVersion configuration, re-run CMake configure so the build-local `generated/Common/Version.hpp` is regenerated:
 
 ```powershell
 cmake -S . -B build
