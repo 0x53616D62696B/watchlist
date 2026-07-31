@@ -2,8 +2,9 @@
     "version": 3,
     "configurePresets": [
         {
-            "name": "base-default",
-            "hidden": true,
+            "name": "default",
+            "displayName": "Default",
+            "description": "Portable debug build with tests enabled. CMake discovers Ninja and the active compiler from the environment.",
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build/default",
             "cacheVariables": {
@@ -12,14 +13,61 @@
             }
         },
         {
-            "name": "base-with-profiling",
-            "hidden": true,
-            "inherits": "base-default",
+            "name": "with-profiling",
+            "displayName": "Tracy",
+            "description": "Portable debug build with Tracy profiling and tests enabled.",
+            "inherits": "default",
             "binaryDir": "${sourceDir}/build/profiling",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "DebugTracy",
                 "BUILD_TESTING": "ON",
                 "ENABLE_PROFILING": "ON"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "default",
+            "displayName": "Default",
+            "configurePreset": "default"
+        },
+        {
+            "name": "with-profiling",
+            "displayName": "Tracy",
+            "configurePreset": "with-profiling"
+        },
+        {
+            "name": "unit-tests",
+            "displayName": "Unit Tests",
+            "configurePreset": "default",
+            "targets": [
+                "UnitTests"
+            ]
+        },
+        {
+            "name": "unit-tests-with-profiling",
+            "displayName": "Tracy + Unit Tests",
+            "configurePreset": "with-profiling",
+            "targets": [
+                "UnitTests"
+            ]
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "default",
+            "displayName": "CTest Default",
+            "configurePreset": "default",
+            "output": {
+                "outputOnFailure": true
+            }
+        },
+        {
+            "name": "with-profiling",
+            "displayName": "CTest Tracy",
+            "configurePreset": "with-profiling",
+            "output": {
+                "outputOnFailure": true
             }
         }
     ]
