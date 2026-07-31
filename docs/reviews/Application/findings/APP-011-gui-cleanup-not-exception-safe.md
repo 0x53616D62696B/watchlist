@@ -3,6 +3,7 @@
 - **Priority:** P1
 - **Kind:** Defect
 - **Confidence:** High
+- **Status:** Resolved
 - **Subsystem:** GUI
 - **Location:** [`src/Gui/Gui.cpp`](../../../../src/Gui/Gui.cpp), lines 120-150 and 214-260
 - **Dependencies:** APP-010
@@ -32,3 +33,7 @@ Keep rendering behavior unchanged; make ownership explicit before altering threa
 ## Suggested tests
 
 Inject failure after each acquisition boundary and verify cleanup calls/order with wrappers or fakes. Reinitialize after each failure to prove global state is clean.
+
+## Resolution and validation
+
+The GUI lifecycle now assigns staged RAII owners to GLFW, the window, the ImGui context, and both initialized backends. Normal return and every exception path use the same reverse-order cleanup. Headless platform tests inject all initialization-stage and frame failures and assert the exact cleanup sequence.

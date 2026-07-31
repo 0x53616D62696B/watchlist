@@ -3,6 +3,7 @@
 - **Priority:** P2
 - **Kind:** Improvement
 - **Confidence:** High
+- **Status:** Resolved
 - **Subsystem:** GUI/startup
 - **Location:** [`src/Watchlist/main.cpp`](../../../../src/Watchlist/main.cpp), lines 64-76
 - **Dependencies:** APP-010, APP-011
@@ -28,3 +29,7 @@ Keep platform GUI lifecycle on the main thread and run background services on ow
 ## Suggested tests
 
 Record thread IDs through GUI lifecycle and verify affinity. Add a platform smoke test where supported.
+
+## Resolution and validation
+
+`RunApplication` now invokes the complete GLFW/OpenGL/ImGui lifecycle directly on its process main thread; only SQLite commands run on the owned background service. Every production platform operation checks the captured main-thread ID and asserts affinity in debug builds. A headless test verifies thread detection, and an opt-in `GUI_SMOKE` test exercises the real hidden platform lifecycle.

@@ -20,6 +20,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(ENABLE_PROFILING "Enable profiling with Tracy" OFF)
 option(ENABLE_PCH "Enable precompiled headers for the Application target" ON)
 option(BUILD_TESTING "Build unit tests" ON)
+option(WATCHLIST_ENABLE_GUI_SMOKE_TESTS "Run the real GLFW/OpenGL GUI smoke test" OFF)
 
 set(CMAKE_CXX_FLAGS_DEBUGTRACY "${CMAKE_CXX_FLAGS_DEBUG}" CACHE STRING "Flags for DebugTracy build type" FORCE)
 set(CMAKE_C_FLAGS_DEBUGTRACY "${CMAKE_C_FLAGS_DEBUG}" CACHE STRING "Flags for DebugTracy build type" FORCE)
@@ -133,12 +134,14 @@ add_executable(Application
   src/Watchlist/main.cpp
   src/Watchlist/ApplicationPaths.cpp
   src/Watchlist/ApplicationPaths.hpp
-  src/Watchlist/SQLiteThreadWorker.cpp
-  src/Watchlist/SQLiteThreadWorker.hpp
+  src/Watchlist/DeviceStorageService.cpp
+  src/Watchlist/DeviceStorageService.hpp
   src/Gui/DeviceMonitorState.cpp
   src/Gui/DeviceMonitorState.hpp
   src/Gui/Gui.cpp
   src/Gui/Gui.hpp
+  src/Gui/GuiRuntime.cpp
+  src/Gui/GuiRuntime.hpp
   src/Gui/MyApp.cpp
   src/Gui/MyApp.hpp
   src/Utils/Concurrency/AsyncEventLoop.hpp
@@ -251,15 +254,30 @@ if(BUILD_TESTING)
   add_test(NAME MyAppHeaderCompileProbe COMMAND MyAppHeaderCompileProbe)
 endif()
 
+if(BUILD_TESTING AND WATCHLIST_ENABLE_GUI_SMOKE_TESTS)
+  add_test(
+    NAME Application.GuiSmoke
+    COMMAND Application --gui-smoke --database-path "${CMAKE_CURRENT_BINARY_DIR}/gui-smoke.sqlite"
+  )
+  set_tests_properties(Application.GuiSmoke PROPERTIES
+    LABELS "GUI_SMOKE"
+    TIMEOUT 20
+  )
+endif()
+
 if(BUILD_TESTING AND TARGET GTest::gtest_main)
   add_executable(UnitTests
     tests/UnitTests/Concurrency/EventLoopTests.cpp
     tests/UnitTests/Gui/DeviceMonitorStateTests.cpp
+    tests/UnitTests/Gui/GuiRuntimeTests.cpp
     tests/UnitTests/Storage/SQLiteDatabaseTests.cpp
     tests/UnitTests/Watchlist/ApplicationPathsTests.cpp
+    tests/UnitTests/Watchlist/DeviceStorageServiceTests.cpp
     src/Watchlist/ApplicationPaths.cpp
     src/Watchlist/SQLiteThreadWorker.cpp
+    src/Watchlist/DeviceStorageService.cpp
     src/Gui/DeviceMonitorState.cpp
+    src/Gui/GuiRuntime.cpp
   )
   target_include_directories(UnitTests PRIVATE "${CMAKE_SOURCE_DIR}")
   target_link_libraries(UnitTests PRIVATE

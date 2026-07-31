@@ -3,6 +3,7 @@
 - **Priority:** P2
 - **Kind:** Improvement
 - **Confidence:** High
+- **Status:** Resolved
 - **Subsystem:** GUI
 - **Location:** [`src/Gui/Gui.cpp`](../../../../src/Gui/Gui.cpp), lines 17-24 and 214-225
 - **Dependencies:** APP-011, APP-012
@@ -28,3 +29,7 @@ Centralize graphics/display configuration, choose a documented minimum context c
 ## Suggested tests
 
 Test scale calculations and configuration fallback with mocked monitor/context capabilities; smoke-test representative DPI settings.
+
+## Resolution and validation
+
+`GuiConfiguration` centralizes the 1280x720 default and OpenGL 3.3 core minimum. Initial geometry is centered and clamped to the primary monitor work area. GLFW content scale initializes and updates ImGui styling from an immutable base style, preventing cumulative scaling across monitor changes. Pure geometry, configuration, and scale tests run headlessly.

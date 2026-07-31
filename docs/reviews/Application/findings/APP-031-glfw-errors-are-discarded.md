@@ -3,6 +3,7 @@
 - **Priority:** P2
 - **Kind:** Defect
 - **Confidence:** High
+- **Status:** Resolved
 - **Subsystem:** GUI/observability
 - **Location:** [`src/Gui/Gui.cpp`](../../../../src/Gui/Gui.cpp), lines 8-15
 - **Dependencies:** APP-011
@@ -28,3 +29,7 @@ Forward the error code and description to a thread-safe diagnostic sink that is 
 ## Suggested tests
 
 Invoke the callback through a wrapper with representative errors and verify structured log output and no exception escape.
+
+## Resolution and validation
+
+A named `noexcept` GLFW callback records the latest code and description in a mutex-protected diagnostic state and writes safely to the early-startup error stream. GLFW initialization, monitor, window, context, and GLAD failures append the latest detail. A headless test verifies latest-error retention and structured code/description access.
