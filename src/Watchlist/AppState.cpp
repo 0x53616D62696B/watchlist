@@ -1,5 +1,6 @@
 #include "src/Watchlist/AppState.hpp"
 
+#include <exception>
 #include <utility>
 
 namespace Watchlist {
@@ -17,6 +18,39 @@ void AppState::UpdateConsole(const ConsoleState& console)
 {
     std::scoped_lock lock(mutex_);
     console_ = console;
+}
+
+void AppState::SetOutboundCommandHandler(OutboundCommandHandler handler)
+{
+    std::scoped_lock lock(mutex_);
+    outboundCommandHandler_ = std::move(handler);
+}
+
+bool AppState::DispatchOutbound(std::string payload)
+{
+    OutboundCommandHandler handler;
+    {
+        std::scoped_lock lock(mutex_);
+        handler = outboundCommandHandler_;
+    }
+
+    if (!handler) {
+        AddActivity("Unable to send request: no outbound command handler is installed");
+        return false;
+    }
+
+    try {
+        handler(payload);
+        AddOutbound(std::move(payload));
+        return true;
+    }
+    catch (const std::exception& exception) {
+        AddActivity(std::string("Unable to send request: ") + exception.what());
+    }
+    catch (...) {
+        AddActivity("Unable to send request: outbound command failed with an unknown exception");
+    }
+    return false;
 }
 
 void AppState::AddOutbound(std::string line)

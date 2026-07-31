@@ -24,6 +24,9 @@ try
     auto console = appState.SnapshotConsole();
     console.clientId = "watchlist-client";
     appState.UpdateConsole(console);
+    appState.SetOutboundCommandHandler([&mqtt](std::string payload) {
+        mqtt.Publish(Messaging::RequestsTopic, std::move(payload));
+    });
 
     // MQTT has its own service thread so reconnect/subscription work never blocks ImGui frames.
     runtime.StartDedicatedThread("MQTT IO", [&mqtt, &appState](std::stop_token stopToken) {
@@ -41,6 +44,7 @@ try
     });
 
     runtime.JoinAll();
+    appState.SetOutboundCommandHandler({});
     SetAppState(nullptr);
     return EXIT_SUCCESS;
 }
