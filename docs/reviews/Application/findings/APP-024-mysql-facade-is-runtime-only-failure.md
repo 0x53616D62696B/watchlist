@@ -28,3 +28,9 @@ Exclude the facade from production targets until implemented, or represent unava
 ## Suggested tests
 
 Test backend selection with available/unavailable clients and verify configuration fails before application startup when a requested backend is unsupported.
+
+## Resolution
+
+- **Status:** Resolved
+- **Implementation:** Deleted the throwing `MySQLDatabase` facade and removed it from all target composition. Storage documentation now declares SQLite as the sole supported backend and requires a working client integration and explicit capability before another backend can be exposed.
+- **Validation:** Repository and generated compile-command searches found no constructible or compiled MySQL backend. `Application` and the SQLite unit-test target built successfully, and all seven existing SQLite CTest cases passed.

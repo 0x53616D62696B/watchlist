@@ -28,3 +28,9 @@ Apply an intentional MSVC warning level and selected conformance flags through t
 ## Suggested tests
 
 Inspect generated MSVC command lines and compile a warning probe for owned and third-party targets.
+
+## Resolution
+
+- **Status:** Resolved
+- **Implementation:** The owned-code warning interface now enables MSVC `/W4`, `/permissive-`, and `/Zc:__cplusplus`; `WATCHLIST_WARNINGS_AS_ERRORS` conditionally adds `/WX`. `_CRT_SECURE_NO_WARNINGS` is a target-scoped compile definition instead of an inert CMake variable, with narrow legacy-warning exceptions documented in the policy.
+- **Validation:** Configured and built `Application` and `UnitTests` with MSVC warnings-as-errors enabled. Compile-command checks confirmed `/W4`, `/WX`, and `_CRT_SECURE_NO_WARNINGS` on owned Application code and confirmed that separately compiled ImGui sources do not inherit those flags.

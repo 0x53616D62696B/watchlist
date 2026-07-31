@@ -9,7 +9,9 @@
             "binaryDir": "${sourceDir}/build/default",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "BUILD_TESTING": "ON"
+                "BUILD_TESTING": "ON",
+                "WATCHLIST_ENABLE_NATIVE_ARCH": "OFF",
+                "WATCHLIST_WARNINGS_AS_ERRORS": "ON"
             }
         },
         {

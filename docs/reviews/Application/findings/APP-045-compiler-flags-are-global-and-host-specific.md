@@ -28,3 +28,9 @@ Move project warning/optimization policy to target-scoped interface targets. Dis
 ## Suggested tests
 
 Inspect compile/link command lines for Application and a dependency across GCC, Clang, and MSVC presets; verify portable and native-optimized modes separately.
+
+## Resolution
+
+- **Status:** Resolved
+- **Implementation:** Replaced directory-wide compile/link flags with explicit `watchlist_project_options` and `watchlist_project_warnings` interface policies consumed only by owned targets. Removed unused OpenMP flags, linked `Threads::Threads` only to threaded targets, and made host-native optimization an opt-in `WATCHLIST_ENABLE_NATIVE_ARCH` feature with compiler validation.
+- **Validation:** MSVC compile commands for the portable configuration contained neither host-native nor OpenMP flags, and bundled ImGui did not inherit owned-code warning flags. Enabling native optimization on unsupported MSVC now stops at configure time with a clear diagnostic instead of emitting an invalid compiler flag.

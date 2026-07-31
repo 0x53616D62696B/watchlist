@@ -1,29 +1,19 @@
-
 cmake_minimum_required(VERSION 3.21) # Can't use VERSION >= 4.0, it is not compatible with used glad.
 
-project(watchlist)
+project(watchlist LANGUAGES C CXX)
 
-# Include CMake modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-
-# Include compiler settings
 include(CompilerSettings)
 
-# Include version handling
 include(GitVersionConfig)
 configure_version()
 generate_version_header("${CMAKE_SOURCE_DIR}/src/Common/Version.hpp")
 generate_version_resource()
 
-# Set general project variables
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-# set(ENABLE_PROFILING OFF)
-set(ENABLE_PCH ON)
 
-
-# Args
 option(ENABLE_PROFILING "Enable profiling with Tracy" OFF)
+option(ENABLE_PCH "Enable precompiled headers for the Application target" ON)
 option(BUILD_TESTING "Build unit tests" ON)
 
 set(CMAKE_CXX_FLAGS_DEBUGTRACY "${CMAKE_CXX_FLAGS_DEBUG}" CACHE STRING "Flags for DebugTracy build type" FORCE)
@@ -44,17 +34,16 @@ if(CMAKE_BUILD_TYPE STREQUAL "DebugTracy")
 endif()
 
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "CMAKE_CXX_COMPILER: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+message(STATUS "CMAKE_C_COMPILER: ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION}")
+message(STATUS "CMAKE_CXX_COMPILER_LAUNCHER: ${CMAKE_CXX_COMPILER_LAUNCHER}")
+message(STATUS "ENABLE_PROFILING: ${ENABLE_PROFILING}")
+message(STATUS "WATCHLIST_WARNINGS_AS_ERRORS: ${WATCHLIST_WARNINGS_AS_ERRORS}")
+message(STATUS "WATCHLIST_ENABLE_NATIVE_ARCH: ${WATCHLIST_ENABLE_NATIVE_ARCH}")
 
-# status messages
-message(STATUS "CMAKE_CXX_COMPILER: " ${CMAKE_CXX_COMPILER_ID} " " ${CMAKE_CXX_COMPILER_VERSION})
-message(STATUS "CMAKE_C_COMPILER: " ${CMAKE_C_COMPILER_ID} " " ${CMAKE_C_COMPILER_VERSION})
-message(STATUS "CMAKE_CXX_FLAGS: " ${CMAKE_CXX_FLAGS})
-message(STATUS "CMAKE_CXX_FLAGS_DEBUG: " ${CMAKE_CXX_FLAGS_DEBUG})
-message(STATUS "CMAKE_CXX_FLAGS_RELEASE: " ${CMAKE_CXX_FLAGS_RELEASE})
-message(STATUS "CMAKE_CXX_COMPILER_LAUNCHER: " ${CMAKE_CXX_COMPILER_LAUNCHER})
-message(STATUS "ENABLE_PROFILING: " ${ENABLE_PROFILING})
+find_package(Threads REQUIRED)
 
-# sqlite
+# SQLite is the supported storage backend.
 set(SQLITECPP_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(SQLITECPP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(SQLITECPP_INTERNAL_SQLITE ON CACHE BOOL "" FORCE)
@@ -80,114 +69,152 @@ if(BUILD_TESTING)
   endif()
 endif()
 
-# targets
-add_executable(Application ${SRC_APPLICATION})
-add_executable(MultithreadDemo ${SRC_MULTITHREAD_DEMO})
-add_executable(ConcurrencyExamples)
-add_executable(Logger ${SRC_LOGGER})
-add_executable(Development ${SRC_DEVELOPMENT})
-
-# precompiled headers
-if(ENABLE_PCH)
-  set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
-  set(SRC_PRECOMPILED src/Precompiled.hpp)
-  target_precompile_headers(Application PRIVATE ${SRC_PRECOMPILED})
-
-  # target_precompile_headers(Test PRIVATE ${SRC_PRECOMPILED})
-endif()
-
-# sources
-# file(GLOB SRC CONFIGURE_DEPENDS src/*.hpp src/*.cpp)
-# target_sources(Application PRIVATE ${SRC})
-# target_sources(Test PRIVATE ${SRC})
-
-# utils
-file(GLOB_RECURSE SRC_UTILS CONFIGURE_DEPENDS src/Utils/*.hpp src/Utils/*.cpp)
-target_sources(Application PRIVATE ${SRC_UTILS})
-target_sources(Development PRIVATE ${SRC_UTILS})
-target_link_libraries(Development PRIVATE SQLiteCpp sqlite3)
-
-# gui
-file(GLOB_RECURSE SRC_GUI CONFIGURE_DEPENDS src/Gui/*.hpp src/Gui/*.cpp)
-target_sources(Application PRIVATE ${SRC_GUI})
-
-# imgui
-include_directories(libs/imgui)
-include_directories(libs/imgui/misc/cpp)
-include_directories(libs/imgui/backends)
-file(GLOB SRC_IMGUI CONFIGURE_DEPENDS libs/imgui/*.cpp libs/imgui/misc/cpp/imgui_stdlib.cpp)
-set(SRC_IMGUI_BACKEND libs/imgui/backends/imgui_impl_glfw.cpp libs/imgui/backends/imgui_impl_opengl3.cpp)
-target_sources(Application PRIVATE ${SRC_IMGUI} ${SRC_IMGUI_BACKEND})
-
-# glfw
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(libs/glfw)
-target_link_libraries(Application PRIVATE glfw)
-
-# glad
 add_subdirectory(libs/glad)
-target_link_libraries(Application PRIVATE glad)
 
-# tracy
+# Tracy is exposed as one complete, target-scoped usage requirement.
+add_library(watchlist_profiling INTERFACE)
 if(ENABLE_PROFILING)
-  add_compile_definitions(ENABLE_PROFILING) # for custom macros
   set(TRACY_NO_EXIT ON CACHE BOOL "Keep Tracy client alive until a profiler connection is made" FORCE)
   set(TRACY_NO_FRAME_IMAGE ON CACHE BOOL "Disable Tracy frame image support" FORCE)
   add_subdirectory(libs/tracy)
-  target_link_libraries(Application PRIVATE Tracy::TracyClient)
-  target_link_libraries(ConcurrencyExamples PRIVATE Tracy::TracyClient)
+  target_compile_definitions(watchlist_profiling INTERFACE ENABLE_PROFILING)
+  target_link_libraries(watchlist_profiling INTERFACE Tracy::TracyClient)
 endif()
 
-# concurrency examples app sources
-file(GLOB_RECURSE SRC_CONCURRENCY_EXAMPLES CONFIGURE_DEPENDS src/Examples/Concurrency/*.hpp src/Examples/Concurrency/*.cpp)
-target_sources(ConcurrencyExamples PRIVATE ${SRC_CONCURRENCY_EXAMPLES})
-target_sources(ConcurrencyExamples PRIVATE src/Utils/Logger/Logger.cpp)
-target_link_libraries(Application PRIVATE SQLiteCpp sqlite3)
-
-# multithread_demo app sources
-file(GLOB_RECURSE SRC_MULTITHREAD_DEMO CONFIGURE_DEPENDS src/Examples/multithread_demo/*.cpp)
-target_sources(MultithreadDemo PRIVATE ${SRC_MULTITHREAD_DEMO})
-target_sources(MultithreadDemo PRIVATE src/Utils/Logger/Logger.cpp)
-
-# watchlist app sources
-file(GLOB_RECURSE SRC_APPLICATION_APP CONFIGURE_DEPENDS src/Watchlist/*.cpp)
-target_sources(Application PRIVATE ${SRC_APPLICATION_APP})
-
-# watchlist definitions
-# # definition of GUI interface to use
-set_target_properties(Application PROPERTIES COMPILE_DEFINITIONS "MYAPP=1")
-
-# logger app sources
-file(GLOB SRC_LOGGER CONFIGURE_DEPENDS src/Utils/Logger/*.cpp)
-target_sources(Logger PRIVATE ${SRC_LOGGER})
-
-# watchlist definitions
-# # defining Logger.cpp as main cpp file
-set_target_properties(Logger PROPERTIES COMPILE_DEFINITIONS "DEBUG_LOGGER=1")
-
-# app sources used for development and reaserch
-file(GLOB SRC_DEVELOPMENT CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/development/*.cpp)
-list(REMOVE_ITEM SRC_DEVELOPMENT
-  ${CMAKE_CURRENT_SOURCE_DIR}/development/excluded/*.cpp
-  #${CMAKE_CURRENT_SOURCE_DIR}/development/another_excluded_file.cpp
+# Build bundled ImGui sources separately so owned-code warnings never leak into
+# third-party implementation files. Its headers are system includes for consumers.
+add_library(watchlist_imgui STATIC
+  libs/imgui/imgui.cpp
+  libs/imgui/imgui_demo.cpp
+  libs/imgui/imgui_draw.cpp
+  libs/imgui/imgui_tables.cpp
+  libs/imgui/imgui_widgets.cpp
+  libs/imgui/misc/cpp/imgui_stdlib.cpp
+  libs/imgui/backends/imgui_impl_glfw.cpp
+  libs/imgui/backends/imgui_impl_opengl3.cpp
 )
-target_sources(Development PRIVATE ${SRC_DEVELOPMENT})
+target_include_directories(watchlist_imgui SYSTEM PUBLIC
+  "${CMAKE_SOURCE_DIR}/libs/imgui"
+  "${CMAKE_SOURCE_DIR}/libs/imgui/misc/cpp"
+  "${CMAKE_SOURCE_DIR}/libs/imgui/backends"
+)
+target_link_libraries(watchlist_imgui PUBLIC glfw glad)
+
+add_library(watchlist_logger STATIC
+  src/Utils/Logger/Logger.cpp
+  src/Utils/Logger/Logger.hpp
+)
+target_include_directories(watchlist_logger PUBLIC "${CMAKE_SOURCE_DIR}")
+watchlist_apply_owned_code(watchlist_logger)
+
+add_library(watchlist_storage STATIC
+  src/Utils/Storage/DatabaseItem.hpp
+  src/Utils/Storage/IDatabase.hpp
+  src/Utils/Storage/SQLiteDatabase.cpp
+  src/Utils/Storage/SQLiteDatabase.hpp
+)
+target_include_directories(watchlist_storage PUBLIC "${CMAKE_SOURCE_DIR}")
+target_link_libraries(watchlist_storage PUBLIC SQLiteCpp sqlite3)
+watchlist_apply_owned_code(watchlist_storage)
+
+# Application composition is intentionally explicit. Adding an unrelated utility
+# under src/Utils no longer changes this production target.
+add_executable(Application
+  src/Watchlist/main.cpp
+  src/Watchlist/SQLiteThreadWorker.cpp
+  src/Watchlist/SQLiteThreadWorker.hpp
+  src/Gui/Gui.cpp
+  src/Gui/Gui.hpp
+  src/Gui/MyApp.cpp
+  src/Gui/MyApp.hpp
+  src/Utils/Concurrency/AsyncEventLoop.hpp
+  src/Utils/Concurrency/ThreadPoolManager.hpp
+  src/Utils/Profiling/TracyProfiling.hpp
+)
+target_include_directories(Application PRIVATE "${CMAKE_SOURCE_DIR}")
+target_compile_definitions(Application PRIVATE MYAPP=1)
+target_link_libraries(Application PRIVATE
+  Threads::Threads
+  watchlist_imgui
+  watchlist_logger
+  watchlist_profiling
+  watchlist_storage
+)
+watchlist_apply_owned_code(Application)
+
+if(ENABLE_PCH)
+  set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
+  target_precompile_headers(Application PRIVATE src/Precompiled.hpp)
+endif()
+
+add_executable(ConcurrencyExamples
+  src/Examples/Concurrency/ConcurrencyExamples.cpp
+  src/Examples/Concurrency/ConcurrencyExamples.hpp
+  src/Utils/Concurrency/AsyncEventLoop.hpp
+  src/Utils/Concurrency/EventLoopCoroutine.hpp
+  src/Utils/Concurrency/EventLoopGenerator.hpp
+  src/Utils/Concurrency/ThreadPoolManager.hpp
+  src/Utils/Profiling/TracyProfiling.hpp
+)
+target_include_directories(ConcurrencyExamples PRIVATE "${CMAKE_SOURCE_DIR}")
+target_link_libraries(ConcurrencyExamples PRIVATE Threads::Threads watchlist_logger watchlist_profiling)
+watchlist_apply_owned_code(ConcurrencyExamples)
+
+add_executable(MultithreadDemo
+  src/Examples/multithread_demo/MultithreadDemo.cpp
+)
+target_include_directories(MultithreadDemo PRIVATE "${CMAKE_SOURCE_DIR}")
+target_link_libraries(MultithreadDemo PRIVATE Threads::Threads watchlist_logger)
+watchlist_apply_owned_code(MultithreadDemo)
+
+add_executable(Logger
+  src/Utils/Logger/Logger.cpp
+  src/Utils/Logger/Logger.hpp
+)
+target_include_directories(Logger PRIVATE "${CMAKE_SOURCE_DIR}")
+target_compile_definitions(Logger PRIVATE DEBUG_LOGGER=1)
+watchlist_apply_owned_code(Logger)
+
+add_executable(Development
+  development/dev_tests.cpp
+  development/dev_tests.hpp
+  development/exception_throwing.cpp
+  development/exception_throwing.hpp
+  development/factory_design.cpp
+  development/factory_design.hpp
+  development/import_this.hpp
+  development/main.cpp
+  development/memory_mng.cpp
+  development/memory_mng.hpp
+  development/pure_virtual_method_in_abs_cls_constructor.cpp
+  development/pure_virtual_method_in_abs_cls_constructor.hpp
+  development/sine_wave.cpp
+  development/sine_wave.hpp
+  development/unique_ptrs.cpp
+  development/unique_ptrs.hpp
+)
+target_include_directories(Development PRIVATE "${CMAKE_SOURCE_DIR}")
+target_link_libraries(Development PRIVATE watchlist_logger)
+watchlist_apply_owned_code(Development)
 
 if(BUILD_TESTING AND TARGET GTest::gtest_main)
   add_executable(UnitTests
     tests/UnitTests/Concurrency/EventLoopTests.cpp
     tests/UnitTests/Storage/SQLiteDatabaseTests.cpp
-    src/Utils/Logger/Logger.cpp
-    src/Utils/Storage/SQLiteDatabase.cpp
   )
-
+  target_include_directories(UnitTests PRIVATE "${CMAKE_SOURCE_DIR}")
   target_link_libraries(UnitTests PRIVATE
     GTest::gtest_main
-    SQLiteCpp
-    sqlite3
+    Threads::Threads
+    watchlist_logger
+    watchlist_profiling
+    watchlist_storage
   )
+  watchlist_apply_owned_code(UnitTests)
 
   include(GoogleTest)
   gtest_discover_tests(UnitTests)
