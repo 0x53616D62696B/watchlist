@@ -99,7 +99,7 @@ public:
                 return Task{std::coroutine_handle<promise_type>::from_promise(*this)};
             }
             std::suspend_never initial_suspend() noexcept { return {}; }
-            std::suspend_never final_suspend() noexcept { return {}; }
+            std::suspend_always final_suspend() noexcept { return {}; }
             void return_void() {}
             void unhandled_exception() {
                 std::terminate();
@@ -136,7 +136,7 @@ public:
         // Resume the coroutine 
         //! Should be done by manager, not manually! and should be prrivate here and poublic/resumable/pausable by manager only.
         void resume() {
-            if (handle_) {
+            if (handle_ && !handle_.done()) {
                 handle_.resume();
             }
         }

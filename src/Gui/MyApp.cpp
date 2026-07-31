@@ -321,7 +321,7 @@ struct MyApp::MyDocument
     bool        WantClose;  // Set when the document
     ImVec4      Color;      // An arbitrary variable associated to the document
 
-    MyApp::MyDocument(const char* name, bool open = true, const ImVec4& color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f))
+    MyDocument(const char* name, bool open = true, const ImVec4& color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f))
     {
         Name = name;
         Open = OpenPrev = open;
@@ -373,7 +373,7 @@ struct MyApp::AppDocuments
 {
     ImVector<MyApp::MyDocument> Documents;
 
-    MyApp::AppDocuments()
+    AppDocuments()
     {
         Documents.push_back(MyApp::MyDocument("Lettuce",             true,  ImVec4(0.4f, 0.8f, 0.4f, 1.0f)));
         Documents.push_back(MyApp::MyDocument("Eggplant",            true,  ImVec4(0.8f, 0.5f, 1.0f, 1.0f)));

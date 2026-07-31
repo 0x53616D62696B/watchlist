@@ -1,0 +1,8 @@
+.git
+.worktrees
+build
+**/build
+CMakeUserPresets.json
+__pycache__
+*.pyc
+*.drawio.bkp

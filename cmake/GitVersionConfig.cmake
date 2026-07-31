@@ -18,8 +18,18 @@ find_program(GITVERSION_EXECUTABLE NAMES gitversion GitVersion.exe dotnet-gitver
 
 # Function to set up version information
 function(configure_version)
+  set(VERSION_MAJOR 0)
+  set(VERSION_MINOR 1)
+  set(VERSION_PATCH 0)
+  set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
+  set(VERSION_PRERELEASE "")
+  set(VERSION_BUILD "")
+  set(VERSION_BRANCH "unknown")
+  set(VERSION_COMMIT "unknown")
+  set(VERSION_FULL "${VERSION}+${VERSION_BRANCH}.${VERSION_COMMIT}")
+
   if(NOT GITVERSION_EXECUTABLE)
-    message(FATAL_ERROR "GitVersion executable not found. Install GitVersion and ensure 'gitversion' or 'dotnet-gitversion' is available on PATH before configuring the project.")
+    message(STATUS "GitVersion not found; using deterministic fallback version ${VERSION_FULL}")
   else()
     message(STATUS "GitVersion found: ${GITVERSION_EXECUTABLE}")
     
@@ -48,7 +58,7 @@ function(configure_version)
     )
     
     if(NOT GITVERSION_RESULT EQUAL 0)
-      message(FATAL_ERROR "GitVersion execution failed: ${GITVERSION_ERROR}")
+      message(WARNING "GitVersion failed; using deterministic fallback version ${VERSION_FULL}: ${GITVERSION_ERROR}")
     else()
       # Parse the JSON output - using a simple approach
       string(REGEX MATCH "\"Major\"[ \t\r\n]*:[ \t\r\n]*([0-9]+)" _ ${GITVERSION_JSON})
@@ -107,20 +117,19 @@ function(configure_version)
       # Always append metadata with branch and commit
       string(APPEND VERSION_FULL "+${VERSION_BRANCH}.${VERSION_COMMIT}")
       
-      # Set all variables to parent scope
-      set(PROJECT_VERSION_MAJOR ${VERSION_MAJOR} PARENT_SCOPE)
-      set(PROJECT_VERSION_MINOR ${VERSION_MINOR} PARENT_SCOPE)
-      set(PROJECT_VERSION_PATCH ${VERSION_PATCH} PARENT_SCOPE)
-      set(PROJECT_VERSION ${VERSION} PARENT_SCOPE)
-      set(PROJECT_VERSION_PRERELEASE ${VERSION_PRERELEASE} PARENT_SCOPE)
-      set(PROJECT_VERSION_BUILD ${VERSION_BUILD} PARENT_SCOPE)
-      set(PROJECT_VERSION_BRANCH ${VERSION_BRANCH} PARENT_SCOPE)
-      set(PROJECT_VERSION_COMMIT ${VERSION_COMMIT} PARENT_SCOPE)
-      set(PROJECT_VERSION_FULL ${VERSION_FULL} PARENT_SCOPE)
-      
       message(STATUS "Version from GitVersion: ${VERSION_FULL}")
     endif()
   endif()
+
+  set(PROJECT_VERSION_MAJOR ${VERSION_MAJOR} PARENT_SCOPE)
+  set(PROJECT_VERSION_MINOR ${VERSION_MINOR} PARENT_SCOPE)
+  set(PROJECT_VERSION_PATCH ${VERSION_PATCH} PARENT_SCOPE)
+  set(PROJECT_VERSION ${VERSION} PARENT_SCOPE)
+  set(PROJECT_VERSION_PRERELEASE ${VERSION_PRERELEASE} PARENT_SCOPE)
+  set(PROJECT_VERSION_BUILD ${VERSION_BUILD} PARENT_SCOPE)
+  set(PROJECT_VERSION_BRANCH ${VERSION_BRANCH} PARENT_SCOPE)
+  set(PROJECT_VERSION_COMMIT ${VERSION_COMMIT} PARENT_SCOPE)
+  set(PROJECT_VERSION_FULL ${VERSION_FULL} PARENT_SCOPE)
 endfunction()
 
 # Function to generate version header file

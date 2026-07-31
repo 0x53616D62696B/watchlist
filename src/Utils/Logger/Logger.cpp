@@ -1,12 +1,5 @@
 #include "Logger.hpp"
 
-// TODO: swap auto to std::chrono::zoned_time... or smthing this metod returns.
-//! std::chrono::zoned_time doesnt work as return type.. check documentation
-auto LocalTime(std::chrono::system_clock::time_point const tp)
-{
-    return std::chrono::zoned_time{std::chrono::current_zone(), tp};
-}
-
 std::string ToString(std::source_location const source)
 {
     // return std::format("{:%F %T %Z}", tp.first, tp.second, tp.third);

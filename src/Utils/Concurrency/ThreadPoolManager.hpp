@@ -69,7 +69,7 @@ namespace Concurrency {
 class ThreadPoolManager {
 public:
     // Constructor to initialize the thread pool with a specified number of threads.
-    explicit ThreadPoolManager(size_t maxThreads = std::thread::hardware_concurrency());
+    explicit ThreadPoolManager(size_t maxThreadCount = std::thread::hardware_concurrency());
     
     // Destructor to clean up threads and stop the thread pool.
     ~ThreadPoolManager();
@@ -79,7 +79,7 @@ public:
     auto enqueue(F&& func, Args&&... args) -> std::future<typename std::invoke_result<F, Args...>::type>;
 
     // Set the maximum number of threads in the pool.
-    void setMaxThreads(size_t maxThreads);
+    void setMaxThreads(size_t maxThreadCount);
 
     // Get the maximum number of threads in the pool.
     size_t getMaxThreads() const;
@@ -109,11 +109,11 @@ private:
 };
 
 // Constructor: Initializes the thread pool and starts the worker threads.
-inline ThreadPoolManager::ThreadPoolManager(size_t maxThreads)
-    : stop(false), maxThreads(maxThreads) {
+inline ThreadPoolManager::ThreadPoolManager(size_t maxThreadCount)
+    : stop(false), maxThreads(maxThreadCount) {
     PROFILE_FUNCTION;
     PROFILE_MESSAGE("[TRACY][THREAD_POOL] Creating worker threads");
-    for (size_t i = 0; i < maxThreads; ++i) {
+    for (size_t i = 0; i < maxThreadCount; ++i) {
         workers.emplace_back(&ThreadPoolManager::workerThread, this);
     }
 }
@@ -187,8 +187,8 @@ auto ThreadPoolManager::enqueue(F&& func, Args&&... args) -> std::future<typenam
 }
 
 // Set the maximum number of threads in the pool.
-inline void ThreadPoolManager::setMaxThreads(size_t maxThreads) {
-    this->maxThreads = maxThreads;
+inline void ThreadPoolManager::setMaxThreads(size_t maxThreadCount) {
+    maxThreads = maxThreadCount;
 }
 
 // Get the maximum number of threads in the pool.

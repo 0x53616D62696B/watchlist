@@ -21,7 +21,7 @@ Full Tracy installation and usage details are in the upstream [Documentation](ht
 
 ## Setup
 
-See [docs/DevelopmentEnvironment.md](docs/DevelopmentEnvironment.md) for the required tool versions and CMake presets. Local builds require an ignored `CMakeUserPresets.json`; create it from `CMakeUserPresetsExample.json`.
+See [docs/DevelopmentEnvironment.md](docs/DevelopmentEnvironment.md) for toolchains and checked-in CMake workflows. `CMakeUserPresets.json` is now an optional ignored local override. Container builds for Alpine/GCC, Windows/MinGW, and Windows/MSVC are documented in [docs/ContainerBuilds.md](docs/ContainerBuilds.md).
 
 ## Testing with GoogleTest and CTest
 

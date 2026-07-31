@@ -19,7 +19,6 @@ enum class LogLevel : char // TODO: test this
     Trace = 'T',
 };
 
-auto LocalTime(std::chrono::system_clock::time_point const);
 std::string ToString(std::source_location const);
 // void Log(LogLevel const, std::string_view const, std::source_location const);
 void Log(LogLevel const level, std::string_view const message,

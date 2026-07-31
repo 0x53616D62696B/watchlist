@@ -1,0 +1,41 @@
+name: watchlist-build
+services:
+  alpine-interactive:
+    profiles: [linux]
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: .docker/alpine_synology.Dockerfile
+      target: interactive
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+    stdin_open: true
+    tty: true
+
+  alpine-verify:
+    profiles: [linux]
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: .docker/alpine_synology.Dockerfile
+      target: verification
+
+  windows-interactive:
+    profiles: [windows]
+    build:
+      context: .
+      dockerfile: .docker/windows.Dockerfile
+      target: interactive
+    working_dir: 'C:\workspace'
+    volumes:
+      - '.:C:\workspace'
+    stdin_open: true
+    tty: true
+
+  windows-verify:
+    profiles: [windows]
+    build:
+      context: .
+      dockerfile: .docker/windows.Dockerfile
+      target: verification
