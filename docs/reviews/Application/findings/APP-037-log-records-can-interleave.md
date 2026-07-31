@@ -6,6 +6,7 @@
 - **Subsystem:** Logging
 - **Location:** [`src/Utils/Logger/Logger.cpp`](../../../../src/Utils/Logger/Logger.cpp), lines 21-51
 - **Dependencies:** None
+- **Status:** Resolved
 
 ## Observation
 
@@ -28,3 +29,11 @@ Build each complete record first and emit it atomically through `std::osyncstrea
 ## Suggested tests
 
 Log uniquely tagged records concurrently, capture output, and verify exact line count and that each line contains one complete tag.
+
+## Resolution
+
+The logger now constructs a complete newline-terminated record before acquiring a process-wide logger mutex. The synchronized sink writes and flushes the complete record while holding that mutex, so concurrent callers cannot interleave record fragments. Every accepted record is flushed before its logging call returns, leaving no buffered logger records for normal shutdown; fatal records are likewise flushed before the termination policy is invoked.
+
+## Validation
+
+`LoggerTests.ConcurrentRecordsRemainCompleteLines` starts eight callers together, emits 800 uniquely tagged records, and verifies that every tag appears on exactly one complete line. `LoggerTests.NonFatalRecordIsFlushedBeforeLogReturns` verifies the regular flush policy. The logger test sink uses the same synchronized emission path as the production `std::cout` sink.
