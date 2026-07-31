@@ -22,6 +22,8 @@ struct DatabaseItem {
 
 `id` is the unique identifier used by methods such as `GetItem`, `ContainsItem`, and `RemoveItem`.
 
+Storage owns the domain validation boundary. `AddItem`, `UpsertItem`, and `ReplaceAll` validate every item before changing the database and throw `DatabaseValidationError`, whose `Field()` identifies the invalid field. IDs contain 1-128 valid UTF-8 bytes, names contain 1-256 valid UTF-8 bytes, addresses are IPv4/IPv6 literals or ASCII DNS hostnames up to 253 bytes, ports cover the complete `std::uint16_t` range, and `alive` is a boolean. Duplicate IDs within `ReplaceAll` are rejected before its transaction begins.
+
 ## Basic Usage
 
 ```cpp
@@ -56,6 +58,10 @@ if (const auto router = database.GetItem("router")) {
 - `alive`
 
 It uses SQLite transactions for `ReplaceAll`, so replacement is committed as one logical operation.
+
+The SQLite schema is version 1, recorded in `PRAGMA user_version`. Initialization validates the exact table, column, type, nullability, primary-key, unique-index, and check-constraint contract before enabling operations. A fresh database creates v1. The exact former unversioned device schema is migrated transactionally through a separate destination table with checked row decoding and row-count verification. The obsolete key/value schema, unknown versions, and partial or unexpected schemas throw `DatabaseSchemaError` without modifying stored data.
+
+All successful records satisfy defensive SQLite checks, including UTF-8 byte-length bounds, `port BETWEEN 0 AND 65535`, and `alive IN (0,1)`. All query paths use one canonical projection and checked decoder; externally corrupted numeric or domain data throws `DatabaseValidationError` instead of being narrowed or normalized.
 
 SQLite is a good local embedded database. Multiple processes can read from the same database file, but this facade is currently intended for simple local application storage rather than multi-device synchronization.
 

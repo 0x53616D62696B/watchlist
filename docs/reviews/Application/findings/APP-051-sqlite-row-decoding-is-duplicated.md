@@ -6,6 +6,7 @@
 - **Subsystem:** Storage/maintainability
 - **Location:** [`src/Utils/Storage/SQLiteDatabase.cpp`](../../../../src/Utils/Storage/SQLiteDatabase.cpp), lines 86-123 and 138-157
 - **Dependencies:** APP-023
+- **Status:** Resolved
 
 ## Observation
 
@@ -28,3 +29,11 @@ Centralize the canonical projection and row decoder, including checked numeric c
 ## Suggested tests
 
 Run identical representative and invalid rows through every query path and assert identical decoded values/errors.
+
+## Resolution
+
+One `CanonicalProjection` and one `DecodeDatabaseItem` now serve `GetItem`, `GetAllItems`, `GetAllSortedById`, and migration. The decoder verifies SQLite storage classes, reads numeric fields as `int64_t`, checks ranges, validates every domain field, and only then constructs the model.
+
+## Validation
+
+A deliberately corrupted row is passed through all three public row-returning queries; each produces the same structured port error and message. Migration and representative CRUD tests exercise the same mapping.
