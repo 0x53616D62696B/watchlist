@@ -74,6 +74,10 @@ fallback with `git submodule update --init --recursive`; no system-installed
 Paho package is required. Keep both submodules pinned to the documented tags
 when upgrading because the C++ release requires the matching C API.
 
+For the Docker-managed local Mosquitto broker, cross-platform lifecycle
+commands, CLI verification, and troubleshooting, see
+[`MqttDevelopment.md`](MqttDevelopment.md).
+
 ## VS Code CMake Tools
 
 When using the CMake Tools extension, select one of the configure presets:
