@@ -131,6 +131,8 @@ watchlist_apply_owned_code(watchlist_storage)
 add_executable(Application
   "${WATCHLIST_VERSION_HEADER}"
   src/Watchlist/main.cpp
+  src/Watchlist/ApplicationPaths.cpp
+  src/Watchlist/ApplicationPaths.hpp
   src/Watchlist/SQLiteThreadWorker.cpp
   src/Watchlist/SQLiteThreadWorker.hpp
   src/Gui/Gui.cpp
@@ -235,6 +237,9 @@ if(BUILD_TESTING AND TARGET GTest::gtest_main)
   add_executable(UnitTests
     tests/UnitTests/Concurrency/EventLoopTests.cpp
     tests/UnitTests/Storage/SQLiteDatabaseTests.cpp
+    tests/UnitTests/Watchlist/ApplicationPathsTests.cpp
+    src/Watchlist/ApplicationPaths.cpp
+    src/Watchlist/SQLiteThreadWorker.cpp
   )
   target_include_directories(UnitTests PRIVATE "${CMAKE_SOURCE_DIR}")
   target_link_libraries(UnitTests PRIVATE

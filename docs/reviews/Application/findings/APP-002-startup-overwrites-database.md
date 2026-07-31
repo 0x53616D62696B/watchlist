@@ -3,6 +3,7 @@
 - **Priority:** P0
 - **Kind:** Defect
 - **Confidence:** High
+- **Status:** Resolved
 - **Subsystem:** Startup/storage
 - **Location:** [`src/Watchlist/SQLiteThreadWorker.cpp`](../../../../src/Watchlist/SQLiteThreadWorker.cpp), lines 17-38
 - **Dependencies:** APP-001, APP-022, APP-023
@@ -32,3 +33,7 @@ Keep this change focused on startup policy. Database location is handled separat
 ## Suggested tests
 
 Start against a pre-populated file, execute the startup storage path twice, and confirm the original rows remain unchanged. Test explicit seeding separately against an empty and a non-empty database.
+
+## Resolution and validation
+
+The production worker now initializes and reads only; all `ReplaceAll`/sample upserts were removed. An integration test runs it twice against a pre-populated database and verifies the original row is unchanged.

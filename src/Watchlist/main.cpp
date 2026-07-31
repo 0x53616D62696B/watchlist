@@ -11,6 +11,7 @@
 
 #include <chrono>
 #include <format>
+#include <filesystem>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -20,11 +21,18 @@
 #include "src/Gui/Gui.hpp" //! How to make "Gui/Gui.hpp" work? 
 // #include "Gui/Gui.hpp"
 #include "src/Watchlist/SQLiteThreadWorker.hpp"
+#include "src/Watchlist/ApplicationPaths.hpp"
 #include "src/Utils/Concurrency/ThreadPoolManager.hpp"
 #include "src/Utils/Concurrency/AsyncEventLoop.hpp"
 
 namespace Watchlist {
 namespace {
+
+std::string PathForLog(const std::filesystem::path& path)
+{
+    const auto utf8 = path.u8string();
+    return {reinterpret_cast<const char*>(utf8.data()), utf8.size()};
+}
 
 /** Returns true when the exact command-line argument is present. */
 bool HasArgument(int argc, char** argv, std::string_view argument)
@@ -57,6 +65,8 @@ try
     WaitForTracyIfRequested(argc, argv);
 
     LOG_INFO(std::format("Watchlist Version: {}", VERSION_FULL));
+    const auto databasePath = ResolveDatabasePath(argc, argv);
+    LOG_INFO(std::format("Watchlist database: {}", PathForLog(databasePath)));
 
     PROFILE_THREAD("Watchlist main");
     PROFILE_FUNCTION;
@@ -104,10 +114,10 @@ try
 
     /** Thread Pool Manager - 3.rd worker thread - SQLiteCpp database example.
      */
-    auto SQLiteCppThread = threadPool.enqueue([] {
+    auto SQLiteCppThread = threadPool.enqueue([databasePath] {
         PROFILE_SCOPE(ThreadPoolSQLiteCpp);
         PROFILE_MESSAGE("[TRACY][THREAD_POOL] SQLiteCpp thread starts");
-        run_sqlitecpp_thread_worker();
+        run_sqlitecpp_thread_worker(databasePath);
         return "SQLiteCpp thread completed.";
     });
 

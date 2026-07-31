@@ -3,6 +3,7 @@
 - **Priority:** P2
 - **Kind:** Defect
 - **Confidence:** High
+- **Status:** Resolved
 - **Subsystem:** Startup/storage
 - **Location:** [`src/Watchlist/SQLiteThreadWorker.cpp`](../../../../src/Watchlist/SQLiteThreadWorker.cpp), lines 13-20
 - **Dependencies:** APP-002
@@ -28,3 +29,7 @@ Resolve an explicit user-data directory through a platform-aware configuration s
 ## Suggested tests
 
 Launch with several working directories and verify one database identity; test explicit override, first-run directory creation, and permission failure.
+
+## Resolution and validation
+
+`ApplicationPaths` resolves platform user-data defaults or exact `--database-path <file>`, normalizes once, creates parents, and fails clearly without CWD fallback. Pure tests cover defaults, override, missing environment/value, and invalid targets.
