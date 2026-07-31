@@ -1,5 +1,7 @@
 # APP-018: Missing local user presets blocks every configure path
 
+- **Status:** Resolved
+
 - **Priority:** P1
 - **Kind:** Defect
 - **Confidence:** High
@@ -28,3 +30,16 @@ Make tracked presets sufficient for a portable default and treat user presets as
 ## Suggested tests
 
 Configure with no user presets, with a minimal override, and with the example customized. Verify equivalent target selection and clear missing-tool messages.
+
+## Resolution
+
+Removed the top-level file-existence gate. `CMakePresets.json` now exposes tracked `default` and `with-profiling` configure, build, and test presets that rely on standard CMake discovery. `CMakeUserPresetsExample.json` now defines optional, separately named `local-*` overrides, so copying it cannot replace or conflict with the portable tracked presets. Setup documentation describes both paths and no longer instructs CI or contributors to fabricate a local file.
+
+## Validation
+
+- Listed all configure, build, and test presets with no `CMakeUserPresets.json` present.
+- Configured the tracked `default` preset from the clean worktree using installed Ninja/MSVC tools.
+- Resolved the tracked `default` build preset and enumerated its generated targets.
+- Loaded a minimal user override that inherited `default` while changing only `BUILD_TESTING` and its binary directory.
+- Copied the example to an ignored `CMakeUserPresets.json` and verified the tracked and `local-*` presets load together with equivalent default/profiling target selection.
+- Verified a missing Ninja executable is reported by CMake's normal generator discovery instead of a user-preset-file error.

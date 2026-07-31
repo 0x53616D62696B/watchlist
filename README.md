@@ -21,7 +21,7 @@ Full Tracy installation and usage details are in the upstream [Documentation](ht
 
 ## Setup
 
-See [docs/DevelopmentEnvironment.md](docs/DevelopmentEnvironment.md) for the required tool versions and CMake presets. Local builds require an ignored `CMakeUserPresets.json`; create it from `CMakeUserPresetsExample.json`.
+See [docs/DevelopmentEnvironment.md](docs/DevelopmentEnvironment.md) for the required tool versions and CMake presets. The tracked presets work without a user preset file; copy `CMakeUserPresetsExample.json` only when explicit local tool paths are needed.
 
 ## Testing with GoogleTest and CTest
 

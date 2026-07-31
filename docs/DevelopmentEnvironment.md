@@ -1,21 +1,21 @@
 # Development Environment
 
-This project keeps shared build behavior in `CMakePresets.json` and user-specific tool paths in `CMakeUserPresets.json`.
+This project keeps portable build behavior in the tracked `CMakePresets.json`. CMake discovers Ninja and the active compiler from `PATH` and the current environment, so a clean checkout does not need a user preset file.
 
-`CMakeUserPresets.json` is required for local builds. It is ignored by Git because each developer may have different install paths. Start by copying `CMakeUserPresetsExample.json` to `CMakeUserPresets.json`, then update the paths for your machine.
+`CMakeUserPresets.json` is an optional, ignored file for machine-specific tool paths. If normal discovery is not suitable, copy the example and update its paths for your machine:
 
 ```powershell
 Copy-Item CMakeUserPresetsExample.json CMakeUserPresets.json
 ```
 
-If `CMakeUserPresets.json` is missing, CMake stops with a development environment error. Create the file before configuring or building.
+The example adds `local-*` presets and leaves the tracked presets unchanged. Do not create this file in CI merely to satisfy configuration.
 
 ## Required Tools
 
 | Tool | Version | Notes |
 | --- | --- | --- |
-| CMake | 3.30.9 | Selected by `cmakeExecutable` in the user presets. |
-| Ninja | bundled with Visual Studio Build Tools | Used by the CMake presets. |
+| CMake | 3.30.9 | Invoke this version from `PATH` or by its full path. |
+| Ninja | bundled with Visual Studio Build Tools | Discovered from `PATH` by the tracked presets. |
 | Visual Studio Build Tools | 2026 | Required for the documented Windows MSVC build. |
 | Visual Studio Developer Command Prompt | 2026 | Recommended when launching VS Code outside of the preset environment. |
 | MSVC compiler | 19.51.36243 for x64 | Required for C++23 standard library support used by the concurrency examples. |
@@ -30,9 +30,7 @@ accept C++23 mode but do not ship the generator header are not sufficient.
 
 ## CMake Presets
 
-The checked-in `CMakeUserPresetsExample.json` is only a template. Your real `CMakeUserPresets.json` should contain your local installation paths.
-
-After creating `CMakeUserPresets.json`, build with:
+The checked-in presets are sufficient when CMake, Ninja, and a compatible compiler are discoverable. Build directly from a clean checkout with:
 
 ```powershell
 cmake --preset default
@@ -47,7 +45,7 @@ cmake --build --preset with-profiling --target Application
 .\build\profiling\Application.exe
 ```
 
-The shared presets in `CMakePresets.json` are hidden base presets. The visible `default` and `with-profiling` presets live in `CMakeUserPresets.json`, where each developer can provide machine-specific compiler, SDK, and Ninja paths.
+The visible configure, build, and test presets live in `CMakePresets.json`. To provide machine-specific compiler, SDK, or Ninja paths, copy the example to `CMakeUserPresets.json`, customize it, and select `local-default` or `local-with-profiling`. The local presets use separate build directories so they cannot reuse an incompatible tracked-preset cache.
 
 ## VS Code CMake Tools
 
@@ -68,7 +66,7 @@ If the CMake output shows a command like this, CMake Tools may not be using the 
 cmake.exe -DCMAKE_BUILD_TYPE=DebugTracy -DENABLE_PROFILING=ON -S ... -B ... -G Ninja
 ```
 
-Select `with-profiling` instead. The user preset provides `CMAKE_MAKE_PROGRAM`, `CMAKE_C_COMPILER`, and `CMAKE_CXX_COMPILER`.
+Select `with-profiling` instead. If tools are not on `PATH`, create the optional user file and select `local-with-profiling`; that preset provides `CMAKE_MAKE_PROGRAM`, `CMAKE_C_COMPILER`, and `CMAKE_CXX_COMPILER`.
 
 If CMake Tools keeps using the old configuration, run:
 
@@ -76,7 +74,7 @@ If CMake Tools keeps using the old configuration, run:
 CMake: Delete Cache and Reconfigure
 ```
 
-Also make sure your real `CMakeUserPresets.json` contains paths that exist on your machine.
+If you use `local-*` presets, also make sure your `CMakeUserPresets.json` contains paths that exist on your machine. Otherwise, CMake reports the missing generator or compiler through its normal discovery diagnostics.
 
 ## Windows MSVC Setup
 
@@ -95,14 +93,13 @@ C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools
 C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231
 ```
 
-Although Visual Studio Build Tools also bundles CMake, the user presets select:
+Although Visual Studio Build Tools also bundles CMake, you can invoke the manually tested version directly:
 
 ```text
 C:/Users/patrik.maraczek/DevTools/CMake-3.30.9/bin/cmake.exe
 ```
 
-This keeps the build on the tested CMake version while still using the VS 2026
-MSVC compiler, bundled Ninja, and Windows SDK tools.
+This keeps the build on the tested CMake version. The tracked presets use the MSVC compiler, bundled Ninja, and Windows SDK tools from an activated Developer Command Prompt; the optional local presets can supply their explicit paths instead.
 
 To use the MSVC compiler from VS Code, start VS Code from "Developer Command Prompt for Visual Studio". You also need an appropriate Visual Studio license for the MSVC compiler.
 

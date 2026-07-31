@@ -13,11 +13,11 @@
     },
     "configurePresets": [
         {
-            "name": "default",
-            "displayName": "Default",
-            "description": "Default build configuration using VS 2026 Build Tools, Windows SDK, and Ninja paths.",
-            "inherits": "base-default",
-            "cmakeExecutable": "C:/Users/patrik.maraczek/DevTools/CMake-3.30.9/bin/cmake.exe",
+            "name": "local-default",
+            "displayName": "Local Default (MSVC)",
+            "description": "Optional default build override using explicit VS 2026 Build Tools, Windows SDK, and Ninja paths.",
+            "inherits": "default",
+            "binaryDir": "${sourceDir}/build/local-default",
             "environment": {
                 "VCToolsInstallDir": "C:/Users/patrik.maraczek/DevTools/MSVC/18/BuildTools/VC/Tools/MSVC/14.51.36231/",
                 "VCINSTALLDIR": "C:/Users/patrik.maraczek/DevTools/MSVC/18/BuildTools/VC/",
@@ -37,38 +37,53 @@
             }
         },
         {
-            "name": "with-profiling",
-            "displayName": "Tracy",
-            "description": "Enable Tracy profiling using VS 2026 Build Tools, Windows SDK, and Ninja paths.",
-            "inherits": [
-                "base-with-profiling",
-                "default"
-            ]
+            "name": "local-with-profiling",
+            "displayName": "Local Tracy (MSVC)",
+            "description": "Optional Tracy build override using explicit VS 2026 Build Tools, Windows SDK, and Ninja paths.",
+            "inherits": "with-profiling",
+            "binaryDir": "${sourceDir}/build/local-profiling",
+            "environment": {
+                "VCToolsInstallDir": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/",
+                "VCINSTALLDIR": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/",
+                "WindowsSdkDir": "C:/Program Files (x86)/Windows Kits/10/",
+                "WindowsSDKVersion": "10.0.26100.0/",
+                "PATH": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/HostX64/x64;C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja;C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64;$penv{PATH}",
+                "INCLUDE": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/include;C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Auxiliary/VS/include;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/ucrt;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/um;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/shared;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/winrt;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/cppwinrt",
+                "LIB": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/lib/x64;C:/Program Files (x86)/Windows Kits/10/lib/10.0.26100.0/ucrt/x64;C:/Program Files (x86)/Windows Kits/10/lib/10.0.26100.0/um/x64",
+                "LIBPATH": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/lib/x64;C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/lib/x86/store/references;C:/Program Files (x86)/Windows Kits/10/UnionMetadata/10.0.26100.0;C:/Program Files (x86)/Windows Kits/10/References/10.0.26100.0;C:/Windows/Microsoft.NET/Framework64/v4.0.30319"
+            },
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe",
+                "CMAKE_C_COMPILER": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/HostX64/x64/cl.exe",
+                "CMAKE_CXX_COMPILER": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/HostX64/x64/cl.exe",
+                "CMAKE_RC_COMPILER": "C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/rc.exe",
+                "CMAKE_MT": "C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/mt.exe"
+            }
         }
     ],
     "buildPresets": [
         {
-            "name": "default",
-            "displayName": "Default",
-            "configurePreset": "default"
+            "name": "local-default",
+            "displayName": "Local Default (MSVC)",
+            "configurePreset": "local-default"
         },
         {
-            "name": "with-profiling",
-            "displayName": "Tracy",
-            "configurePreset": "with-profiling"
+            "name": "local-with-profiling",
+            "displayName": "Local Tracy (MSVC)",
+            "configurePreset": "local-with-profiling"
         },
         {
-            "name": "unit-tests",
-            "displayName": "Unit Tests",
-            "configurePreset": "default",
+            "name": "local-unit-tests",
+            "displayName": "Local Unit Tests (MSVC)",
+            "configurePreset": "local-default",
             "targets": [
                 "UnitTests"
             ]
         },
         {
-            "name": "unit-tests-with-profiling",
-            "displayName": "Tracy + Unit Tests",
-            "configurePreset": "with-profiling",
+            "name": "local-unit-tests-with-profiling",
+            "displayName": "Local Tracy + Unit Tests (MSVC)",
+            "configurePreset": "local-with-profiling",
             "targets": [
                 "UnitTests"
             ]
@@ -76,17 +91,17 @@
     ],
     "testPresets": [
         {
-            "name": "default",
-            "displayName": "CTest Default",
-            "configurePreset": "default",
+            "name": "local-default",
+            "displayName": "Local CTest Default (MSVC)",
+            "configurePreset": "local-default",
             "output": {
                 "outputOnFailure": true
             }
         },
         {
-            "name": "with-profiling",
-            "displayName": "CTest Tracy",
-            "configurePreset": "with-profiling",
+            "name": "local-with-profiling",
+            "displayName": "Local CTest Tracy (MSVC)",
+            "configurePreset": "local-with-profiling",
             "output": {
                 "outputOnFailure": true
             }
