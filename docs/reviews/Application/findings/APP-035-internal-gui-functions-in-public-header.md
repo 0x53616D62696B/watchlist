@@ -3,6 +3,7 @@
 - **Priority:** P2
 - **Kind:** Improvement
 - **Confidence:** High
+- **Status:** Resolved
 - **Subsystem:** GUI/API
 - **Location:** [`src/Gui/MyApp.hpp`](../../../../src/Gui/MyApp.hpp), lines 25-32; [`src/Gui/MyApp.cpp`](../../../../src/Gui/MyApp.cpp), lines 44, 94, 656, and 669
 - **Dependencies:** APP-033, APP-034
@@ -28,3 +29,7 @@ Move internal helpers and private structs into an unnamed namespace or private i
 ## Suggested tests
 
 Compile a minimal consumer of the public header and use an API-surface check or code review rule to prevent internal helpers from returning.
+
+## Resolution and validation
+
+The public GUI headers now expose only `ImGuiStart`, `ShowWindow`, the window title, and the application-owned device-monitor model. All GLFW/ImGui setup, rendering, menu, table, editor, and confirmation helpers are defined in unnamed namespaces in the `.cpp` files; private document types were deleted. Two PCH-off header consumer targets build and run under warnings-as-errors.

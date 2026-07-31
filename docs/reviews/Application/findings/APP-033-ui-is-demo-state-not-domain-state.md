@@ -3,6 +3,7 @@
 - **Priority:** P2
 - **Kind:** Improvement
 - **Confidence:** High
+- **Status:** Resolved
 - **Subsystem:** GUI/architecture
 - **Location:** [`src/Gui/MyApp.cpp`](../../../../src/Gui/MyApp.cpp), lines 44-173 and 176-678
 - **Dependencies:** APP-028, APP-032
@@ -32,3 +33,7 @@ Preserve useful docking/layout behavior while separating it from sample document
 ## Suggested tests
 
 Unit-test command/view-model transitions without ImGui and add focused UI tests for state rendering and command dispatch.
+
+## Resolution and validation
+
+Production rendering now consumes an externally owned, ImGui-independent `DeviceMonitorState`. The UI lists devices and emits refresh, add, edit, delete, and alive-status commands; it no longer compiles vegetable documents, lorem ipsum, recursive sample menus, no-op actions, or function-static domain state. Six headless GoogleTests cover command emission, add/edit/alive transitions, immutable IDs, explicit deletion confirmation, validation errors, and persistent exit state.
