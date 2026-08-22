@@ -203,8 +203,6 @@ TEST(MqttWorkflowIntegrationTests, PublishesDispatchesAndReturnsSuccessAndValida
     EXPECT_TRUE(errorAckReceived);
 
     dispatcher.StopAccepting();
-    workers.StopAll();
-    workers.JoinAll();
     ASSERT_TRUE(serverTransport.WaitForPendingOperations(3s));
     serverThread.request_stop();
     clientThread.request_stop();

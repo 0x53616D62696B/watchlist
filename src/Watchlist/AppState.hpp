@@ -31,6 +31,8 @@ public:
 
     ConsoleState SnapshotConsole() const;
     void UpdateConsole(const ConsoleState& console);
+    /// Update editable GUI fields without overwriting transport-owned status.
+    void UpdateConsoleForm(const ConsoleState& console);
     void SetOutboundCommandHandler(OutboundCommandHandler handler);
     [[nodiscard]] bool DispatchOutbound(std::string payload);
     void AddOutbound(std::string line);
@@ -55,10 +57,5 @@ private:
     std::vector<std::string> acks_;
     std::vector<std::string> activity_;
 };
-
-void SetAppState(AppState* state);
-
-/// Global app-state hook used by the existing ImGui entry point.
-AppState* GetAppState();
 
 } // namespace Watchlist

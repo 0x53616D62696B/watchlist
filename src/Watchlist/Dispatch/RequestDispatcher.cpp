@@ -45,8 +45,8 @@ bool RequestDispatcher::HandleIncomingPayload(const std::string& payload)
         return true;
     }
     catch (const std::runtime_error&) {
-        // StopAll can race the accepting check. Convert the rejected enqueue
-        // into the same deterministic response as an orderly shutdown.
+        // Pool destruction can race the accepting check. Convert a rejected
+        // enqueue into the same deterministic response as orderly shutdown.
         RecordAndPublishAck(request, Messaging::MakeAck(request.id, "error", "server shutting down"));
         return false;
     }
@@ -62,7 +62,7 @@ std::future<Messaging::MqttAck> RequestDispatcher::Dispatch(Messaging::MqttReque
     }
 
     // Handlers may block on device/database/script work, so they run as bounded worker tasks.
-    return runtime_.EnqueueTask([this, request = std::move(request)] {
+    return runtime_.enqueue([this, request = std::move(request)] {
         auto ack = ExecuteWorkerRequest(request);
         RecordAndPublishAck(request, ack);
         return ack;

@@ -6,6 +6,7 @@
 #include "src/Gui/GuiRuntime.hpp"
 
 namespace Watchlist {
+class AppState;
 class DeviceStorageService;
 }
 
@@ -15,6 +16,7 @@ namespace Watchlist::Gui {
     DeviceMonitorState& state,
     DeviceStorageService& storage,
     std::thread::id processMainThread,
-    const GuiConfiguration& configuration = {});
+    const GuiConfiguration& configuration = {},
+    AppState* mqttState = nullptr);
 
 } // namespace Watchlist::Gui

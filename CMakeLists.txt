@@ -21,7 +21,12 @@ option(ENABLE_PROFILING "Enable profiling with Tracy" OFF)
 option(ENABLE_PCH "Enable precompiled headers for the Application target" ON)
 option(BUILD_TESTING "Build unit tests" ON)
 option(WATCHLIST_ENABLE_GUI_SMOKE_TESTS "Run the real GLFW/OpenGL GUI smoke test" OFF)
+option(WATCHLIST_BUILD_MQTT_INTEGRATION_TESTS "Build broker-dependent MQTT transport tests" OFF)
+option(WATCHLIST_MQTT_MANAGE_TEST_BROKER "Start and stop the MQTT integration broker with Docker Compose" ON)
 set(WATCHLIST_TEST_TIMEOUT_SECONDS 20 CACHE STRING "Timeout for deterministic Watchlist CTest cases")
+set(WATCHLIST_MQTT_TEST_HOST "localhost" CACHE STRING "MQTT integration test broker host")
+set(WATCHLIST_MQTT_TEST_PORT "1883" CACHE STRING "MQTT integration test broker port")
+set(WATCHLIST_MQTT_COMPOSE_PROJECT "watchlist-mqtt-integration" CACHE STRING "Docker Compose project for MQTT tests")
 
 # MQTT transport dependencies
 include(PahoMqtt)
@@ -132,15 +137,36 @@ target_include_directories(watchlist_storage PUBLIC "${CMAKE_SOURCE_DIR}")
 target_link_libraries(watchlist_storage PUBLIC SQLiteCpp sqlite3)
 watchlist_apply_owned_code(watchlist_storage)
 
-# Application composition is intentionally explicit. Adding an unrelated utility
-# under src/Utils no longer changes this production target.
-add_executable(Application
-  "${WATCHLIST_VERSION_HEADER}"
-  src/Watchlist/Application.cpp
-  src/Watchlist/Application.hpp
-  src/Watchlist/main.cpp
-  src/Watchlist/ApplicationPaths.cpp
-  src/Watchlist/ApplicationPaths.hpp
+add_library(watchlist_mqtt STATIC
+  src/Watchlist/AppState.cpp
+  src/Watchlist/AppState.hpp
+  src/Watchlist/Dispatch/RequestDispatcher.cpp
+  src/Watchlist/Dispatch/RequestDispatcher.hpp
+  src/Watchlist/Messaging/MqttMessages.cpp
+  src/Watchlist/Messaging/MqttMessages.hpp
+  src/Watchlist/Messaging/MqttService.cpp
+  src/Watchlist/Messaging/MqttService.hpp
+  src/Watchlist/Messaging/MqttTopics.hpp
+  src/Watchlist/Storage/KeyValueStore.cpp
+  src/Watchlist/Storage/KeyValueStore.hpp
+)
+target_include_directories(watchlist_mqtt PUBLIC "${CMAKE_SOURCE_DIR}")
+target_link_libraries(watchlist_mqtt PUBLIC
+  Threads::Threads
+  watchlist_logger
+  watchlist_profiling
+  watchlist_storage
+  ${WATCHLIST_PAHO_ASYNC_TARGETS}
+)
+watchlist_apply_owned_code(watchlist_mqtt)
+if(MSVC)
+  # Paho C exposes an anonymous union and the vendored nlohmann/json release
+  # uses pre-C++23 literal-operator syntax. Keep third-party diagnostics from
+  # defeating warnings-as-errors for owned MQTT implementation code.
+  target_compile_options(watchlist_mqtt PRIVATE /wd4201 /wd5311)
+endif()
+
+set(WATCHLIST_GUI_RUNTIME_SOURCES
   src/Watchlist/DeviceStorageService.cpp
   src/Watchlist/DeviceStorageService.hpp
   src/Gui/DeviceMonitorState.cpp
@@ -151,6 +177,18 @@ add_executable(Application
   src/Gui/GuiRuntime.hpp
   src/Gui/MyApp.cpp
   src/Gui/MyApp.hpp
+)
+
+# Application composition is intentionally explicit. Adding an unrelated utility
+# under src/Utils no longer changes this production target.
+add_executable(Application
+  "${WATCHLIST_VERSION_HEADER}"
+  src/Watchlist/Application.cpp
+  src/Watchlist/Application.hpp
+  src/Watchlist/main.cpp
+  src/Watchlist/ApplicationPaths.cpp
+  src/Watchlist/ApplicationPaths.hpp
+  ${WATCHLIST_GUI_RUNTIME_SOURCES}
   src/Utils/Concurrency/AsyncEventLoop.hpp
   src/Utils/Concurrency/ThreadPoolManager.hpp
   src/Utils/Profiling/TracyProfiling.hpp
@@ -167,11 +205,42 @@ target_link_libraries(Application PRIVATE
   Threads::Threads
   watchlist_imgui
   watchlist_logger
+  watchlist_mqtt
   watchlist_profiling
   watchlist_storage
 )
 watchlist_apply_owned_code(Application)
 set_target_properties(Application PROPERTIES OUTPUT_NAME Watchlist)
+
+add_executable(WatchlistClient
+  "${WATCHLIST_VERSION_HEADER}"
+  ${WATCHLIST_GUI_RUNTIME_SOURCES}
+  src/Watchlist/Apps/Client/main.cpp
+)
+add_executable(WatchlistServer
+  "${WATCHLIST_VERSION_HEADER}"
+  ${WATCHLIST_GUI_RUNTIME_SOURCES}
+  src/Watchlist/Apps/Server/main.cpp
+)
+foreach(_mqtt_app IN ITEMS WatchlistClient WatchlistServer)
+  if(WIN32)
+    target_sources(${_mqtt_app} PRIVATE "${WATCHLIST_VERSION_RESOURCE}")
+  endif()
+  target_include_directories(${_mqtt_app} PRIVATE
+    "${CMAKE_SOURCE_DIR}"
+    "${WATCHLIST_GENERATED_DIR}"
+  )
+  target_compile_definitions(${_mqtt_app} PRIVATE MYAPP=1)
+  target_link_libraries(${_mqtt_app} PRIVATE
+    Threads::Threads
+    watchlist_imgui
+    watchlist_logger
+    watchlist_mqtt
+    watchlist_profiling
+    watchlist_storage
+  )
+  watchlist_apply_owned_code(${_mqtt_app})
+endforeach()
 
 if(ENABLE_PCH)
   set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
@@ -292,7 +361,10 @@ if(BUILD_TESTING AND TARGET GTest::gtest_main)
     tests/UnitTests/Storage/SQLiteDatabaseTests.cpp
     tests/UnitTests/Watchlist/ApplicationPathsTests.cpp
     tests/UnitTests/Watchlist/ApplicationTests.cpp
+    tests/UnitTests/Watchlist/AppStateTests.cpp
     tests/UnitTests/Watchlist/DeviceStorageServiceTests.cpp
+    tests/UnitTests/Watchlist/MqttMessagingTests.cpp
+    tests/UnitTests/Watchlist/MqttServiceTests.cpp
     src/Watchlist/Application.cpp
     src/Watchlist/ApplicationPaths.cpp
     src/Watchlist/SQLiteThreadWorker.cpp
@@ -305,6 +377,7 @@ if(BUILD_TESTING AND TARGET GTest::gtest_main)
     GTest::gtest_main
     Threads::Threads
     watchlist_logger
+    watchlist_mqtt
     watchlist_profiling
     watchlist_storage
   )
@@ -364,6 +437,61 @@ if(BUILD_TESTING AND TARGET GTest::gtest_main)
     LABELS "UNIT"
     TIMEOUT "${WATCHLIST_TEST_TIMEOUT_SECONDS}"
   )
+
+  if(WATCHLIST_BUILD_MQTT_INTEGRATION_TESTS)
+    add_executable(MqttTransportIntegrationTests
+      tests/IntegrationTests/Watchlist/MqttTransportIntegrationTests.cpp
+      tests/IntegrationTests/Watchlist/MqttWorkflowIntegrationTests.cpp
+    )
+    target_include_directories(MqttTransportIntegrationTests PRIVATE "${CMAKE_SOURCE_DIR}")
+    target_link_libraries(MqttTransportIntegrationTests PRIVATE
+      GTest::gtest_main
+      watchlist_mqtt
+    )
+    watchlist_apply_owned_code(MqttTransportIntegrationTests)
+    add_test(NAME MqttTransportIntegrationTests COMMAND MqttTransportIntegrationTests)
+    set_tests_properties(MqttTransportIntegrationTests PROPERTIES
+      LABELS "mqtt-integration;docker"
+      TIMEOUT 150
+      ENVIRONMENT
+        "WATCHLIST_MQTT_HOST=${WATCHLIST_MQTT_TEST_HOST};WATCHLIST_MQTT_PORT=${WATCHLIST_MQTT_TEST_PORT}"
+    )
+
+    if(WATCHLIST_MQTT_MANAGE_TEST_BROKER)
+      set(WATCHLIST_MQTT_FIXTURE_SCRIPT "${CMAKE_SOURCE_DIR}/tests/IntegrationTests/Watchlist/MqttBrokerFixture.cmake")
+      add_test(NAME MqttBrokerFixtureStart
+        COMMAND ${CMAKE_COMMAND}
+          -DACTION=start
+          -DCOMPOSE_FILE=${CMAKE_SOURCE_DIR}/compose.yaml
+          -DCOMPOSE_PROJECT=${WATCHLIST_MQTT_COMPOSE_PROJECT}
+          -DBROKER_PORT=${WATCHLIST_MQTT_TEST_PORT}
+          -P ${WATCHLIST_MQTT_FIXTURE_SCRIPT}
+      )
+      add_test(NAME MqttBrokerFixtureStop
+        COMMAND ${CMAKE_COMMAND}
+          -DACTION=stop
+          -DCOMPOSE_FILE=${CMAKE_SOURCE_DIR}/compose.yaml
+          -DCOMPOSE_PROJECT=${WATCHLIST_MQTT_COMPOSE_PROJECT}
+          -DBROKER_PORT=${WATCHLIST_MQTT_TEST_PORT}
+          -P ${WATCHLIST_MQTT_FIXTURE_SCRIPT}
+      )
+      set_tests_properties(MqttBrokerFixtureStart PROPERTIES
+        FIXTURES_SETUP watchlist_mqtt_broker
+        LABELS "mqtt-fixture;docker"
+        TIMEOUT 90
+      )
+      set_tests_properties(MqttTransportIntegrationTests PROPERTIES
+        FIXTURES_REQUIRED watchlist_mqtt_broker
+        ENVIRONMENT
+          "WATCHLIST_MQTT_HOST=${WATCHLIST_MQTT_TEST_HOST};WATCHLIST_MQTT_PORT=${WATCHLIST_MQTT_TEST_PORT};WATCHLIST_MQTT_COMPOSE_FILE=${CMAKE_SOURCE_DIR}/compose.yaml;WATCHLIST_MQTT_COMPOSE_PROJECT=${WATCHLIST_MQTT_COMPOSE_PROJECT};WATCHLIST_MQTT_FIXTURE_SCRIPT=${WATCHLIST_MQTT_FIXTURE_SCRIPT};WATCHLIST_CMAKE_COMMAND=${CMAKE_COMMAND}"
+      )
+      set_tests_properties(MqttBrokerFixtureStop PROPERTIES
+        FIXTURES_CLEANUP watchlist_mqtt_broker
+        LABELS "mqtt-fixture;docker"
+        TIMEOUT 30
+      )
+    endif()
+  endif()
 elseif(BUILD_TESTING)
   message(STATUS "GoogleTest was not found. Add it to libs/googletest or install a GTest package to build UnitTests.")
 endif()
