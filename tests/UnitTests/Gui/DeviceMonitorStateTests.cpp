@@ -44,6 +44,30 @@ TEST(DeviceMonitorStateTests, AddsDeviceAndEmitsCompleteCommand)
     EXPECT_EQ(*commands.front().device, state.Devices().front());
 }
 
+TEST(DeviceMonitorStateTests, MaximumLengthDomainTextIsOwnedWithoutTruncation)
+{
+    DeviceMonitorState state;
+    state.BeginAdd();
+    ASSERT_NE(state.EditSession(), nullptr);
+    auto& draft = state.EditSession()->draft;
+    draft = {
+        .id = std::string(128, 'i'),
+        .name = std::string(256, 'n'),
+        .address = "maximum.example",
+        .port = 65535,
+        .alive = true,
+    };
+
+    ASSERT_TRUE(state.SubmitEditor());
+    ASSERT_EQ(state.Devices().size(), 1U);
+    EXPECT_EQ(state.Devices().front().id.size(), 128U);
+    EXPECT_EQ(state.Devices().front().name.size(), 256U);
+    const auto commands = state.ConsumeCommands();
+    ASSERT_EQ(commands.size(), 1U);
+    ASSERT_TRUE(commands.front().device.has_value());
+    EXPECT_EQ(commands.front().device->name, std::string(256, 'n'));
+}
+
 TEST(DeviceMonitorStateTests, ExistingIdIsImmutable)
 {
     DeviceMonitorState state;

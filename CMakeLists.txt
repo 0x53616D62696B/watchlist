@@ -21,6 +21,7 @@ option(ENABLE_PROFILING "Enable profiling with Tracy" OFF)
 option(ENABLE_PCH "Enable precompiled headers for the Application target" ON)
 option(BUILD_TESTING "Build unit tests" ON)
 option(WATCHLIST_ENABLE_GUI_SMOKE_TESTS "Run the real GLFW/OpenGL GUI smoke test" OFF)
+set(WATCHLIST_TEST_TIMEOUT_SECONDS 20 CACHE STRING "Timeout for deterministic Watchlist CTest cases")
 
 set(CMAKE_CXX_FLAGS_DEBUGTRACY "${CMAKE_CXX_FLAGS_DEBUG}" CACHE STRING "Flags for DebugTracy build type" FORCE)
 set(CMAKE_C_FLAGS_DEBUGTRACY "${CMAKE_C_FLAGS_DEBUG}" CACHE STRING "Flags for DebugTracy build type" FORCE)
@@ -46,6 +47,7 @@ message(STATUS "CMAKE_CXX_COMPILER_LAUNCHER: ${CMAKE_CXX_COMPILER_LAUNCHER}")
 message(STATUS "ENABLE_PROFILING: ${ENABLE_PROFILING}")
 message(STATUS "WATCHLIST_WARNINGS_AS_ERRORS: ${WATCHLIST_WARNINGS_AS_ERRORS}")
 message(STATUS "WATCHLIST_ENABLE_NATIVE_ARCH: ${WATCHLIST_ENABLE_NATIVE_ARCH}")
+message(STATUS "WATCHLIST_ENABLE_SANITIZERS: ${WATCHLIST_ENABLE_SANITIZERS}")
 
 find_package(Threads REQUIRED)
 
@@ -131,6 +133,8 @@ watchlist_apply_owned_code(watchlist_storage)
 # under src/Utils no longer changes this production target.
 add_executable(Application
   "${WATCHLIST_VERSION_HEADER}"
+  src/Watchlist/Application.cpp
+  src/Watchlist/Application.hpp
   src/Watchlist/main.cpp
   src/Watchlist/ApplicationPaths.cpp
   src/Watchlist/ApplicationPaths.hpp
@@ -235,6 +239,10 @@ if(BUILD_TESTING)
   watchlist_apply_owned_code(ThreadPoolHeaderCompileProbe)
   if(NOT ENABLE_PROFILING)
     add_test(NAME ThreadPoolHeaderCompileProbe COMMAND ThreadPoolHeaderCompileProbe)
+    set_tests_properties(ThreadPoolHeaderCompileProbe PROPERTIES
+      LABELS "COMPILE_PROBE"
+      TIMEOUT "${WATCHLIST_TEST_TIMEOUT_SECONDS}"
+    )
   endif()
 
   add_executable(GuiHeaderCompileProbe
@@ -244,6 +252,10 @@ if(BUILD_TESTING)
   target_include_directories(GuiHeaderCompileProbe PRIVATE "${CMAKE_SOURCE_DIR}")
   watchlist_apply_owned_code(GuiHeaderCompileProbe)
   add_test(NAME GuiHeaderCompileProbe COMMAND GuiHeaderCompileProbe)
+  set_tests_properties(GuiHeaderCompileProbe PROPERTIES
+    LABELS "COMPILE_PROBE"
+    TIMEOUT "${WATCHLIST_TEST_TIMEOUT_SECONDS}"
+  )
 
   add_executable(MyAppHeaderCompileProbe
     tests/Compile/MyAppHeaderCompile.cpp
@@ -252,6 +264,10 @@ if(BUILD_TESTING)
   target_include_directories(MyAppHeaderCompileProbe PRIVATE "${CMAKE_SOURCE_DIR}")
   watchlist_apply_owned_code(MyAppHeaderCompileProbe)
   add_test(NAME MyAppHeaderCompileProbe COMMAND MyAppHeaderCompileProbe)
+  set_tests_properties(MyAppHeaderCompileProbe PROPERTIES
+    LABELS "COMPILE_PROBE"
+    TIMEOUT "${WATCHLIST_TEST_TIMEOUT_SECONDS}"
+  )
 endif()
 
 if(BUILD_TESTING AND WATCHLIST_ENABLE_GUI_SMOKE_TESTS)
@@ -261,7 +277,7 @@ if(BUILD_TESTING AND WATCHLIST_ENABLE_GUI_SMOKE_TESTS)
   )
   set_tests_properties(Application.GuiSmoke PROPERTIES
     LABELS "GUI_SMOKE"
-    TIMEOUT 20
+    TIMEOUT "${WATCHLIST_TEST_TIMEOUT_SECONDS}"
   )
 endif()
 
@@ -272,7 +288,9 @@ if(BUILD_TESTING AND TARGET GTest::gtest_main)
     tests/UnitTests/Gui/GuiRuntimeTests.cpp
     tests/UnitTests/Storage/SQLiteDatabaseTests.cpp
     tests/UnitTests/Watchlist/ApplicationPathsTests.cpp
+    tests/UnitTests/Watchlist/ApplicationTests.cpp
     tests/UnitTests/Watchlist/DeviceStorageServiceTests.cpp
+    src/Watchlist/Application.cpp
     src/Watchlist/ApplicationPaths.cpp
     src/Watchlist/SQLiteThreadWorker.cpp
     src/Watchlist/DeviceStorageService.cpp
@@ -290,7 +308,10 @@ if(BUILD_TESTING AND TARGET GTest::gtest_main)
   watchlist_apply_owned_code(UnitTests)
 
   include(GoogleTest)
-  gtest_discover_tests(UnitTests)
+  gtest_discover_tests(UnitTests PROPERTIES
+    LABELS "UNIT"
+    TIMEOUT "${WATCHLIST_TEST_TIMEOUT_SECONDS}"
+  )
 
   add_executable(ThreadPoolManagerTests
     tests/UnitTests/Concurrency/ThreadPoolManagerTests.cpp
@@ -305,7 +326,12 @@ if(BUILD_TESTING AND TARGET GTest::gtest_main)
   watchlist_apply_owned_code(ThreadPoolManagerTests)
   # Profiling builds link a Tracy client configured to remain alive, so test
   # enumeration must not execute the binary as a post-build action.
-  gtest_discover_tests(ThreadPoolManagerTests DISCOVERY_MODE PRE_TEST)
+  gtest_discover_tests(ThreadPoolManagerTests
+    DISCOVERY_MODE PRE_TEST
+    PROPERTIES
+      LABELS "UNIT_CONCURRENCY"
+      TIMEOUT "${WATCHLIST_TEST_TIMEOUT_SECONDS}"
+  )
 
   add_executable(GeneratorLifecycleTests
     tests/UnitTests/Concurrency/EventLoopGeneratorTests.cpp
@@ -318,7 +344,10 @@ if(BUILD_TESTING AND TARGET GTest::gtest_main)
     watchlist_profiling
   )
   watchlist_apply_owned_code(GeneratorLifecycleTests)
-  gtest_discover_tests(GeneratorLifecycleTests)
+  gtest_discover_tests(GeneratorLifecycleTests PROPERTIES
+    LABELS "UNIT_CONCURRENCY"
+    TIMEOUT "${WATCHLIST_TEST_TIMEOUT_SECONDS}"
+  )
 
   add_executable(LoggerUnitTests
     tests/UnitTests/Logger/LoggerTests.cpp
@@ -328,7 +357,10 @@ if(BUILD_TESTING AND TARGET GTest::gtest_main)
   target_compile_definitions(LoggerUnitTests PRIVATE WATCHLIST_LOGGER_TESTING=1)
   target_link_libraries(LoggerUnitTests PRIVATE GTest::gtest_main Threads::Threads)
   watchlist_apply_owned_code(LoggerUnitTests)
-  gtest_discover_tests(LoggerUnitTests)
+  gtest_discover_tests(LoggerUnitTests PROPERTIES
+    LABELS "UNIT"
+    TIMEOUT "${WATCHLIST_TEST_TIMEOUT_SECONDS}"
+  )
 elseif(BUILD_TESTING)
   message(STATUS "GoogleTest was not found. Add it to libs/googletest or install a GTest package to build UnitTests.")
 endif()
@@ -352,5 +384,20 @@ if(BUILD_TESTING)
         "-DFIXTURE_DIR=${CMAKE_SOURCE_DIR}/tests/CMake/fixtures"
         "-DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/version-pipeline-tests/${_version_case}"
         -P "${CMAKE_SOURCE_DIR}/tests/CMake/VersionPipelineTests.cmake")
+    set_tests_properties("VersionPipeline.${_version_case}" PROPERTIES
+      LABELS "CMAKE;VERSION"
+      TIMEOUT "${WATCHLIST_TEST_TIMEOUT_SECONDS}"
+    )
   endforeach()
+
+  add_test(
+    NAME ApplicationReview.BuildContracts
+    COMMAND "${CMAKE_COMMAND}"
+      "-DSOURCE_DIR=${CMAKE_SOURCE_DIR}"
+      -P "${CMAKE_SOURCE_DIR}/tests/CMake/ApplicationReviewContractTests.cmake"
+  )
+  set_tests_properties(ApplicationReview.BuildContracts PROPERTIES
+    LABELS "CMAKE;APPLICATION_REVIEW"
+    TIMEOUT "${WATCHLIST_TEST_TIMEOUT_SECONDS}"
+  )
 endif()
