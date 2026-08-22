@@ -4,9 +4,6 @@
 #include <utility>
 
 namespace Watchlist {
-namespace {
-AppState* g_appState = nullptr;
-} // namespace
 
 ConsoleState AppState::SnapshotConsole() const
 {
@@ -18,6 +15,14 @@ void AppState::UpdateConsole(const ConsoleState& console)
 {
     std::scoped_lock lock(mutex_);
     console_ = console;
+}
+
+void AppState::UpdateConsoleForm(const ConsoleState& console)
+{
+    std::scoped_lock lock(mutex_);
+    const auto connectionStatus = std::move(console_.connectionStatus);
+    console_ = console;
+    console_.connectionStatus = connectionStatus;
 }
 
 void AppState::SetOutboundCommandHandler(OutboundCommandHandler handler)
@@ -107,16 +112,6 @@ void AppState::AddBounded(std::vector<std::string>& lines, std::string line)
     if (lines.size() > maxLines_) {
         lines.erase(lines.begin(), lines.begin() + static_cast<std::ptrdiff_t>(lines.size() - maxLines_));
     }
-}
-
-void SetAppState(AppState* state)
-{
-    g_appState = state;
-}
-
-AppState* GetAppState()
-{
-    return g_appState;
 }
 
 } // namespace Watchlist

@@ -3,9 +3,15 @@
 #include <imgui.h>
 #include <imgui_stdlib.h>
 
+#include <array>
+#include <cstdint>
+#include <format>
 #include <string>
+#include <vector>
 
 #include "src/Utils/Profiling/TracyProfiling.hpp"
+#include "src/Watchlist/AppState.hpp"
+#include "src/Watchlist/Messaging/MqttMessages.hpp"
 
 namespace Watchlist::Gui {
 namespace {
@@ -125,9 +131,87 @@ void ShowDeviceTable(DeviceMonitorState& state)
     ImGui::EndTable();
 }
 
+void ShowHistory(const char* title, const std::vector<std::string>& lines)
+{
+    ImGui::TextUnformatted(title);
+    ImGui::BeginChild(title, ImVec2(0.0F, 120.0F), true);
+    for (const auto& line : lines)
+        ImGui::TextWrapped("%s", line.c_str());
+    ImGui::EndChild();
+}
+
+void ShowMqttConsole(AppState& appState)
+{
+    auto console = appState.SnapshotConsole();
+    ImGui::Text("Status: %s", console.connectionStatus.c_str());
+    ImGui::InputText("Broker", &console.brokerHost);
+    ImGui::InputInt("Port", &console.brokerPort);
+    ImGui::InputText("Client ID", &console.clientId);
+
+    static constexpr std::array messageTypeLabels{
+        "execute_script",
+        "send_to_device",
+        "cmd_to_device",
+        "store_database_value",
+        "query_AI_prompt",
+    };
+    ImGui::Combo(
+        "Type",
+        &console.selectedMessageType,
+        messageTypeLabels.data(),
+        static_cast<int>(messageTypeLabels.size()));
+
+    switch (console.selectedMessageType)
+    {
+    case 0:
+        ImGui::InputText("Script", &console.scriptName);
+        break;
+    case 1:
+        ImGui::InputText("Device", &console.deviceId);
+        ImGui::InputTextMultiline("Payload", &console.payload, ImVec2(-1.0F, 90.0F));
+        break;
+    case 2:
+        ImGui::InputText("Device", &console.deviceId);
+        ImGui::InputText("Command", &console.command);
+        break;
+    case 3:
+        ImGui::InputText("Key", &console.key);
+        ImGui::InputText("Value", &console.value);
+        break;
+    case 4:
+        ImGui::InputTextMultiline("Prompt", &console.prompt, ImVec2(-1.0F, 90.0F));
+        break;
+    default:
+        break;
+    }
+    appState.UpdateConsoleForm(console);
+
+    if (ImGui::Button("Send MQTT request"))
+    {
+        static std::uint64_t requestCounter{};
+        Messaging::MqttRequest request;
+        request.id = std::format("{}-{}", console.clientId, ++requestCounter);
+        request.type = static_cast<Messaging::MessageType>(console.selectedMessageType);
+        request.createdUtc = Messaging::UtcNowIso8601();
+        request.sourceClientId = console.clientId;
+        request.scriptName = console.scriptName;
+        request.deviceId = console.deviceId;
+        request.payload = console.payload;
+        request.command = console.command;
+        request.key = console.key;
+        request.value = console.value;
+        request.prompt = console.prompt;
+        static_cast<void>(appState.DispatchOutbound(Messaging::SerializeRequest(request)));
+    }
+
+    ShowHistory("Outbound requests", appState.Outbound());
+    ShowHistory("Acknowledgements", appState.Acks());
+    ShowHistory("MQTT activity", appState.Activity());
+}
+
 } // namespace
 
-void ShowWindow(DeviceMonitorState& state)
+void ShowWindow(DeviceMonitorState& state, AppState* mqttState)
 {
     PROFILE_FUNCTION;
     bool open = !state.ExitRequested();
@@ -158,6 +242,9 @@ void ShowWindow(DeviceMonitorState& state)
     ImGui::SameLine();
     if (ImGui::Button("Add device"))
         state.BeginAdd();
+
+    if (mqttState != nullptr && ImGui::CollapsingHeader("MQTT console", ImGuiTreeNodeFlags_DefaultOpen))
+        ShowMqttConsole(*mqttState);
 
     ShowError(state);
     ImGui::Separator();

@@ -1,12 +1,18 @@
 #include <chrono>
+#include <cstdlib>
 #include <filesystem>
 #include <format>
-#include <future>
+#include <memory>
+#include <optional>
+#include <thread>
+#include <utility>
 
-#include "src/Common/Version.hpp"
+#include "Common/Version.hpp"
 #include "src/Gui/Gui.hpp"
 #include "src/Utils/Concurrency/ThreadPoolManager.hpp"
+#include "src/Utils/Logger/Logger.hpp"
 #include "src/Watchlist/AppState.hpp"
+#include "src/Watchlist/DeviceStorageService.hpp"
 #include "src/Watchlist/Dispatch/RequestDispatcher.hpp"
 #include "src/Watchlist/Messaging/MqttMessages.hpp"
 #include "src/Watchlist/Messaging/MqttService.hpp"
@@ -14,68 +20,88 @@
 
 namespace Watchlist::Server {
 
-int Run()
+int Run() noexcept
 try
 {
     LOG_INFO(std::format("WatchlistServer Version: {}", VERSION_FULL));
 
     AppState appState;
-    SetAppState(&appState);
-
     auto console = appState.SnapshotConsole();
     console.clientId = "watchlist-server";
     appState.UpdateConsole(console);
 
-    // Keep bounded request workers separate from long-lived services so
-    // shutdown can drain work and acknowledgements before MQTT disconnects.
-    Concurrency::ThreadPoolManager workerRuntime(3);
-    Concurrency::ThreadPoolManager serviceRuntime(0);
+    const auto databasePath =
+        std::filesystem::temp_directory_path() / "watchlist_server.sqlite";
     Messaging::MqttService mqtt(&appState);
-    Dispatch::RequestDispatcher dispatcher(
-        workerRuntime,
-        std::filesystem::temp_directory_path() / "watchlist_server.sqlite",
-        &appState,
-        [&mqtt](const Messaging::MqttRequest& request, const Messaging::MqttAck& ack) {
-            mqtt.Publish(Messaging::AckTopicForClient(request.sourceClientId), Messaging::SerializeAck(ack));
+    std::optional<std::jthread> mqttThread;
+
+    Gui::GuiResult guiResult;
+    {
+        auto workerRuntime = std::make_unique<Concurrency::ThreadPoolManager>(3);
+        auto dispatcher = std::make_unique<Dispatch::RequestDispatcher>(
+            *workerRuntime,
+            databasePath,
+            &appState,
+            [&mqtt](const Messaging::MqttRequest& request, const Messaging::MqttAck& ack) {
+                mqtt.Publish(
+                    Messaging::AckTopicForClient(request.sourceClientId),
+                    Messaging::SerializeAck(ack));
+            });
+
+        mqttThread.emplace([&mqtt, &appState, dispatcher = dispatcher.get()](std::stop_token stopToken) {
+            const auto consoleState = appState.SnapshotConsole();
+            mqtt.Subscribe(
+                Messaging::RequestsTopic,
+                [dispatcher](std::string, std::string payload) {
+                    static_cast<void>(dispatcher->HandleIncomingPayload(payload));
+                });
+            mqtt.Run(
+                stopToken,
+                consoleState.brokerHost,
+                consoleState.brokerPort,
+                consoleState.clientId);
         });
 
-    // The MQTT callback stays lightweight and hands validated work to RequestDispatcher.
-    serviceRuntime.StartDedicatedThread("MQTT IO", [&mqtt, &appState, &dispatcher](std::stop_token stopToken) {
-        auto consoleState = appState.SnapshotConsole();
-        mqtt.Subscribe(Messaging::RequestsTopic, [&dispatcher](std::string, std::string payload) {
-            [[maybe_unused]] const bool queued = dispatcher.HandleIncomingPayload(payload);
-        });
-        mqtt.Run(stopToken, consoleState.brokerHost, consoleState.brokerPort, consoleState.clientId);
-    });
+        Gui::DeviceMonitorState deviceMonitorState;
+        DeviceStorageService storage(databasePath);
+        guiResult = Gui::ImGuiStart(
+            deviceMonitorState,
+            storage,
+            std::this_thread::get_id(),
+            {},
+            &appState);
 
-    std::promise<void> guiClosed;
-    auto guiClosedFuture = guiClosed.get_future();
-    serviceRuntime.StartDedicatedThread("ImGui", [&guiClosed](std::stop_token stopToken) {
-        ImGuiStart(stopToken);
-        guiClosed.set_value();
-    });
+        dispatcher->StopAccepting();
+        mqtt.Unsubscribe(Messaging::RequestsTopic);
+        if (!mqtt.WaitForPendingOperations(std::chrono::seconds(3)))
+            appState.AddActivity("Timed out waiting for MQTT request unsubscribe");
 
-    guiClosedFuture.wait();
-    // Stop inbound delivery first, then drain queued worker work while the
-    // transport remains connected for completion acknowledgements.
-    dispatcher.StopAccepting();
-    mqtt.Unsubscribe(Messaging::RequestsTopic);
-    if (!mqtt.WaitForPendingOperations(std::chrono::seconds(3)))
-        appState.AddActivity("Timed out waiting for MQTT request unsubscribe");
-
-    workerRuntime.StopAll();
-    workerRuntime.JoinAll();
+        // Queued work captures the dispatcher. Drain the fixed pool while the
+        // dispatcher and MQTT acknowledgement publisher are still alive.
+        workerRuntime.reset();
+        dispatcher.reset();
+    }
 
     if (!mqtt.WaitForPendingOperations(std::chrono::seconds(3)))
         appState.AddActivity("Timed out waiting for MQTT acknowledgement publication");
-    serviceRuntime.StopAll();
-    serviceRuntime.JoinAll();
-    SetAppState(nullptr);
+    mqttThread->request_stop();
+    mqttThread->join();
+
+    if (!guiResult.success)
+    {
+        LOG_ERROR(guiResult.error);
+        return EXIT_FAILURE;
+    }
     return EXIT_SUCCESS;
 }
 catch (const std::exception& exception)
 {
     LOG_EXCEPTION(exception);
+    return EXIT_FAILURE;
+}
+catch (...)
+{
+    LOG_ERROR("Unknown WatchlistServer failure.");
     return EXIT_FAILURE;
 }
 

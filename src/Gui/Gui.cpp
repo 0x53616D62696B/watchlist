@@ -17,6 +17,7 @@
 #include "src/Gui/MyApp.hpp"
 #include "src/Utils/Logger/Logger.hpp"
 #include "src/Utils/Profiling/TracyProfiling.hpp"
+#include "src/Watchlist/AppState.hpp"
 #include "src/Watchlist/DeviceStorageService.hpp"
 
 namespace Watchlist::Gui {
@@ -68,8 +69,11 @@ void SetBaseStyle(ImGuiStyle& style)
 
 class GlfwPlatform final : public IGuiPlatform {
 public:
-    GlfwPlatform(GuiConfiguration configuration, std::thread::id processMainThread)
-        : configuration_(configuration), processMainThread_(processMainThread)
+    GlfwPlatform(
+        GuiConfiguration configuration,
+        std::thread::id processMainThread,
+        AppState* mqttState)
+        : configuration_(configuration), processMainThread_(processMainThread), mqttState_(mqttState)
     {
     }
 
@@ -235,7 +239,7 @@ public:
     void DrawFrame(DeviceMonitorState& state) override
     {
         AssertMainThread();
-        ShowWindow(state);
+        ShowWindow(state, mqttState_);
         if (ImGui::IsKeyPressed(ImGuiKey_Escape))
             state.RequestExit();
     }
@@ -306,6 +310,7 @@ private:
 
     GuiConfiguration configuration_;
     std::thread::id processMainThread_;
+    AppState* mqttState_{};
     GLFWwindow* window_{};
     ImGuiStyle baseStyle_{};
     int actualOpenGlMajor_{};
@@ -335,10 +340,11 @@ GuiResult ImGuiStart(
     DeviceMonitorState& state,
     DeviceStorageService& storage,
     std::thread::id processMainThread,
-    const GuiConfiguration& configuration)
+    const GuiConfiguration& configuration,
+    AppState* mqttState)
 {
     PROFILE_THREAD("Watchlist GUI main thread");
-    GlfwPlatform platform(configuration, processMainThread);
+    GlfwPlatform platform(configuration, processMainThread, mqttState);
     auto result = RunGuiLifecycle(platform, state, [&storage](DeviceMonitorState& currentState) {
         return PumpStorage(storage, currentState);
     });

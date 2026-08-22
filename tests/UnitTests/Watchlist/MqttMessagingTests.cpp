@@ -1,6 +1,7 @@
 #include <chrono>
 #include <filesystem>
 #include <future>
+#include <memory>
 #include <string>
 #include <thread>
 
@@ -100,7 +101,7 @@ TEST(MqttMessagingTests, CallbackQueuesValidWorkWithoutWaitingForWorker)
     std::promise<void> blockerStarted;
     std::promise<void> releaseBlocker;
     auto releaseFuture = releaseBlocker.get_future().share();
-    auto blocker = runtime.EnqueueTask([&] {
+    auto blocker = runtime.enqueue([&] {
         blockerStarted.set_value();
         releaseFuture.wait();
     });
@@ -156,35 +157,39 @@ TEST(MqttMessagingTests, ValidationErrorPublishesOnlyWithSafelyRecoveredClient)
 
 TEST(MqttMessagingTests, ShutdownRejectsNewRequestsAndDrainsQueuedAcknowledgement)
 {
-    Concurrency::ThreadPoolManager runtime(1);
-    std::promise<void> blockerStarted;
-    std::promise<void> releaseBlocker;
-    auto releaseFuture = releaseBlocker.get_future().share();
-    auto blocker = runtime.EnqueueTask([&] {
-        blockerStarted.set_value();
-        releaseFuture.wait();
-    });
-    ASSERT_EQ(blockerStarted.get_future().wait_for(std::chrono::seconds(1)), std::future_status::ready);
-
     std::vector<Watchlist::Messaging::MqttAck> published;
-    Watchlist::Dispatch::RequestDispatcher dispatcher(
-        runtime,
-        TempDatabasePath("shutdown_dispatcher_"),
-        nullptr,
-        [&](const Watchlist::Messaging::MqttRequest&, const Watchlist::Messaging::MqttAck& ack) {
-            published.push_back(ack);
+    {
+        auto runtime = std::make_unique<Concurrency::ThreadPoolManager>(1);
+        std::promise<void> blockerStarted;
+        std::promise<void> releaseBlocker;
+        auto releaseFuture = releaseBlocker.get_future().share();
+        auto blocker = runtime->enqueue([&] {
+            blockerStarted.set_value();
+            releaseFuture.wait();
         });
+        ASSERT_EQ(
+            blockerStarted.get_future().wait_for(std::chrono::seconds(1)),
+            std::future_status::ready);
 
-    EXPECT_TRUE(dispatcher.HandleIncomingPayload(
-        Watchlist::Messaging::SerializeRequest(RequestFor(MessageType::ExecuteScript))));
-    dispatcher.StopAccepting();
-    EXPECT_FALSE(dispatcher.HandleIncomingPayload(
-        Watchlist::Messaging::SerializeRequest(RequestFor(MessageType::ExecuteScript))));
+        auto dispatcher = std::make_unique<Watchlist::Dispatch::RequestDispatcher>(
+            *runtime,
+            TempDatabasePath("shutdown_dispatcher_"),
+            nullptr,
+            [&](const Watchlist::Messaging::MqttRequest&, const Watchlist::Messaging::MqttAck& ack) {
+                published.push_back(ack);
+            });
 
-    runtime.StopAll();
-    releaseBlocker.set_value();
-    runtime.JoinAll();
-    blocker.get();
+        EXPECT_TRUE(dispatcher->HandleIncomingPayload(
+            Watchlist::Messaging::SerializeRequest(RequestFor(MessageType::ExecuteScript))));
+        dispatcher->StopAccepting();
+        EXPECT_FALSE(dispatcher->HandleIncomingPayload(
+            Watchlist::Messaging::SerializeRequest(RequestFor(MessageType::ExecuteScript))));
+
+        releaseBlocker.set_value();
+        blocker.get();
+        runtime.reset();
+        dispatcher.reset();
+    }
 
     ASSERT_EQ(published.size(), 2);
     EXPECT_EQ(published[0].status, "error");
@@ -222,26 +227,6 @@ TEST(MqttMessagingTests, DispatcherRoutesWorkerRequestsAndPublishesAck)
     }
 
     std::filesystem::remove(databasePath);
-}
-
-TEST(MqttMessagingTests, RuntimeStartsStopsJoinsAndRejectsAfterStop)
-{
-    Concurrency::ThreadPoolManager runtime(1);
-    std::promise<void> started;
-    auto startedFuture = started.get_future();
-
-    runtime.StartDedicatedThread("test-service", [&started](std::stop_token stopToken) mutable {
-        started.set_value();
-        while (!stopToken.stop_requested()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-    });
-
-    ASSERT_EQ(startedFuture.wait_for(std::chrono::seconds(1)), std::future_status::ready);
-    runtime.StopAll();
-    runtime.JoinAll();
-
-    EXPECT_THROW(runtime.EnqueueTask([] {}), std::runtime_error);
 }
 
 TEST(MqttMessagingTests, KeyValueStoreUpsertsAndGetsValues)
