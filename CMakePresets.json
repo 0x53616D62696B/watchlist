@@ -25,6 +25,17 @@
                 "BUILD_TESTING": "ON",
                 "ENABLE_PROFILING": "ON"
             }
+        },
+        {
+            "name": "sanitizers",
+            "displayName": "ASan + UBSan",
+            "description": "Portable Clang/GCC debug build with AddressSanitizer and UndefinedBehaviorSanitizer.",
+            "inherits": "default",
+            "binaryDir": "${sourceDir}/build/sanitizers",
+            "cacheVariables": {
+                "ENABLE_PCH": "OFF",
+                "WATCHLIST_ENABLE_SANITIZERS": "ON"
+            }
         }
     ],
     "buildPresets": [
@@ -53,6 +64,11 @@
             "targets": [
                 "UnitTests"
             ]
+        },
+        {
+            "name": "sanitizers",
+            "displayName": "ASan + UBSan",
+            "configurePreset": "sanitizers"
         }
     ],
     "testPresets": [
@@ -68,6 +84,14 @@
             "name": "with-profiling",
             "displayName": "CTest Tracy",
             "configurePreset": "with-profiling",
+            "output": {
+                "outputOnFailure": true
+            }
+        },
+        {
+            "name": "sanitizers",
+            "displayName": "CTest ASan + UBSan",
+            "configurePreset": "sanitizers",
             "output": {
                 "outputOnFailure": true
             }

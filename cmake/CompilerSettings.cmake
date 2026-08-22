@@ -1,5 +1,6 @@
 option(WATCHLIST_WARNINGS_AS_ERRORS "Treat warnings in Watchlist-owned code as errors" OFF)
 option(WATCHLIST_ENABLE_NATIVE_ARCH "Optimize Watchlist-owned code for the build host" OFF)
+option(WATCHLIST_ENABLE_SANITIZERS "Instrument owned code with AddressSanitizer and UndefinedBehaviorSanitizer" OFF)
 
 find_program(CCACHE_FOUND ccache)
 if(CCACHE_FOUND)
@@ -40,6 +41,27 @@ if(WATCHLIST_ENABLE_NATIVE_ARCH)
     message(FATAL_ERROR
       "WATCHLIST_ENABLE_NATIVE_ARCH is unsupported by ${CMAKE_CXX_COMPILER_ID}; "
       "disable it for a portable build")
+  endif()
+endif()
+
+if(WATCHLIST_ENABLE_SANITIZERS)
+  if(MSVC)
+    message(FATAL_ERROR
+      "WATCHLIST_ENABLE_SANITIZERS uses the portable Clang/GCC ASan+UBSan "
+      "configuration and is unsupported by MSVC. Configure with Clang or GCC, "
+      "or disable WATCHLIST_ENABLE_SANITIZERS.")
+  elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
+    target_compile_options(watchlist_project_options INTERFACE
+      "$<$<COMPILE_LANGUAGE:CXX>:-fsanitize=address,undefined;-fno-omit-frame-pointer>"
+    )
+    target_link_options(watchlist_project_options INTERFACE
+      -fsanitize=address,undefined
+      -fno-omit-frame-pointer
+    )
+  else()
+    message(FATAL_ERROR
+      "WATCHLIST_ENABLE_SANITIZERS is unsupported by ${CMAKE_CXX_COMPILER_ID}. "
+      "Configure with Clang or GCC, or disable WATCHLIST_ENABLE_SANITIZERS.")
   endif()
 endif()
 

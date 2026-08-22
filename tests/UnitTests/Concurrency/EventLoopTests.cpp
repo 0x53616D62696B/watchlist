@@ -28,6 +28,24 @@ TEST(EventLoopCoroutineTests, CompletesZeroDelayExactlyOnce)
     EXPECT_EQ(task.status(), Concurrency::TaskStatus::succeeded);
 }
 
+TEST(EventLoopCoroutineTests, SimultaneousLoopsKeepDelayRoutingIndependent)
+{
+    Concurrency::EventLoopCoroutine first;
+    Concurrency::EventLoopCoroutine second;
+    std::atomic<int> firstCalls{0};
+    std::atomic<int> secondCalls{0};
+
+    auto firstTask = first.schedule_after(1ms, [&firstCalls] { ++firstCalls; });
+    auto secondTask = second.schedule_after(1ms, [&secondCalls] { ++secondCalls; });
+
+    ASSERT_TRUE(firstTask.wait_for(1s));
+    ASSERT_TRUE(secondTask.wait_for(1s));
+    EXPECT_NO_THROW(firstTask.get());
+    EXPECT_NO_THROW(secondTask.get());
+    EXPECT_EQ(firstCalls.load(), 1);
+    EXPECT_EQ(secondCalls.load(), 1);
+}
+
 TEST(EventLoopCoroutineTests, MoveTransfersObserverWithoutInvalidatingFrame)
 {
     Concurrency::EventLoopCoroutine loop;
