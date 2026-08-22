@@ -19,19 +19,19 @@
             "inherits": "base-default",
             "cmakeExecutable": "C:/Users/patrik.maraczek/DevTools/CMake-3.30.9/bin/cmake.exe",
             "environment": {
-                "VCToolsInstallDir": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/",
-                "VCINSTALLDIR": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/",
+                "VCToolsInstallDir": "C:/Users/patrik.maraczek/DevTools/MSVC/18/BuildTools/VC/Tools/MSVC/14.51.36231/",
+                "VCINSTALLDIR": "C:/Users/patrik.maraczek/DevTools/MSVC/18/BuildTools/VC/",
                 "WindowsSdkDir": "C:/Program Files (x86)/Windows Kits/10/",
                 "WindowsSDKVersion": "10.0.26100.0/",
-                "PATH": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/HostX64/x64;C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja;C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64;$penv{PATH}",
-                "INCLUDE": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/include;C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Auxiliary/VS/include;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/ucrt;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/um;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/shared;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/winrt;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/cppwinrt",
-                "LIB": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/lib/x64;C:/Program Files (x86)/Windows Kits/10/lib/10.0.26100.0/ucrt/x64;C:/Program Files (x86)/Windows Kits/10/lib/10.0.26100.0/um/x64",
-                "LIBPATH": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/lib/x64;C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/lib/x86/store/references;C:/Program Files (x86)/Windows Kits/10/UnionMetadata/10.0.26100.0;C:/Program Files (x86)/Windows Kits/10/References/10.0.26100.0;C:/Windows/Microsoft.NET/Framework64/v4.0.30319"
+                "PATH": "C:/Users/patrik.maraczek/DevTools/MSVC/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64;C:/Users/patrik.maraczek/DevTools/MSVC/18/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja;C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64;C:/Users/patrik.maraczek/DevTools/MSVC/18/GitVersion;C:/Users/patrik.maraczek/DevTools/Git/cmd;C:/Program Files/dotnet;$penv{PATH}",
+                "INCLUDE": "C:/Users/patrik.maraczek/DevTools/MSVC/18/BuildTools/VC/Tools/MSVC/14.51.36231/include;C:/Users/patrik.maraczek/DevTools/MSVC/18/BuildTools/VC/Auxiliary/VS/include;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/ucrt;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/um;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/shared;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/winrt;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/cppwinrt",
+                "LIB": "C:/Users/patrik.maraczek/DevTools/MSVC/18/BuildTools/VC/Tools/MSVC/14.51.36231/lib/x64;C:/Program Files (x86)/Windows Kits/10/lib/10.0.26100.0/ucrt/x64;C:/Program Files (x86)/Windows Kits/10/lib/10.0.26100.0/um/x64",
+                "LIBPATH": "C:/Users/patrik.maraczek/DevTools/MSVC/18/BuildTools/VC/Tools/MSVC/14.51.36231/lib/x64;C:/Users/patrik.maraczek/DevTools/MSVC/18/BuildTools/VC/Tools/MSVC/14.51.36231/lib/x86/store/references;C:/Program Files (x86)/Windows Kits/10/UnionMetadata/10.0.26100.0;C:/Program Files (x86)/Windows Kits/10/References/10.0.26100.0;C:/Windows/Microsoft.NET/Framework64/v4.0.30319"
             },
             "cacheVariables": {
-                "CMAKE_MAKE_PROGRAM": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe",
-                "CMAKE_C_COMPILER": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/HostX64/x64/cl.exe",
-                "CMAKE_CXX_COMPILER": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/HostX64/x64/cl.exe",
+                "CMAKE_MAKE_PROGRAM": "C:/Users/patrik.maraczek/DevTools/MSVC/18/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe",
+                "CMAKE_C_COMPILER": "C:/Users/patrik.maraczek/DevTools/MSVC/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+                "CMAKE_CXX_COMPILER": "C:/Users/patrik.maraczek/DevTools/MSVC/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
                 "CMAKE_RC_COMPILER": "C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/rc.exe",
                 "CMAKE_MT": "C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/mt.exe"
             }

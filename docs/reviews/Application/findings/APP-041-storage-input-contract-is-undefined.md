@@ -1,0 +1,30 @@
+# APP-041: Storage accepts values without a validation contract
+
+- **Priority:** P2
+- **Kind:** Improvement
+- **Confidence:** High
+- **Subsystem:** Storage/API
+- **Location:** [`src/Utils/Storage/DatabaseItem.hpp`](../../../../src/Utils/Storage/DatabaseItem.hpp), lines 6-16; [`src/Utils/Storage/IDatabase.hpp`](../../../../src/Utils/Storage/IDatabase.hpp), lines 12-53
+- **Dependencies:** None
+
+## Observation
+
+The storage model accepts arbitrary IDs, names, and IP-address strings, including empty values, without documenting whether validation belongs to the domain layer or each backend.
+
+## Reasoning and impact
+
+Backends can diverge as new implementations arrive, and invalid identifiers or addresses can become durable data. Database constraints currently enforce only non-null and uniqueness, not domain meaning.
+
+## Recommended improvement
+
+Define invariants in a domain value type or documented service boundary before persistence. Keep backend constraints as defense in depth and return structured validation errors distinct from storage failures.
+
+## Acceptance criteria
+
+- Ownership of validation is explicit.
+- All backends accept/reject the same domain values.
+- Invalid input cannot partially mutate storage.
+
+## Suggested tests
+
+Create a shared backend contract suite covering empty/oversized IDs and names, address formats selected by product policy, port boundaries, and duplicate IDs.
