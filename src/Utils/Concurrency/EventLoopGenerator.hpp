@@ -84,6 +84,10 @@ public:
     ~EventLoopGenerator() {
         PROFILE_FUNCTION;
         PROFILE_MESSAGE("[TRACY][ELOOP_GEN] Stopping event loop worker thread");
+        if (producer_thread_.joinable()) {
+            PROFILE_SCOPE(EventLoopGeneratorJoinProducer);
+            producer_thread_.join();
+        }
         {
             PROFILE_SCOPE(EventLoopGeneratorSetStopFlag);
             std::lock_guard<std::mutex> lock(mutex_);
@@ -135,7 +139,7 @@ public:
     void process_event_sequence(std::generator<Event>&& gen) {
         PROFILE_FUNCTION;
         PROFILE_MESSAGE("[TRACY][ELOOP_GEN] Start producer thread: pull generator values and schedule them");
-        std::thread([this, gen = std::move(gen)]() mutable {
+        producer_thread_ = std::thread([this, gen = std::move(gen)]() mutable {
             PROFILE_THREAD("Generator producer");
             PROFILE_FUNCTION;
             for (const auto& event : gen) {
@@ -143,7 +147,7 @@ public:
                 schedule_event(event.name, event.action);
             }
             PROFILE_MESSAGE("[TRACY][ELOOP_GEN] Producer consumed all generated events");
-        }).detach();
+        });
     }
     
 private:
@@ -184,6 +188,7 @@ private:
     std::queue<Event> events_;
     std::mutex mutex_;
     std::condition_variable condition_;
+    std::thread producer_thread_;
     std::thread worker_thread_;
     bool running_;
 };

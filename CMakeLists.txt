@@ -1,14 +1,13 @@
 
 cmake_minimum_required(VERSION 3.21) # Can't use VERSION >= 4.0, it is not compatible with used glad.
 
-if(NOT EXISTS "${CMAKE_SOURCE_DIR}/CMakeUserPresets.json")
-  message(FATAL_ERROR
-    "Development Environment Error: CMakeUserPresets.json was not found. "
-    "Create it by copying CMakeUserPresetsExample.json "
-    "to CMakeUserPresets.json and update the paths for your machine.")
-endif()
-
 project(watchlist)
+
+# Build options must be defined before compiler modules consume them.
+option(ENABLE_PROFILING "Enable profiling with Tracy" OFF)
+option(BUILD_TESTING "Build unit tests" ON)
+option(BUILD_DEVELOPMENT "Build the experimental Development target" OFF)
+option(ENABLE_NATIVE_ARCH "Optimize for the build host CPU" ON)
 
 # Include CMake modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
@@ -28,10 +27,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # set(ENABLE_PROFILING OFF)
 set(ENABLE_PCH ON)
 
-
-# Args
-option(ENABLE_PROFILING "Enable profiling with Tracy" OFF)
-option(BUILD_TESTING "Build unit tests" ON)
 
 set(CMAKE_CXX_FLAGS_DEBUGTRACY "${CMAKE_CXX_FLAGS_DEBUG}" CACHE STRING "Flags for DebugTracy build type" FORCE)
 set(CMAKE_C_FLAGS_DEBUGTRACY "${CMAKE_C_FLAGS_DEBUG}" CACHE STRING "Flags for DebugTracy build type" FORCE)
@@ -92,7 +87,9 @@ add_executable(Application ${SRC_APPLICATION})
 add_executable(MultithreadDemo ${SRC_MULTITHREAD_DEMO})
 add_executable(ConcurrencyExamples)
 add_executable(Logger ${SRC_LOGGER})
-add_executable(Development ${SRC_DEVELOPMENT})
+if(BUILD_DEVELOPMENT)
+  add_executable(Development ${SRC_DEVELOPMENT})
+endif()
 
 # precompiled headers
 if(ENABLE_PCH)
@@ -111,8 +108,10 @@ endif()
 # utils
 file(GLOB_RECURSE SRC_UTILS CONFIGURE_DEPENDS src/Utils/*.hpp src/Utils/*.cpp)
 target_sources(Application PRIVATE ${SRC_UTILS})
-target_sources(Development PRIVATE ${SRC_UTILS})
-target_link_libraries(Development PRIVATE SQLiteCpp sqlite3)
+if(BUILD_DEVELOPMENT)
+  target_sources(Development PRIVATE ${SRC_UTILS})
+  target_link_libraries(Development PRIVATE SQLiteCpp sqlite3)
+endif()
 
 # gui
 file(GLOB_RECURSE SRC_GUI CONFIGURE_DEPENDS src/Gui/*.hpp src/Gui/*.cpp)
@@ -175,12 +174,13 @@ target_sources(Logger PRIVATE ${SRC_LOGGER})
 set_target_properties(Logger PROPERTIES COMPILE_DEFINITIONS "DEBUG_LOGGER=1")
 
 # app sources used for development and reaserch
-file(GLOB SRC_DEVELOPMENT CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/development/*.cpp)
-list(REMOVE_ITEM SRC_DEVELOPMENT
-  ${CMAKE_CURRENT_SOURCE_DIR}/development/excluded/*.cpp
-  #${CMAKE_CURRENT_SOURCE_DIR}/development/another_excluded_file.cpp
-)
-target_sources(Development PRIVATE ${SRC_DEVELOPMENT})
+if(BUILD_DEVELOPMENT)
+  file(GLOB SRC_DEVELOPMENT CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/development/*.cpp)
+  list(REMOVE_ITEM SRC_DEVELOPMENT
+    ${CMAKE_CURRENT_SOURCE_DIR}/development/excluded/*.cpp
+  )
+  target_sources(Development PRIVATE ${SRC_DEVELOPMENT})
+endif()
 
 if(BUILD_TESTING AND TARGET GTest::gtest_main)
   add_executable(UnitTests
@@ -195,7 +195,15 @@ if(BUILD_TESTING AND TARGET GTest::gtest_main)
   )
 
   include(GoogleTest)
-  gtest_discover_tests(UnitTests)
+  gtest_discover_tests(UnitTests PROPERTIES LABELS Unit)
 elseif(BUILD_TESTING)
   message(STATUS "GoogleTest was not found. Add it to libs/googletest or install a GTest package to build UnitTests.")
+endif()
+
+if(BUILD_TESTING)
+  add_test(NAME MultithreadDemo.Smoke COMMAND MultithreadDemo)
+  set_tests_properties(MultithreadDemo.Smoke PROPERTIES LABELS System TIMEOUT 15)
+
+  add_test(NAME ConcurrencyExamples.Smoke COMMAND ConcurrencyExamples)
+  set_tests_properties(ConcurrencyExamples.Smoke PROPERTIES LABELS System TIMEOUT 30)
 endif()

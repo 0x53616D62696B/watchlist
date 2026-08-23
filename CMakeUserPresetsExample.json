@@ -1,95 +1,34 @@
 {
-    "version": 3,
-    "vendor": {
-        "watchlist.dev/requirements/1.0": {
-            "cmake": "3.30.9",
-            "generator": "Ninja",
-            "visualStudioBuildTools": "2026",
-            "msvcToolset": "14.51.36231",
-            "windowsSdk": "10.0.26100.0",
-            "tracy": "0.13.1",
-            "gitVersion": "6.5.1"
-        }
+  "version": 6,
+  "vendor": {
+    "watchlist.dev/requirements/1.0": {
+      "cmake": "3.30.9",
+      "generator": "Ninja",
+      "visualStudioBuildTools": "2026",
+      "msvcToolset": "14.51",
+      "windowsSdk": "10.0.26100.0",
+      "mingwGcc": "16.1",
+      "gitVersion": "6.5.1"
+    }
+  },
+  "configurePresets": [
+    {
+      "name": "local-linux-gcc",
+      "displayName": "Local Linux GCC override",
+      "inherits": "linux-gcc",
+      "binaryDir": "${sourceDir}/build/local-linux-gcc"
     },
-    "configurePresets": [
-        {
-            "name": "default",
-            "displayName": "Default",
-            "description": "Default build configuration using VS 2026 Build Tools, Windows SDK, and Ninja paths.",
-            "inherits": "base-default",
-            "cmakeExecutable": "C:/Users/patrik.maraczek/DevTools/CMake-3.30.9/bin/cmake.exe",
-            "environment": {
-                "VCToolsInstallDir": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/",
-                "VCINSTALLDIR": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/",
-                "WindowsSdkDir": "C:/Program Files (x86)/Windows Kits/10/",
-                "WindowsSDKVersion": "10.0.26100.0/",
-                "PATH": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/HostX64/x64;C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja;C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64;$penv{PATH}",
-                "INCLUDE": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/include;C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Auxiliary/VS/include;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/ucrt;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/um;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/shared;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/winrt;C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/cppwinrt",
-                "LIB": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/lib/x64;C:/Program Files (x86)/Windows Kits/10/lib/10.0.26100.0/ucrt/x64;C:/Program Files (x86)/Windows Kits/10/lib/10.0.26100.0/um/x64",
-                "LIBPATH": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/lib/x64;C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/lib/x86/store/references;C:/Program Files (x86)/Windows Kits/10/UnionMetadata/10.0.26100.0;C:/Program Files (x86)/Windows Kits/10/References/10.0.26100.0;C:/Windows/Microsoft.NET/Framework64/v4.0.30319"
-            },
-            "cacheVariables": {
-                "CMAKE_MAKE_PROGRAM": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe",
-                "CMAKE_C_COMPILER": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/HostX64/x64/cl.exe",
-                "CMAKE_CXX_COMPILER": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/HostX64/x64/cl.exe",
-                "CMAKE_RC_COMPILER": "C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/rc.exe",
-                "CMAKE_MT": "C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/mt.exe"
-            }
-        },
-        {
-            "name": "with-profiling",
-            "displayName": "Tracy",
-            "description": "Enable Tracy profiling using VS 2026 Build Tools, Windows SDK, and Ninja paths.",
-            "inherits": [
-                "base-with-profiling",
-                "default"
-            ]
-        }
-    ],
-    "buildPresets": [
-        {
-            "name": "default",
-            "displayName": "Default",
-            "configurePreset": "default"
-        },
-        {
-            "name": "with-profiling",
-            "displayName": "Tracy",
-            "configurePreset": "with-profiling"
-        },
-        {
-            "name": "unit-tests",
-            "displayName": "Unit Tests",
-            "configurePreset": "default",
-            "targets": [
-                "UnitTests"
-            ]
-        },
-        {
-            "name": "unit-tests-with-profiling",
-            "displayName": "Tracy + Unit Tests",
-            "configurePreset": "with-profiling",
-            "targets": [
-                "UnitTests"
-            ]
-        }
-    ],
-    "testPresets": [
-        {
-            "name": "default",
-            "displayName": "CTest Default",
-            "configurePreset": "default",
-            "output": {
-                "outputOnFailure": true
-            }
-        },
-        {
-            "name": "with-profiling",
-            "displayName": "CTest Tracy",
-            "configurePreset": "with-profiling",
-            "output": {
-                "outputOnFailure": true
-            }
-        }
-    ]
+    {
+      "name": "local-windows-mingw",
+      "displayName": "Local Windows MinGW override",
+      "inherits": "windows-mingw",
+      "binaryDir": "${sourceDir}/build/local-windows-mingw"
+    },
+    {
+      "name": "local-windows-msvc",
+      "displayName": "Local Windows MSVC override",
+      "inherits": "windows-msvc",
+      "binaryDir": "${sourceDir}/build/local-windows-msvc"
+    }
+  ]
 }

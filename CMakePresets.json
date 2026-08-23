@@ -1,26 +1,107 @@
 {
-    "version": 3,
-    "configurePresets": [
-        {
-            "name": "base-default",
-            "hidden": true,
-            "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build/default",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "BUILD_TESTING": "ON"
-            }
-        },
-        {
-            "name": "base-with-profiling",
-            "hidden": true,
-            "inherits": "base-default",
-            "binaryDir": "${sourceDir}/build/profiling",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "DebugTracy",
-                "BUILD_TESTING": "ON",
-                "ENABLE_PROFILING": "ON"
-            }
-        }
-    ]
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 25, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "BUILD_TESTING": "ON",
+        "BUILD_DEVELOPMENT": "OFF",
+        "ENABLE_NATIVE_ARCH": "OFF",
+        "ENABLE_PROFILING": "OFF"
+      }
+    },
+    {
+      "name": "linux-gcc",
+      "displayName": "Linux GCC",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/build/linux-gcc",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" },
+      "cacheVariables": { "CMAKE_C_COMPILER": "gcc", "CMAKE_CXX_COMPILER": "g++" }
+    },
+    {
+      "name": "windows-mingw",
+      "displayName": "Windows MinGW-w64 GCC",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/build/windows-mingw",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "gcc.exe",
+        "CMAKE_CXX_COMPILER": "g++.exe",
+        "CMAKE_RC_COMPILER": "windres.exe"
+      }
+    },
+    {
+      "name": "windows-msvc",
+      "displayName": "Windows MSVC fallback",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/build/windows-msvc",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
+      "cacheVariables": { "CMAKE_C_COMPILER": "cl.exe", "CMAKE_CXX_COMPILER": "cl.exe" }
+    },
+    {
+      "name": "default",
+      "displayName": "Windows default (MinGW-w64 GCC)",
+      "inherits": "windows-mingw",
+      "binaryDir": "${sourceDir}/build/default"
+    },
+    {
+      "name": "with-profiling",
+      "displayName": "Windows MinGW with Tracy profiling",
+      "inherits": "default",
+      "binaryDir": "${sourceDir}/build/profiling",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "DebugTracy", "ENABLE_PROFILING": "ON" }
+    }
+  ],
+  "buildPresets": [
+    { "name": "linux-gcc", "configurePreset": "linux-gcc", "targets": ["Application", "Logger", "MultithreadDemo", "ConcurrencyExamples", "UnitTests"] },
+    { "name": "windows-mingw", "configurePreset": "windows-mingw", "targets": ["Application", "Logger", "MultithreadDemo", "ConcurrencyExamples", "UnitTests"] },
+    { "name": "windows-msvc", "configurePreset": "windows-msvc", "targets": ["Application", "Logger", "MultithreadDemo", "ConcurrencyExamples", "UnitTests"] },
+    { "name": "default", "configurePreset": "default" },
+    { "name": "with-profiling", "configurePreset": "with-profiling" },
+    { "name": "unit-tests", "configurePreset": "default", "targets": ["UnitTests"] },
+    { "name": "unit-tests-with-profiling", "configurePreset": "with-profiling", "targets": ["UnitTests"] }
+  ],
+  "testPresets": [
+    { "name": "linux-unit", "configurePreset": "linux-gcc", "filter": { "include": { "label": "Unit" } }, "output": { "outputOnFailure": true } },
+    { "name": "linux-system", "configurePreset": "linux-gcc", "filter": { "include": { "label": "System" } }, "output": { "outputOnFailure": true } },
+    { "name": "windows-mingw-unit", "configurePreset": "windows-mingw", "filter": { "include": { "label": "Unit" } }, "output": { "outputOnFailure": true } },
+    { "name": "windows-mingw-system", "configurePreset": "windows-mingw", "filter": { "include": { "label": "System" } }, "output": { "outputOnFailure": true } },
+    { "name": "windows-msvc-unit", "configurePreset": "windows-msvc", "filter": { "include": { "label": "Unit" } }, "output": { "outputOnFailure": true } },
+    { "name": "windows-msvc-system", "configurePreset": "windows-msvc", "filter": { "include": { "label": "System" } }, "output": { "outputOnFailure": true } },
+    { "name": "default", "configurePreset": "default", "output": { "outputOnFailure": true } },
+    { "name": "with-profiling", "configurePreset": "with-profiling", "output": { "outputOnFailure": true } }
+  ],
+  "workflowPresets": [
+    {
+      "name": "linux-gcc",
+      "steps": [
+        { "type": "configure", "name": "linux-gcc" },
+        { "type": "build", "name": "linux-gcc" },
+        { "type": "test", "name": "linux-unit" },
+        { "type": "test", "name": "linux-system" }
+      ]
+    },
+    {
+      "name": "windows-mingw",
+      "steps": [
+        { "type": "configure", "name": "windows-mingw" },
+        { "type": "build", "name": "windows-mingw" },
+        { "type": "test", "name": "windows-mingw-unit" },
+        { "type": "test", "name": "windows-mingw-system" }
+      ]
+    },
+    {
+      "name": "windows-msvc",
+      "steps": [
+        { "type": "configure", "name": "windows-msvc" },
+        { "type": "build", "name": "windows-msvc" },
+        { "type": "test", "name": "windows-msvc-unit" },
+        { "type": "test", "name": "windows-msvc-system" }
+      ]
+    }
+  ]
 }
