@@ -33,17 +33,23 @@ Gui::DeviceViewModel ToViewModel(const Utils::Storage::DatabaseItem& device)
 
 } // namespace
 
-DeviceStorageService::DeviceStorageService(const std::filesystem::path& databasePath)
-    : DeviceStorageService(std::make_unique<Utils::Storage::SQLiteDatabase>(databasePath))
+DeviceStorageService::DeviceStorageService(
+    const std::filesystem::path& databasePath,
+    ExecutionMode executionMode)
+    : DeviceStorageService(
+          std::make_unique<Utils::Storage::SQLiteDatabase>(databasePath), executionMode)
 {
 }
 
-DeviceStorageService::DeviceStorageService(std::unique_ptr<Utils::Storage::IDatabase> database)
-    : database_(std::move(database))
+DeviceStorageService::DeviceStorageService(
+    std::unique_ptr<Utils::Storage::IDatabase> database,
+    ExecutionMode executionMode)
+    : database_(std::move(database)), executionMode_(executionMode)
 {
     if (!database_)
         throw std::invalid_argument("Device storage database cannot be null");
-    worker_ = std::jthread([this](std::stop_token stopToken) { Run(stopToken); });
+    if (executionMode_ == ExecutionMode::OwnedThread)
+        worker_ = std::jthread([this] { Run(stopSource_.get_token()); });
     Submit({Gui::DeviceCommand{.kind = Gui::DeviceCommandKind::Refresh}});
 }
 
@@ -75,9 +81,22 @@ std::vector<DeviceStorageResult> DeviceStorageService::PollResults()
     return std::exchange(results_, {});
 }
 
+void DeviceStorageService::RunOnCallingThread() noexcept
+{
+    if (executionMode_ != ExecutionMode::CallingThread)
+    {
+        std::lock_guard lock(mutex_);
+        results_.push_back({
+            .success = false,
+            .error = "RunOnCallingThread requires CallingThread execution mode"});
+        return;
+    }
+    Run(stopSource_.get_token());
+}
+
 void DeviceStorageService::RequestStop() noexcept
 {
-    worker_.request_stop();
+    stopSource_.request_stop();
     condition_.notify_all();
 }
 
@@ -91,6 +110,16 @@ std::vector<DeviceStorageResult> DeviceStorageService::StopAndDrain()
 
 void DeviceStorageService::Run(std::stop_token stopToken) noexcept
 {
+    {
+        std::lock_guard lock(mutex_);
+        if (runStarted_)
+        {
+            results_.push_back({.success = false, .error = "Device storage worker was started more than once"});
+            return;
+        }
+        runStarted_ = true;
+    }
+
     try
     {
         database_->Initialize();

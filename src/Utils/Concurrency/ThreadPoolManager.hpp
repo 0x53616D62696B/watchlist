@@ -65,8 +65,8 @@ private:
 
     std::vector<std::thread> workers_;
     std::queue<WorkerFunction> tasks_;
-    std::mutex queueMutex_;
-    std::condition_variable condition_;
+    PROFILE_LOCKABLE(std::mutex, queueMutex_, "Thread pool task queue");
+    std::condition_variable_any condition_;
     bool stop_{false};
 
 #ifdef WATCHLIST_THREAD_POOL_TESTING
@@ -168,6 +168,7 @@ auto ThreadPoolManager::enqueue(F&& function, Args&&... args)
             throw std::runtime_error("ThreadPoolManager is stopped");
         }
         tasks_.emplace([task] { (*task)(); });
+        PROFILE_VALUE(tasks_.size());
     }
 
     condition_.notify_one();
@@ -193,6 +194,7 @@ inline void ThreadPoolManager::WorkerThread()
 
             task = std::move(tasks_.front());
             tasks_.pop();
+            PROFILE_NAMED_VALUE(ThreadPoolWorkerWaitForTask, tasks_.size());
         }
 
         PROFILE_SCOPE(ThreadPoolWorkerExecuteTask);

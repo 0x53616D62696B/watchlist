@@ -23,14 +23,25 @@ struct DeviceStorageResult {
 
 class DeviceStorageService {
 public:
-    explicit DeviceStorageService(const std::filesystem::path& databasePath);
-    explicit DeviceStorageService(std::unique_ptr<Utils::Storage::IDatabase> database);
+    enum class ExecutionMode {
+        OwnedThread,
+        CallingThread,
+    };
+
+    explicit DeviceStorageService(
+        const std::filesystem::path& databasePath,
+        ExecutionMode executionMode = ExecutionMode::OwnedThread);
+    explicit DeviceStorageService(
+        std::unique_ptr<Utils::Storage::IDatabase> database,
+        ExecutionMode executionMode = ExecutionMode::OwnedThread);
     DeviceStorageService(const DeviceStorageService&) = delete;
     DeviceStorageService& operator=(const DeviceStorageService&) = delete;
     ~DeviceStorageService();
 
     void Submit(std::vector<Gui::DeviceCommand> commands);
     [[nodiscard]] std::vector<DeviceStorageResult> PollResults();
+    /** Runs the storage queue on the caller when CallingThread mode was selected. */
+    void RunOnCallingThread() noexcept;
     void RequestStop() noexcept;
     [[nodiscard]] std::vector<DeviceStorageResult> StopAndDrain();
 
@@ -43,6 +54,9 @@ private:
     std::condition_variable_any condition_;
     std::queue<std::vector<Gui::DeviceCommand>> commands_;
     std::vector<DeviceStorageResult> results_;
+    std::stop_source stopSource_;
+    ExecutionMode executionMode_;
+    bool runStarted_{};
     std::jthread worker_;
 };
 
