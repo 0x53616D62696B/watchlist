@@ -4,7 +4,9 @@
 #include <cstdlib>
 #include <exception>
 #include <format>
+#include <iostream>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <utility>
 
@@ -219,9 +221,33 @@ void RunConcurrencyExamples()
 
 } // namespace Examples::Concurrency
 
-int main()
+namespace {
+
+bool HasArgument(int argc, char** argv, std::string_view argument)
+{
+    for (int index = 1; index < argc; ++index)
+    {
+        if (argv[index] == argument)
+            return true;
+    }
+    return false;
+}
+
+void WaitForTracy()
+{
+    PROFILE_MESSAGE("[TRACY][CONCURRENCY] Waiting for Tracy");
+    LOG_INFO("Concurrency examples are waiting so Tracy can connect. Press Enter to start...");
+    std::cin.get();
+}
+
+} // namespace
+
+int main(int argc, char** argv)
 try
 {
+    if (HasArgument(argc, argv, "--wait-for-tracy"))
+        WaitForTracy();
+
     Examples::Concurrency::RunConcurrencyExamples();
     return EXIT_SUCCESS;
 }

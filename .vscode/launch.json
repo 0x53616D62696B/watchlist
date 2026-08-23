@@ -84,6 +84,24 @@
                 }
             ],
             "console": "integratedTerminal"
+        },
+        {
+            "name": "CMake: ConcurrencyExamples target (Tracy no-exit, wait)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${input:cmakeConcurrencyExamplesPath}",
+            "args": [
+                "--wait-for-tracy"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${input:cmakeConcurrencyExamplesDirectory}",
+            "environment": [
+                {
+                    "name": "TRACY_NO_EXIT",
+                    "value": "1"
+                }
+            ],
+            "console": "integratedTerminal"
         }
     ],
     "inputs": [
@@ -101,6 +119,22 @@
             "command": "cmake.launchTargetDirectory",
             "args": {
                 "targetName": "Application"
+            }
+        },
+        {
+            "id": "cmakeConcurrencyExamplesPath",
+            "type": "command",
+            "command": "cmake.launchTargetPath",
+            "args": {
+                "targetName": "ConcurrencyExamples"
+            }
+        },
+        {
+            "id": "cmakeConcurrencyExamplesDirectory",
+            "type": "command",
+            "command": "cmake.launchTargetDirectory",
+            "args": {
+                "targetName": "ConcurrencyExamples"
             }
         }
     ]
