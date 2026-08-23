@@ -157,5 +157,26 @@ TEST(DeviceStorageServiceTests, StopDrainsAcceptedCommandsAndReturnsEachResultOn
     EXPECT_TRUE(service.PollResults().empty());
 }
 
+TEST(DeviceStorageServiceTests, CallingThreadModeUsesTheRuntimeOwnedWorker)
+{
+    DeviceStorageService service(
+        std::make_unique<FakeDatabase>(),
+        DeviceStorageService::ExecutionMode::CallingThread);
+    const auto callerThread = std::this_thread::get_id();
+    std::thread::id workerThread;
+    std::jthread runtimeWorker([&] {
+        workerThread = std::this_thread::get_id();
+        service.RunOnCallingThread();
+    });
+
+    const auto initialResults = WaitForResults(service);
+    ASSERT_EQ(initialResults.size(), 1U);
+    EXPECT_TRUE(initialResults.front().success);
+
+    service.RequestStop();
+    runtimeWorker.join();
+    EXPECT_NE(workerThread, callerThread);
+}
+
 } // namespace
 } // namespace Watchlist

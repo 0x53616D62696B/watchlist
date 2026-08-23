@@ -205,4 +205,25 @@ TEST(AsyncEventLoopTests, CallbackExceptionIsObservable)
     EXPECT_THROW(task.get(), std::logic_error);
 }
 
+TEST(AsyncEventLoopTests, CallingThreadModeRunsOnRuntimeOwnedWorker)
+{
+    Concurrency::AsyncEventLoop loop(
+        Concurrency::AsyncEventLoop::ExecutionMode::CallingThread);
+    std::promise<std::thread::id> callbackThread;
+    auto callbackThreadFuture = callbackThread.get_future();
+    auto task = loop.schedule([&callbackThread] {
+        callbackThread.set_value(std::this_thread::get_id());
+    });
+
+    std::jthread runtimeWorker([&loop] {
+        EXPECT_TRUE(loop.run_on_calling_thread());
+    });
+    const auto runtimeWorkerId = runtimeWorker.get_id();
+
+    task.get();
+    loop.stop();
+    runtimeWorker.join();
+    EXPECT_EQ(callbackThreadFuture.get(), runtimeWorkerId);
+}
+
 } // namespace

@@ -33,6 +33,11 @@ namespace Concurrency {
  */
 class AsyncEventLoop final {
 public:
+    enum class ExecutionMode {
+        OwnedThread,
+        CallingThread,
+    };
+
     struct Event {
         std::string name;
         std::variant<int, double, std::string> data;
@@ -101,12 +106,15 @@ public:
         std::coroutine_handle<promise_type> handle_;
     };
 
-    AsyncEventLoop()
-        : worker_thread_([this] {
-            PROFILE_THREAD("Async event loop");
-            run();
-        })
+    explicit AsyncEventLoop(ExecutionMode executionMode = ExecutionMode::OwnedThread)
+        : execution_mode_(executionMode)
     {
+        if (execution_mode_ == ExecutionMode::OwnedThread) {
+            worker_thread_ = std::thread([this] {
+                PROFILE_THREAD("Async event loop");
+                (void)run();
+            });
+        }
     }
 
     ~AsyncEventLoop()
@@ -119,6 +127,15 @@ public:
 
     AsyncEventLoop(const AsyncEventLoop&) = delete;
     AsyncEventLoop& operator=(const AsyncEventLoop&) = delete;
+
+    /** Runs the event scheduler on the caller when CallingThread mode was selected. */
+    [[nodiscard]] bool run_on_calling_thread() noexcept
+    {
+        if (execution_mode_ != ExecutionMode::CallingThread) {
+            return false;
+        }
+        return run();
+    }
 
     [[nodiscard]] Task schedule_after(std::chrono::milliseconds delay, std::function<void()> callback)
     {
@@ -155,6 +172,7 @@ public:
 
     [[nodiscard]] bool emit_event(const Event& event)
     {
+        PROFILE_FUNCTION;
         std::vector<EventWaiter> resumed;
         {
             std::lock_guard lock(mutex_);
@@ -184,6 +202,7 @@ public:
     /** Stop accepting work and cancel every task that has not begun resuming. */
     void stop() noexcept
     {
+        PROFILE_FUNCTION;
         std::vector<std::shared_ptr<detail::CoroutineFrame>> cancelled;
         std::lock_guard execution_boundary(execution_gate_);
         {
@@ -306,6 +325,7 @@ private:
         std::chrono::milliseconds delay,
         const std::shared_ptr<detail::CoroutineFrame>& frame)
     {
+        PROFILE_FUNCTION;
         {
             std::lock_guard lock(mutex_);
             if (!accepting_) return false;
@@ -313,6 +333,7 @@ private:
                 ? std::chrono::milliseconds::zero()
                 : delay);
             delayed_tasks_.push({deadline, next_sequence_++, frame});
+            PROFILE_VALUE(delayed_tasks_.size());
         }
         condition_.notify_one();
         return true;
@@ -320,10 +341,12 @@ private:
 
     [[nodiscard]] bool enqueue_ready(const std::shared_ptr<detail::CoroutineFrame>& frame)
     {
+        PROFILE_FUNCTION;
         {
             std::lock_guard lock(mutex_);
             if (!accepting_) return false;
             ready_tasks_.push_back(frame);
+            PROFILE_VALUE(ready_tasks_.size());
         }
         condition_.notify_one();
         return true;
@@ -334,17 +357,29 @@ private:
         const std::shared_ptr<detail::CoroutineFrame>& frame,
         Event* event)
     {
+        PROFILE_FUNCTION;
         std::lock_guard lock(mutex_);
         if (!accepting_) return false;
         event_waiters_[name].push_back({frame, event});
+        PROFILE_VALUE(event_waiters_.size());
         return true;
     }
 
-    void run() noexcept
+    [[nodiscard]] bool run() noexcept
     {
+        PROFILE_FUNCTION;
+        {
+            std::lock_guard lock(mutex_);
+            if (run_started_) {
+                return false;
+            }
+            run_started_ = true;
+        }
+
         while (true) {
             std::shared_ptr<detail::CoroutineFrame> ready;
             {
+                PROFILE_SCOPE(AsyncEventLoopWaitForWork);
                 std::unique_lock lock(mutex_);
                 condition_.wait(lock, [this] {
                     return stopping_ || !ready_tasks_.empty() || !delayed_tasks_.empty();
@@ -370,6 +405,7 @@ private:
             }
 
             if (ready) {
+                PROFILE_SCOPE(AsyncEventLoopResumeTask);
                 std::lock_guard execution_boundary(execution_gate_);
                 bool stopping;
                 {
@@ -383,18 +419,21 @@ private:
                 }
             }
         }
+        return true;
     }
 
-    mutable std::mutex mutex_;
-    std::recursive_mutex execution_gate_;
-    std::condition_variable condition_;
+    PROFILE_LOCKABLE(std::mutex, mutex_, "Async event-loop queue");
+    PROFILE_LOCKABLE(std::recursive_mutex, execution_gate_, "Async event-loop execution");
+    std::condition_variable_any condition_;
     std::priority_queue<DelayedTask, std::vector<DelayedTask>, Later> delayed_tasks_;
     std::vector<std::shared_ptr<detail::CoroutineFrame>> ready_tasks_;
     std::map<std::string, std::vector<EventWaiter>> event_waiters_;
-    std::thread worker_thread_;
     std::uint64_t next_sequence_{0};
     bool accepting_{true};
     bool stopping_{false};
+    bool run_started_{false};
+    ExecutionMode execution_mode_;
+    std::thread worker_thread_;
 };
 
 } // namespace Concurrency

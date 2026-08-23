@@ -71,15 +71,15 @@ class GlfwPlatform final : public IGuiPlatform {
 public:
     GlfwPlatform(
         GuiConfiguration configuration,
-        std::thread::id processMainThread,
+        std::thread::id guiThread,
         AppState* mqttState)
-        : configuration_(configuration), processMainThread_(processMainThread), mqttState_(mqttState)
+        : configuration_(configuration), guiThread_(guiThread), mqttState_(mqttState)
     {
     }
 
     void InitializeGlfw() override
     {
-        AssertMainThread();
+        AssertGuiThread();
         glfwSetErrorCallback(GlfwErrorCallback);
         if (glfwInit() == GLFW_FALSE)
             throw std::runtime_error(WithLatestGlfwError("GLFW initialization failed"));
@@ -87,14 +87,14 @@ public:
 
     void TerminateGlfw() noexcept override
     {
-        AssertMainThreadNoexcept();
+        AssertGuiThreadNoexcept();
         glfwTerminate();
         glfwSetErrorCallback(nullptr);
     }
 
     void CreateWindow() override
     {
-        AssertMainThread();
+        AssertGuiThread();
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, configuration_.openGlMajor);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, configuration_.openGlMinor);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -128,7 +128,7 @@ public:
 
     void DestroyWindow() noexcept override
     {
-        AssertMainThreadNoexcept();
+        AssertGuiThreadNoexcept();
         if (window_ != nullptr)
             glfwDestroyWindow(window_);
         window_ = nullptr;
@@ -136,7 +136,7 @@ public:
 
     void InitializeOpenGl() override
     {
-        AssertMainThread();
+        AssertGuiThread();
         glfwMakeContextCurrent(window_);
         if (gladLoadGL() == 0)
             throw std::runtime_error(WithLatestGlfwError(std::format(
@@ -167,7 +167,7 @@ public:
 
     void CreateImGuiContext() override
     {
-        AssertMainThread();
+        AssertGuiThread();
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
@@ -184,13 +184,13 @@ public:
 
     void DestroyImGuiContext() noexcept override
     {
-        AssertMainThreadNoexcept();
+        AssertGuiThreadNoexcept();
         ImGui::DestroyContext();
     }
 
     void InitializeImGuiGlfwBackend() override
     {
-        AssertMainThread();
+        AssertGuiThread();
         if (!ImGui_ImplGlfw_InitForOpenGL(window_, true))
             throw std::runtime_error(WithLatestGlfwError("Failed to initialize the ImGui GLFW backend"));
         glfwSetWindowContentScaleCallback(window_, ContentScaleCallback);
@@ -198,38 +198,38 @@ public:
 
     void ShutdownImGuiGlfwBackend() noexcept override
     {
-        AssertMainThreadNoexcept();
+        AssertGuiThreadNoexcept();
         ImGui_ImplGlfw_Shutdown();
     }
 
     void InitializeImGuiOpenGlBackend() override
     {
-        AssertMainThread();
+        AssertGuiThread();
         if (!ImGui_ImplOpenGL3_Init("#version 330 core"))
             throw std::runtime_error(WithLatestGlfwError("Failed to initialize the ImGui OpenGL 3.3 backend"));
     }
 
     void ShutdownImGuiOpenGlBackend() noexcept override
     {
-        AssertMainThreadNoexcept();
+        AssertGuiThreadNoexcept();
         ImGui_ImplOpenGL3_Shutdown();
     }
 
     bool WindowShouldClose() override
     {
-        AssertMainThread();
+        AssertGuiThread();
         return glfwWindowShouldClose(window_) != GLFW_FALSE;
     }
 
     void RequestClose() override
     {
-        AssertMainThread();
+        AssertGuiThread();
         glfwSetWindowShouldClose(window_, GLFW_TRUE);
     }
 
     void BeginFrame() override
     {
-        AssertMainThread();
+        AssertGuiThread();
         glfwPollEvents();
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -238,7 +238,7 @@ public:
 
     void DrawFrame(DeviceMonitorState& state) override
     {
-        AssertMainThread();
+        AssertGuiThread();
         ShowWindow(state, mqttState_);
         if (ImGui::IsKeyPressed(ImGuiKey_Escape))
             state.RequestExit();
@@ -246,7 +246,7 @@ public:
 
     void EndFrame() override
     {
-        AssertMainThread();
+        AssertGuiThread();
         ImGui::Render();
         int width = 0;
         int height = 0;
@@ -269,17 +269,17 @@ public:
     }
 
 private:
-    void AssertMainThread() const
+    void AssertGuiThread() const
     {
-        const bool onMainThread = IsExpectedThread(processMainThread_);
-        assert(onMainThread && "GLFW/ImGui operation must run on the process main thread");
-        if (!onMainThread)
-            throw std::logic_error("GLFW/ImGui operation called off the process main thread");
+        const bool onGuiThread = IsExpectedThread(guiThread_);
+        assert(onGuiThread && "GLFW/ImGui operation must run on the GUI owner thread");
+        if (!onGuiThread)
+            throw std::logic_error("GLFW/ImGui operation called off the GUI owner thread");
     }
 
-    void AssertMainThreadNoexcept() const noexcept
+    void AssertGuiThreadNoexcept() const noexcept
     {
-        assert(IsExpectedThread(processMainThread_) && "GLFW/ImGui cleanup must run on the process main thread");
+        assert(IsExpectedThread(guiThread_) && "GLFW/ImGui cleanup must run on the GUI owner thread");
     }
 
     void ApplyContentScale(float scale)
@@ -309,7 +309,7 @@ private:
     }
 
     GuiConfiguration configuration_;
-    std::thread::id processMainThread_;
+    std::thread::id guiThread_;
     AppState* mqttState_{};
     GLFWwindow* window_{};
     ImGuiStyle baseStyle_{};
@@ -339,12 +339,12 @@ std::optional<std::string> PumpStorage(DeviceStorageService& storage, DeviceMoni
 GuiResult ImGuiStart(
     DeviceMonitorState& state,
     DeviceStorageService& storage,
-    std::thread::id processMainThread,
+    std::thread::id guiThread,
     const GuiConfiguration& configuration,
     AppState* mqttState)
 {
-    PROFILE_THREAD("Watchlist GUI main thread");
-    GlfwPlatform platform(configuration, processMainThread, mqttState);
+    PROFILE_THREAD("Watchlist GUI");
+    GlfwPlatform platform(configuration, guiThread, mqttState);
     auto result = RunGuiLifecycle(platform, state, [&storage](DeviceMonitorState& currentState) {
         return PumpStorage(storage, currentState);
     });

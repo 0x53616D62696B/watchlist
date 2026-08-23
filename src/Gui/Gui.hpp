@@ -15,7 +15,7 @@ namespace Watchlist::Gui {
 [[nodiscard]] GuiResult ImGuiStart(
     DeviceMonitorState& state,
     DeviceStorageService& storage,
-    std::thread::id processMainThread,
+    std::thread::id guiThread,
     const GuiConfiguration& configuration = {},
     AppState* mqttState = nullptr);
 
